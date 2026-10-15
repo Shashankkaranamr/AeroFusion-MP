@@ -1,0 +1,39 @@
+{
+ "version": "v1",
+ "created": "2026-10-15T13:54:03+00:00",
+ "dataset_status": "partial",
+ "splits": {
+  "train": {
+   "start": "2018-01-01",
+   "end": "2021-12-31",
+   "hours": 35064,
+   "sha256_y": "8cced21819594761f52c9f1bc2a33d40e8086fa9213dd14bba7c214ff8088833",
+   "sha256_x": "4e4479a749e7ee5846ab1e65590e4e4c052c13624837da98e2b09a7fe120de25",
+   "frozen": false
+  },
+  "val": {
+   "start": "2022-01-01",
+   "end": "2022-12-31",
+   "hours": 8760,
+   "sha256_y": "77293caf97eb59573c4e3fcf6c6cfaa71ca0fd65cc26713c9c86313d7ef45074",
+   "sha256_x": "163956853d66c5bb4bd95740dc3210cd62b746a4f7a99247bdbd77a7a5128a8c",
+   "frozen": false
+  },
+  "test": {
+   "start": "2023-01-01",
+   "end": "2024-12-31",
+   "hours": 17544,
+   "sha256_y": "8760c974b8c6d6a825bba4c8515d5dc345faebf4306ba74321b926d17bafe601",
+   "sha256_x": "d8621258c81a97b54c6c551ba8db299173ea55f4a6071b618bb670212aa834fd",
+   "frozen": true
+  },
+  "extra_pm_only": {
+   "start": "2025-04-01",
+   "end": "2025-09-30",
+   "hours": 4392,
+   "sha256_y": "0c7c6b677444a5fff44dbe8045cd43b38c4f6fb47741f853754de9a495a1daf5",
+   "sha256_x": "caee697ca5d5cc04e573267a1344e8eec42c761be42b68c43559bb0e3f4e4000",
+   "frozen": true
+  }
+ }
+}
