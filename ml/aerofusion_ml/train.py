@@ -143,6 +143,8 @@ def main() -> None:
     df.to_parquet(run_dir / "preds_val.parquet", index=False)
     (run_dir / "config.yaml").write_text(yaml.safe_dump(cfg), encoding="utf-8")
     (run_dir / "norm_stats.json").write_text(json.dumps(stats.to_dict()), encoding="utf-8")
+    if data.get("grid_stats") is not None:
+        (run_dir / "grid_stats.json").write_text(json.dumps({"mean": data["grid_stats"][0].tolist(), "std": data["grid_stats"][1].tolist()}), encoding="utf-8")
     (run_dir / "env.txt").write_text(f"python {platform.python_version()}\ntorch {torch.__version__}\nplatform {platform.platform()}\n", encoding="utf-8")
     print(f"done: {run_id} params={n_params:,} best_val_rmse={best:.2f}")
 

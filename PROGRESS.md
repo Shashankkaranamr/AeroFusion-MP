@@ -485,10 +485,14 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
 
 ### Phase P4: Final evaluation, ablations, explainability validation (wk 12–14, → 24 Jan). Owners E + X
 - [ ] **P4.1 Final runs**, 5 seeds each:
+  - 2026-10-15 code ready: ablation configs `configs/exp/abl_*.yaml`; `scripts/run_ladder.py --group final --seeds 0 1 2 3 4`.
   - M6 in S-A and S-B
   - the best 4 baselines
   - leave-one-out ablations of M6: −wavelet, −graph (no graph), fixed graph only, −ConvLSTM, Transformer→GRU, −gating
 - [ ] **P4.2 `final_eval.py` on test (first time it is opened).**
+  - 2026-10-15 code ready, locked: needs `ml/MODEL_FREEZE.json` (run_ids + frozen commit, clean tree) and re-verifies
+    `SPLITS.lock` hashes before/after; `torch_dataset.build_frozen` refuses any other caller; tests `test_final_eval_guard.py`.
+    Non-neural baselines get a `--final` mode at P4.
   - Main table: per lead, mean ± std over seeds, DM p-values vs best baseline and vs CAMS-BC.
   - Season, region and episode tables; AQI-category results.
   - Rolling-origin fold (§3.3) for M6 and the 2 best baselines.
@@ -497,6 +501,8 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
   as an India-wide, leakage-safe benchmark plus component analysis plus validated attribution. Write it that way.
   Do not re-tune on test.
 - [ ] **P4.4 Attribution validation** (`explain.py`):
+  - 2026-10-15 code ready: `aerofusion_ml/explain.py` (deletion vs random vs IG, cascading randomisation, seed stability,
+    plausibility Spearman, LightGBM TreeSHAP by group); `tests/test_explain.py` on a toy M6. Runs on trained models in P4.
   - (a) **Faithfulness:** deletion/insertion curves masking the top-k gated groups vs random vs top-k by
     Integrated Gradients (captum).
   - (b) **Sanity:** randomise weights layer by layer (Adebayo); attributions must change.

@@ -42,6 +42,13 @@ class Stats:
         v = z * self.y_std + self.y_mean
         return np.expm1(v) if self.log_target else v
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "Stats":
+        s = cls.__new__(cls)
+        s.x_mean, s.x_std = np.asarray(d["x_mean"], np.float32), np.asarray(d["x_std"], np.float32)
+        s.y_mean, s.y_std, s.log_target = d["y_mean"], d["y_std"], d["log_target"]
+        return s
+
     def to_dict(self) -> dict:
         return {"x_mean": self.x_mean.tolist(), "x_std": self.x_std.tolist(), "y_mean": self.y_mean, "y_std": self.y_std, "log_target": self.log_target}
 
@@ -128,3 +135,23 @@ def build(cfg: dict, splits_to_load=("train", "val")) -> dict:
             fc = xr.open_zarr(ML / "data/processed/cams_fc_v1.zarr").sel(point=ids)[["pm2p5"]].load()
         out[name] = WindowDataset(a, issue_times(a.times, sp["splits"][name], hours, stop), stats, grid, gstats, cfg.get("setting", "S-A"), fc)
     return out
+
+
+def build_frozen(cfg: dict, split: str, stats: Stats, grid_stats=None, _caller: str = "") -> WindowDataset:
+    """Frozen-split dataset with the run's TRAIN-fitted stats. Only scripts/final_eval.py may call this (P4)."""
+    if _caller != "final_eval":
+        raise PermissionError("build_frozen is reserved for scripts/final_eval.py")
+    sp = yaml.safe_load((ML / "configs" / "splits_v1.yaml").read_text(encoding="utf-8"))
+    feats_cfg = yaml.safe_load((ML / "configs" / "features_v1.yaml").read_text(encoding="utf-8"))
+    s = sp["splits"][split]
+    first = pd.Timestamp(s["start"]) - pd.Timedelta(hours=windows.WINDOW_H + 1)
+    stop = pd.Timestamp(s["end"], tz="UTC") + pd.Timedelta(hours=23)
+    a = loader.NodeArrays.from_zarr(ML / cfg.get("dataset", "data/processed/dataset_v1.zarr"), feats_cfg, first, stop.tz_convert(None))
+    grid = None
+    if cfg.get("use_grid", False):
+        grid = xr.open_zarr(ML / cfg.get("grid", "data/processed/grid_v1.zarr"))["x_grid"].sel(time=slice(first, stop.tz_convert(None))).load()
+    fc = None
+    if cfg.get("setting", "S-A") == "S-B":
+        ids = [str(n) for n in xr.open_zarr(ML / cfg.get("dataset", "data/processed/dataset_v1.zarr")).node.values]
+        fc = xr.open_zarr(ML / "data/processed/cams_fc_v1.zarr").sel(point=ids)[["pm2p5"]].load()
+    return WindowDataset(a, issue_times(a.times, s, sp["issue_hours_eval"], stop), stats, grid, grid_stats, cfg.get("setting", "S-A"), fc)
