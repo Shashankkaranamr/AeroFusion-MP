@@ -546,6 +546,9 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
   the prospective evaluation.
   - 2026-10-15: ground-truth collector ready: `aerofusion_ml/data/openaq.py` + `scripts/collect_openaq.py --months YYYY-MM`
     (refuses months before 2026-10); 2026-10 fetched (28,296 station-hours, 112 stations). Re-run monthly through 2027-02.
+  - 2026-10-16: `scripts/prospective_eval.py`: CAMS live forecasts from the archived snapshots (issue time = snapshot time,
+    slot mean of CAMS t and t+1) and persistence vs OpenAQ city means; `prospective` is now a frozen split in evaluate.py,
+    so scores are computed once with `--final` after model freeze (availability-only mode otherwise). Tests `test_prospective.py`.
 
 ### Phase P6: Paper, report, viva (wk 14–18, → 21 Feb)
 - [ ] **P6.1 Paper** in the IEEE conference template, 6 pages: Intro, Related work (from P0.6), Data (+ data card

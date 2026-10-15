@@ -20,7 +20,7 @@ import yaml
 
 ML = Path(__file__).resolve().parents[1]
 CFG = ML / "configs" / "eval_v1.yaml"
-FROZEN = {"test", "extra_pm_only", "rolling_test"}
+FROZEN = {"test", "extra_pm_only", "rolling_test", "prospective"}
 
 
 def load_cfg(path: Path = CFG) -> dict:
