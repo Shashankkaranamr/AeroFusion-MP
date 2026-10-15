@@ -519,8 +519,11 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
   - (e) Compare against SHAP on the LightGBM baseline.
   - Any check that fails is reported as failed.
 - [ ] **P4.5 Case-study figures:** Delhi stubble episodes (Nov 2023, Nov 2024), Diwali 2023 and 2024 (event-day error
+  - 2026-10-16 code ready: `scripts/make_figures.py --cases --runs …` (Delhi stubble Nov 2023/2024, Diwali 2023/2024;
+    dust window to be picked from CAMS dust AOD on train/val), `--ladder` (val RMSE per rung + table). Runs after final_eval.
   reported honestly), and one dust event.
 - [ ] **P4.6 Compute report:** params, GPU type, time/epoch, total GPU-hours, inference latency (ONNX CPU).
+  - 2026-10-16 code ready: `scripts/make_figures.py --compute` → `docs/paper/tables/compute.md` from each run's `training` block.
 
 **Exit criteria:** all paper tables and figures are generated from run artifacts, and P2.5 CI is green.
 
