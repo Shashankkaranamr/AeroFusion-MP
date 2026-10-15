@@ -262,8 +262,10 @@ ml/
     `forecasts_<stamp>.json.gz` (raw CAMS + weather) to `backend/data/archive/` (`AEROFUSION_ARCHIVE_DIR`), test
     `backend/tests/test_archive.py`. Durable copy: `scripts/archive_snapshot.py` + `.github/workflows/archive-snapshot.yml`
     (every 6 h → `data-archive` branch, dedup on `updated_at`). Tested against the deployed API: saved
-    `snapshot_2026-10-15T05-06-39Z.json.gz` locally (6/6 sources ok). **Blocked on P0.5** (push repo + workflow) and on
-    redeploying the backend (team action). Until then, run the script by hand every ~12 h.
+    `snapshot_2026-10-15T05-06-39Z.json.gz` locally (6/6 sources ok).
+  - 2026-10-15: workflow live on GitHub; first run 38694869721 committed that snapshot to `data-archive` (`97c6bcb`).
+    Works with the current deployment (no redeploy needed). **Tick when 3 distinct `updated_at` snapshots are on
+    `data-archive`** (live refresh is every 12 h, so expect ~2026-10-16 evening; duplicates are skipped).
 - [x] **P0.3 Remove placeholder metrics.** Delete `backend/app/data/metrics_illustrative.json` and every frontend
   reference to it. The Model Lab shows "training in progress" until P5. *Acceptance:* grep finds no `illustrative`.
   - 2026-10-15: file deleted; no frontend reference existed (there is no Model Lab view yet, so nothing to show).
