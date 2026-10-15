@@ -30,7 +30,7 @@ def main() -> None:
     keep = times <= stop
     times = times[keep]
     st = ds.node_kind.values == "station"
-    ids = ds.node.values[st].astype(str)
+    ids = np.array([str(v) for v in ds.node.values[st]])
     y = ds.y.values[keep][:, st]
     pm_in = ds.x_node.sel(feat="pm25").values[keep][:, st]
     fc = xr.open_zarr(ML / "data/processed/cams_fc_v1.zarr").sel(point=ids).load()
@@ -45,7 +45,7 @@ def main() -> None:
     bc = LinearBC().fit(*stack(t_tr))
     Fv, Ov = stack(t_va)
     pers = np.stack([persistence(pm_in, times.get_loc(t0)) for t0 in t_va])
-    city_of = dict(zip(ds.node.values.astype(str), ds.node_city_slug.values.astype(str)))
+    city_of = dict(zip(np.array([str(v) for v in ds.node.values]), np.array([str(v) for v in ds.node_city_slug.values])))
     for name, P in [("cams_raw", Fv), ("cams_bc", bc.predict(Fv))]:
         S = len(t_va)
         df = pd.DataFrame({"t0": np.repeat(t_va, 48 * len(ids)), "lead": np.tile(np.repeat(np.arange(1, 49), len(ids)), S),

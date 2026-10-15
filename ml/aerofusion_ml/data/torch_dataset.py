@@ -96,7 +96,7 @@ class WindowDataset(torch.utils.data.Dataset):
 
 
 def issue_times(times: pd.DatetimeIndex, split: dict, hours: list[int] | None, stop: pd.Timestamp) -> pd.DatetimeIndex:
-    lo = pd.Timestamp(split["start"], tz="UTC") + pd.Timedelta(hours=windows.WINDOW_H)
+    lo = pd.Timestamp(split["start"], tz="UTC")  # inputs may come from before the split (that is the past); arrays are loaded from start - 73 h
     hi = min(pd.Timestamp(split["end"], tz="UTC") + pd.Timedelta(hours=23), stop) - pd.Timedelta(hours=windows.HORIZON_H)
     t = times[(times >= lo) & (times <= hi)]
     return t[t.hour.isin(hours)] if hours else t

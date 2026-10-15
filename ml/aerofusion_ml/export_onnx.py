@@ -81,7 +81,7 @@ def main() -> None:
         raise SystemExit(f"ONNX output differs from torch by {diff}")
     shutil.copy(rd / "norm_stats.json", out / "norm_stats.json")
     ds = xr.open_zarr(ML / "data/processed/dataset_v1.zarr")
-    (out / "graph.json").write_text(json.dumps({"run_id": a.run, "node_id": ds.node.values.astype(str).tolist(), "kind": ds.node_kind.values.astype(str).tolist(),
+    (out / "graph.json").write_text(json.dumps({"run_id": a.run, "node_id": np.array([str(v) for v in ds.node.values]).tolist(), "kind": np.array([str(v) for v in ds.node_kind.values]).tolist(),
                                                 "lat": ds.node_lat.values.tolist(), "lon": ds.node_lon.values.tolist(), "feat": arr.feats}), encoding="utf-8")
     (out / "export_check.json").write_text(json.dumps({"run_id": a.run, "max_abs_diff": diff}), encoding="utf-8")
     print(f"exported {a.run} -> {out / 'mwafn_v1.onnx'} (max |onnx - torch| = {diff:.2e})")

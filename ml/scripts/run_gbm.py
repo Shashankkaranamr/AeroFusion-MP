@@ -59,12 +59,12 @@ def main() -> None:
     rows = []
     for t0 in t_va:
         X = gbm.features(a, t0, leads, stations, static)
-        rows.append(pd.DataFrame({"t0": t0, "lead": X["lead_h"], "node_id": ds.node.values[stations][X["node_idx"]].astype(str),
+        rows.append(pd.DataFrame({"t0": t0, "lead": X["lead_h"], "node_id": [str(v) for v in ds.node.values[X["node_idx"].to_numpy()]],  # node_idx = absolute node index
                                   "pred": np.expm1(model.predict(X[cols])), "obs": gbm.target(a, t0, leads, stations)}))
     df = pd.concat(rows, ignore_index=True)
     name = "lgbm_sa" if args.setting == "S-A" else "lgbm_mos_sb"
     run_id = make_run_id(name, args.seed)
-    city_of = dict(zip(ds.node.values.astype(str), ds.node_city_slug.values.astype(str)))
+    city_of = dict(zip(np.array([str(v) for v in ds.node.values]), np.array([str(v) for v in ds.node_city_slug.values])))
     m = ev.evaluate(df, split="val", model=name, setting=args.setting, run_id=run_id, city_of=city_of)
     run_dir = ML / "runs" / run_id
     ev.write(m, run_dir)
