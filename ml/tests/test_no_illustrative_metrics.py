@@ -27,3 +27,27 @@ def test_no_json_with_illustrative_status():
             if isinstance(obj, dict) and str(obj.get("status", "")).lower() == "illustrative":
                 bad.append(str(f.relative_to(REPO)))
     assert not bad, f"placeholder metrics found: {bad}"
+
+
+def test_every_table_row_with_numbers_names_its_run():
+    """P2.5: each LaTeX table row that contains a number must end with a `% run_id:` comment (make_tables.py)."""
+    import re
+
+    bad = []
+    for f in (REPO / "docs" / "paper" / "tables").glob("*.tex"):
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            body = line.split("%", 1)[0]
+            if "\\\\" in body and re.search(r"\d+\.\d+", body) and not re.search(r"%\s*run_id:\s*\d{8}-[a-z0-9_]+-s\d+-\w+", line):
+                bad.append(f"{f.name}:{i}")
+    assert not bad, f"table rows without a run_id: {bad}"
+
+
+def test_every_cited_run_exists():
+    import re
+
+    missing = []
+    for f in (REPO / "docs" / "paper" / "tables").glob("*.tex"):
+        for rid in re.findall(r"run_id:\s*(\S+)", f.read_text(encoding="utf-8")):
+            if not (ML / "runs" / rid / "metrics.json").exists():
+                missing.append(rid)
+    assert not missing, f"tables cite runs with no metrics.json: {missing}"
