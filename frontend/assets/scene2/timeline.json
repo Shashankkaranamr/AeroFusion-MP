@@ -1,0 +1,163 @@
+{
+  "name": "AeroFusion \u2014 Scene 0 \u2192 Scene 1: the ember becomes a Punjab field fire",
+  "version": 2,
+  "continuous": true,
+  "note": "One unbroken camera move. Frame i corresponds to t = i / (frames - 1). Every frame is a pure function of t, so the sequence can be re-rendered at any frame count or resolution with render/frames.py and stays identical in motion. v2: rice-stubble clumps with loose straw, rounded flickering flames, C1-continuous camera path (no stops between keyframes), 360 frames.",
+  "frames": 360,
+  "fps": 30,
+  "duration_s": 12,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "background_color": "#0b0d14",
+  "files": {
+    "video": "aerofusion_s00-s01_1080p30.mp4",
+    "webp_sequence": "webp/frame_%04d.webp",
+    "png_sequence": "render with render/frames.py (lossless, for After Effects / DaVinci / Premiere)",
+    "keyframes": "keyframes/*.png"
+  },
+  "phases": [
+    {
+      "id": "ember_hold",
+      "t": [
+        0.0,
+        0.12
+      ],
+      "frames": [
+        0,
+        42
+      ],
+      "camera": "macro, locked on the ember, dark background",
+      "what_happens": "A single matte orange ember floats in darkness and pulses gently.",
+      "suggested_copy": "You are 2.5 micrometres wide."
+    },
+    {
+      "id": "burst",
+      "t": [
+        0.12,
+        0.22
+      ],
+      "frames": [
+        43,
+        78
+      ],
+      "camera": "holds, then eases back",
+      "what_happens": "The ember flashes and bursts into ~320 sparks; the core shrinks into one hot spark.",
+      "suggested_copy": "Thirty times thinner than a human hair."
+    },
+    {
+      "id": "fall",
+      "t": [
+        0.22,
+        0.48
+      ],
+      "frames": [
+        79,
+        171
+      ],
+      "camera": "follows the spark down, tilting to look at the ground",
+      "what_happens": "The spark drifts down on the wind; dark stubble appears, lit only by the spark.",
+      "suggested_copy": "Yesterday you didn't exist."
+    },
+    {
+      "id": "landing_catch",
+      "t": [
+        0.48,
+        0.6
+      ],
+      "frames": [
+        172,
+        214
+      ],
+      "camera": "close, high-angle over the stubble",
+      "what_happens": "The spark lands; the straw catches; the first flames and smoke appear.",
+      "suggested_copy": "1:42 PM. A field near Sangrur."
+    },
+    {
+      "id": "pull_back",
+      "t": [
+        0.6,
+        0.96
+      ],
+      "frames": [
+        215,
+        344
+      ],
+      "camera": "rises overhead (keeps the plume out of the lens), then swings to the drone view",
+      "what_happens": "The fire line spreads across the field, the burnt patch grows, smoke plumes rise and flatten under the ceiling, and the dusk world fades in from darkness: fields, tree lines, tube-well hut, tractor, village, other fires on the horizon.",
+      "suggested_copy": "A farmer has two weeks between rice and wheat. Fire is the fastest way to clear the field."
+    },
+    {
+      "id": "hold_final",
+      "t": [
+        0.96,
+        1.0
+      ],
+      "frames": [
+        345,
+        359
+      ],
+      "camera": "drone view, 45\u00b0",
+      "what_happens": "Final composition; matches the standalone Scene 1 still.",
+      "suggested_copy": "NASA's satellite saw this fire from 830 km up."
+    }
+  ],
+  "keyframes": [
+    {
+      "file": "keyframes/k01_ember.png",
+      "frame": 0,
+      "t": 0.0
+    },
+    {
+      "file": "keyframes/k02_burst.png",
+      "frame": 57,
+      "t": 0.159
+    },
+    {
+      "file": "keyframes/k03_fall.png",
+      "frame": 144,
+      "t": 0.402
+    },
+    {
+      "file": "keyframes/k04_landing.png",
+      "frame": 180,
+      "t": 0.502
+    },
+    {
+      "file": "keyframes/k05_catch.png",
+      "frame": 209,
+      "t": 0.582
+    },
+    {
+      "file": "keyframes/k06_overhead.png",
+      "frame": 266,
+      "t": 0.741
+    },
+    {
+      "file": "keyframes/k07_drone_final.png",
+      "frame": 359,
+      "t": 1.0
+    }
+  ],
+  "style": {
+    "look": "stylized toy 3D: rounded clay-like shapes, cotton-ball trees, lumpy irregular smoke, violet-magenta dusk, warm practical lights, bloom, fine film grain",
+    "palette": {
+      "page_dark": "#0b0d14",
+      "ember": "#e8743a",
+      "fire_outer": "#ff5a1f",
+      "fire_mid": "#ff9a2e",
+      "fire_core": "#ffe27a",
+      "stubble": "#d7a54e",
+      "burnt": "#2a1c26",
+      "smoke_low": "#e8d3d6",
+      "smoke_high": "#a5909c",
+      "dusk_haze": "#6a3264",
+      "sky_top": "#0a0820",
+      "tree_teal": "#2f9a7e",
+      "tree_warm": "#f0a24a",
+      "tractor_red": "#e2453c",
+      "brick": "#c2583f"
+    }
+  }
+}

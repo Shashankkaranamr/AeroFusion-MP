@@ -1,0 +1,36 @@
+# Render Blueprint — AeroFusion API (FastAPI). Render → New → Blueprint → pick this repo.
+services:
+  - type: web
+    name: aerofusion-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: AEROFUSION_REFRESH_SECONDS
+        value: "43200"   # refresh all live sources once every 12 h
+      - key: AEROFUSION_CORS
+        value: http://localhost:3000,http://localhost:5173
+      - key: AEROFUSION_CORS_REGEX
+        value: https://.*\.vercel\.app
+      - key: AI_PROVIDERS
+        value: bedrock,groq
+      - key: BEDROCK_REGION
+        value: us-east-1
+      - key: BEDROCK_MODEL
+        value: us.amazon.nova-micro-v1:0
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      # Secrets — Render asks for these when you create the Blueprint (never committed)
+      - key: XKDR_API_KEY
+        sync: false
+      - key: AWS_BEARER_TOKEN_BEDROCK
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

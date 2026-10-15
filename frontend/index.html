@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='.38' cy='.36' r='.7'%3E%3Cstop offset='0' stop-color='%23ffd3a3'/%3E%3Cstop offset='.45' stop-color='%23ff8a3d'/%3E%3Cstop offset='1' stop-color='%235a200c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='13' fill='url(%23g)'/%3E%3C/svg%3E" />
+    <title>AeroFusion — the air over North India, as a story and live</title>
+    <meta name="description" content="A scroll-driven story about air pollution in North India, and under it the live PM2.5 dashboard for 33 Indian cities." />
+    <!-- One type system for the story and the dashboard (src/typography/typography.css, src/app/styles/app.css). -->
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:100,200,300,400,500,600,700|jetbrains-mono:400,500&display=swap" />
+    <script>
+      // Opening on a dashboard address: be the dashboard from the first paint (src/core/site.js).
+      if (/^#\/(now|map|city|why|what-if|history|data)(\/|\?|$)/.test(location.hash)) document.documentElement.classList.add('mode-dash');
+    </script>
+  </head>
+  <body>
+    <h1 class="sr-only">AeroFusion — air pollution in North India, scene by scene, then live</h1>
+    <main id="story"></main>
+    <div id="bridge" aria-hidden="true"></div>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

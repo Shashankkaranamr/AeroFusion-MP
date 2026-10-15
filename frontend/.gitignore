@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# Originals moved aside by `npm run optimize` / `npm run frames` (large, not shipped)
+assets/_originals/
+
+.vercel

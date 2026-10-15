@@ -1,0 +1,1336 @@
+/* Colours, spacing and timing come from src/tokens.js (applyTokens). Type comes ONLY from
+   src/typography/typography.css — no font-family or font-size in this file. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html:not(.mode-dash) {
+  background: var(--sky);
+  -webkit-text-size-adjust: 100%;
+}
+
+html:not(.mode-dash) body {
+  margin: 0;
+  background: var(--sky);
+  color: var(--c-ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Text colour roles (sizes/families live in the typography system). */
+.s-tag {
+  color: var(--c-ink-dim);
+}
+h1,
+h2,
+h3 {
+  color: var(--c-ink);
+}
+
+/* ---------------------------------------------------------------- scenes -- */
+
+#story {
+  position: relative;
+  z-index: var(--z-scene);
+}
+
+.scene {
+  position: relative;
+}
+/* A scene that cuts straight in from the last frame of the previous one (joinPrevious in
+   sceneRunner): it overlaps the previous section by one screen and stays hidden until its top
+   reaches the top of the viewport, then covers it in a single frame. */
+.scene--joined {
+  margin-top: -100vh;
+  margin-top: -100svh;
+}
+.scene--joined > .scene-viewport {
+  visibility: hidden;
+}
+.scene--joined > .scene-viewport.is-on {
+  visibility: visible;
+}
+
+.scene-viewport {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background: var(--sky);
+}
+
+/* Horizon glow: a thin warm band of light along the bottom edge. Strength = --horizon. */
+.horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--horizon-height);
+  opacity: calc(var(--horizon) * var(--horizon-peak));
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: linear-gradient(
+    to top,
+    rgb(var(--c-horizon-rgb) / 0.9) 0%,
+    rgb(var(--c-horizon-rgb) / 0.42) 9%,
+    rgb(var(--c-horizon-rgb) / 0.12) 38%,
+    transparent 100%
+  );
+}
+.horizon::after {
+  content: '';
+  position: absolute;
+  left: -15%;
+  right: -15%;
+  bottom: -60%;
+  height: 120%;
+  background: radial-gradient(ellipse 50% 50% at 50% 100%, rgb(var(--c-horizon-rgb) / 0.35), transparent 70%);
+}
+
+/* ---------------------------------------------------------------- layers -- */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.layer picture {
+  display: contents;
+}
+.layer__media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 100%;
+}
+/* Light layers are drawn on pure black; screen makes the black disappear into the sky. */
+.layer--light {
+  mix-blend-mode: screen;
+}
+
+.placeholder {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-s) var(--gutter);
+  border-top: 1px dashed var(--c-ink-faint);
+}
+.placeholder--light {
+  border: 1px dashed var(--c-ink-faint);
+  background: radial-gradient(ellipse 70% 60% at 50% 70%, var(--ph-tint, transparent), transparent 75%);
+}
+.placeholder__label {
+  color: var(--c-ink-dim);
+}
+.placeholder__note {
+  color: var(--c-ink-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.dust {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------- particle -- */
+
+.particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.particle__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.particle__glow {
+  position: absolute;
+  /* A little up-left of the ball (the light's side) while it's matte; centred once it burns
+     and the light comes from inside. In diameters, so it doesn't depend on the canvas size. */
+  left: calc(50% - var(--d) * 0.16 * (1 - var(--heat, 0)));
+  top: calc(50% - var(--d) * 0.16 * (1 - var(--heat, 0)));
+  width: calc(var(--d) * 2.8);
+  height: calc(var(--d) * 2.8);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--c-ember-rgb) / 0.42) 0%,
+    rgb(var(--c-ember-rgb) / 0.14) 32%,
+    transparent 68%
+  );
+  mix-blend-mode: screen;
+}
+/* No WebGL: a soft ember dot, so the story still reads. */
+.particle--fallback .particle__canvas {
+  left: 50%;
+  top: 50%;
+  width: var(--d);
+  height: var(--d);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--c-ember-hot), var(--c-ember) 45%, transparent 72%);
+}
+
+/* --------------------------------------------------------------- ceiling -- */
+
+.ceiling {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ceiling__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--ceiling-y);
+  height: 1px;
+  background: var(--c-ceiling);
+  box-shadow:
+    0 0 calc(6px * var(--ceiling-glow)) rgb(var(--c-ceiling-rgb) / 0.55),
+    0 0 calc(22px * var(--ceiling-glow)) rgb(var(--c-ceiling-rgb) / 0.22);
+}
+.ceiling__haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--ceiling-y);
+  bottom: 0;
+  mix-blend-mode: screen;
+  opacity: min(1, var(--ceiling-density));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--c-ember-rgb) / 0.32) 0%,
+    rgb(var(--c-ember-rgb) / 0.12) 18%,
+    rgb(var(--c-ember-rgb) / 0.04) 55%,
+    transparent 100%
+  );
+}
+
+/* --------------------------------------------------------------- overlay -- */
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-vignette);
+  pointer-events: none;
+  opacity: var(--vignette);
+  /* Shadow = the sky pushed toward black, so it keeps the sky's hue. Never grey. */
+  background: radial-gradient(
+    ellipse 115% 95% at 50% 45%,
+    transparent 42%,
+    color-mix(in srgb, var(--sky), var(--c-shadow) 55%) 100%
+  );
+}
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-repeat: repeat;
+  animation: grain 0.8s steps(1) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-4%, -7%); }
+  20% { transform: translate(-11%, 3%); }
+  30% { transform: translate(6%, -12%); }
+  40% { transform: translate(-3%, 15%); }
+  50% { transform: translate(-12%, 6%); }
+  60% { transform: translate(10%, 0); }
+  70% { transform: translate(0, 10%); }
+  80% { transform: translate(3%, 20%); }
+  90% { transform: translate(-7%, 7%); }
+}
+
+/* -------------------------------------------------------------------- hud -- */
+
+.hud {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-hud);
+  pointer-events: none;
+}
+/* Overlay text stays legible when a scene goes bright behind it (fire, lit smoke). The shadow
+   is the sky pushed dark — tinted, never grey. */
+.hud,
+.caption,
+.scale-bar,
+.s2-evidence,
+.ride-label,
+.breath-reading,
+.ride-note,
+.ride-number,
+.trap-ruler,
+.trap-ceiling,
+.trap-counter,
+.trap-landmark {
+  text-shadow: 0 0 14px color-mix(in srgb, var(--sky), var(--c-shadow) 45%);
+}
+.clock__arc {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--sky), var(--c-shadow) 45%));
+}
+/*
+ * Clay chips: the small furniture around the story (scene marker, clock, corner readings) sits
+ * on soft pills tinted with the current sky, with a faint bevel on the top edge, like a pressed
+ * piece of clay. Instruments (scale bars, rulers) stay as bare hairlines; captions stay bare.
+ */
+.clock,
+.breath-reading,
+.s2-evidence,
+.ride-note {
+  padding: 6px 12px;
+  border-radius: 0;
+  background: color-mix(in srgb, color-mix(in srgb, var(--sky), #000000 55%) 72%, transparent);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  text-shadow: none;
+}
+/* Multi-line readings: a little more room. */
+.clock,
+.breath-reading,
+.s2-evidence {
+  padding: 10px 14px;
+}
+.clock {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 64px + 44px + 20px);
+  right: max(var(--gutter), calc((100% - 1320px) / 2 + var(--gutter)));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+}
+.clock__arc {
+  overflow: visible;
+}
+.clock__path {
+  fill: none;
+  stroke: var(--c-ink-faint);
+  stroke-width: 0.75;
+  stroke-dasharray: 1.5 2.5;
+}
+.clock__ground {
+  stroke: var(--c-ink-faint);
+  stroke-width: 0.75;
+}
+.clock__dot {
+  fill: var(--c-lamp);
+}
+.clock__halo {
+  fill: var(--c-lamp);
+  opacity: 0.22;
+}
+.clock.is-night .clock__dot,
+.clock.is-night .clock__halo {
+  fill: var(--c-moon);
+}
+.clock__time {
+  color: var(--c-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------- captions -- */
+
+/* Story lines (components/caption.js). Each line is revealed on its own. */
+.caption {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-s);
+  color: var(--c-ink);
+  text-align: left;
+}
+.caption__big {
+  max-width: 16ch;
+  margin-bottom: var(--space-xs);
+  text-wrap: balance;
+}
+.caption__line {
+  max-width: 40ch;
+  color: color-mix(in srgb, var(--c-ink) 84%, var(--sky));
+  text-wrap: pretty; /* no lone word left on the last line */
+}
+/* Beside the particle: right half, vertically centred. */
+.caption--aside {
+  left: 44%;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+}
+/* Over the render: top-left under the scene marker, clear of the fire and smoke below. A deeper,
+   layered shadow of the sky's own dark keeps it legible over lit stubble (it fades with each line). */
+.caption--upper {
+  left: var(--gutter);
+  top: 18%;
+  max-width: min(46vw, 56rem);
+  text-shadow:
+    0 0 3px color-mix(in srgb, var(--sky), var(--c-shadow) 70%),
+    0 0 14px color-mix(in srgb, var(--sky), var(--c-shadow) 60%),
+    0 0 36px color-mix(in srgb, var(--sky), var(--c-shadow) 50%);
+}
+/* Phones: particle above, lines centred below it. */
+@media (max-width: 639px) {
+  .caption--aside,
+  .caption--upper {
+    left: var(--gutter);
+    right: var(--gutter);
+    top: 52%;
+    max-width: none;
+    align-items: center;
+    text-align: center;
+    transform: none;
+  }
+  .caption--upper {
+    top: 14%;
+  }
+}
+
+/* ------------------------------------------------------------- scale bar -- */
+
+.scale-bar {
+  position: absolute;
+  right: var(--gutter);
+  bottom: max(calc(var(--gutter) * 2), env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.scale-bar__step {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  visibility: hidden;
+  opacity: 0;
+}
+.scale-bar__rule {
+  position: relative;
+  display: block;
+  width: var(--len);
+  height: 1px;
+  background: var(--c-ink);
+}
+/* End ticks. */
+.scale-bar__rule::before,
+.scale-bar__rule::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 7px;
+  background: var(--c-ink);
+}
+.scale-bar__rule::before { left: 0; }
+.scale-bar__rule::after { right: 0; }
+.scale-bar__label {
+  color: var(--c-ink);
+  text-transform: none;
+}
+
+/* --------------------------------------------------------------- scene 2 -- */
+
+/* Evidence tag at the drone view: bottom-left, clear of the smoke. */
+.s2-evidence {
+  position: absolute;
+  left: var(--gutter);
+  bottom: max(calc(var(--gutter) * 2), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--c-ink);
+}
+.s2-evidence__place {
+  font-weight: 500;
+}
+/* Phones: too narrow to share the bottom edge with the scale bar — sit above it. */
+@media (max-width: 639px) {
+  .s2-evidence {
+    bottom: calc(max(calc(var(--gutter) * 2), env(safe-area-inset-bottom)) + 3rem);
+  }
+}
+
+/* --------------------------------------------------------------- scene 3 -- */
+
+.ride-canvas,
+.ride-opening {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ride-opening {
+  object-fit: cover;
+  object-position: 50% 50%; /* = how Scene 2 draws its frames, so the cut is invisible */
+  pointer-events: none;
+}
+.ride-opening {
+  transform-origin: 62% 36%; /* toward the plume in Scene 2's last frame */
+}
+/* The smoke wipe between the farm and the map: the render's smoke colours, in soft billows. */
+/* Inside the city's dome of haze: the cut between Scene 3 and Scene 4. */
+.dome-haze {
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+  background:
+    radial-gradient(45% 40% at 50% 45%, rgb(176 112 64 / 0.92), transparent 72%),
+    radial-gradient(55% 50% at 30% 65%, rgb(122 82 54 / 0.9), transparent 75%),
+    radial-gradient(50% 45% at 75% 30%, rgb(150 96 60 / 0.88), transparent 75%),
+    rgb(78 52 40 / 0.96);
+}
+/* Grey dawn smog: the cut between Scene 4's night and Scene 5's morning. */
+.dawn-haze {
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 45% at 50% 40%, rgb(196 196 200 / 0.96), transparent 75%),
+    radial-gradient(60% 50% at 30% 70%, rgb(170 168 172 / 0.94), transparent 78%),
+    rgb(160 160 166 / 0.97);
+}
+/* The dark of the nostril, as we pass into it. */
+.breath-dark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 70% at 50% 50%, rgb(26 12 16 / 0.92), rgb(10 4 6 / 1) 80%);
+}
+.ride-haze {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 34% at 60% 40%, rgb(232 211 214 / 0.95), transparent 70%),
+    radial-gradient(44% 40% at 34% 56%, rgb(206 178 196 / 0.9), transparent 70%),
+    radial-gradient(48% 44% at 72% 72%, rgb(165 144 156 / 0.9), transparent 72%),
+    radial-gradient(58% 52% at 28% 24%, rgb(190 160 182 / 0.85), transparent 75%),
+    rgb(128 96 128 / 0.94);
+}
+.ride-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* City names on the map, placed every frame by the 3D world. */
+.ride-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--c-ink);
+  white-space: nowrap;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.ride-label--dest {
+  font-size: var(--fs-base);
+  letter-spacing: 0.16em;
+}
+.ride-note {
+  position: absolute;
+  left: var(--gutter);
+  bottom: max(calc(var(--gutter) * 2), env(safe-area-inset-bottom));
+  color: var(--c-ink-dim);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* The live number: big, on the right, over the city's dome. */
+.ride-number {
+  position: absolute;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-46%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-s);
+  text-align: right;
+  color: var(--c-ink);
+}
+.ride-number__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-s);
+  font-family: var(--font-display);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 200;
+  line-height: 0.9;
+  transform-origin: 100% 60%;
+}
+.ride-number__digits {
+  font-size: clamp(5rem, 15vw, 13rem);
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  /* Pollution may wear ember. */
+  color: var(--c-ember-hot);
+  text-shadow:
+    0 0 24px rgb(var(--c-ember-rgb) / 0.45),
+    0 0 60px rgb(var(--c-ember-rgb) / 0.25);
+}
+.ride-number__unit {
+  font-size: var(--fs-xl);
+  color: var(--c-ink);
+}
+.ride-number__category {
+  color: var(--c-ember-hot);
+}
+.ride-number__times {
+  max-width: 22ch;
+}
+.ride-number__limit {
+  color: var(--c-ink-dim);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 639px) {
+  .ride-number {
+    left: var(--gutter);
+    top: auto;
+    bottom: calc(max(calc(var(--gutter) * 2), env(safe-area-inset-bottom)) + 3rem);
+    transform: none;
+    align-items: center;
+    text-align: center;
+  }
+  .ride-number__value {
+    transform-origin: 50% 60%;
+  }
+  .ride-note {
+    bottom: calc(max(calc(var(--gutter) * 2), env(safe-area-inset-bottom)) + 3rem);
+  }
+}
+
+/* --------------------------------------------------------------- scene 6 -- */
+
+.alone-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The faint ring the ember gets before it's lost in the crowd. */
+.alone-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 170px;
+  height: 170px;
+  margin: -85px 0 0 -85px;
+  border: 1px solid color-mix(in srgb, var(--c-ink) 55%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+/* Words under the ember, centred. */
+.caption--center {
+  left: var(--gutter);
+  right: var(--gutter);
+  top: 61%;
+  align-items: center;
+  text-align: center;
+  text-shadow:
+    0 0 3px rgb(5 5 7 / 0.9),
+    0 0 16px rgb(5 5 7 / 0.85),
+    0 0 40px rgb(5 5 7 / 0.7);
+}
+@media (max-width: 639px) {
+  .caption--center {
+    top: 60%;
+  }
+}
+
+/* The counter and its thin bar, on the left. */
+.alone-meter {
+  position: absolute;
+  left: var(--gutter);
+  top: 18%;
+  bottom: 16%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  color: var(--c-ink);
+  pointer-events: none;
+  text-shadow: 0 0 12px rgb(5 5 7 / 0.9);
+}
+.alone-meter__value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.alone-meter__digits {
+  font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+  line-height: 1;
+}
+.alone-meter__unit {
+  font-size: var(--fs-sm);
+  color: var(--c-ink-dim);
+}
+.alone-meter__bar {
+  position: relative;
+  flex: 1;
+  width: 2px;
+  background: color-mix(in srgb, var(--c-ink) 18%, transparent);
+}
+.alone-meter__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--c-ink);
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+}
+.alone-meter__tick {
+  position: absolute;
+  left: 10px;
+  bottom: calc(var(--at) * 100%);
+  transform: translateY(50%);
+  white-space: nowrap;
+  color: var(--c-ink-dim);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.alone-meter__tick::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  background: var(--c-ink-dim);
+}
+.alone-meter__legend {
+  color: var(--c-ink-dim);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------- scene 5 -- */
+
+/* The forecast for this hour: small, in the corner, like a phone's air-quality widget. */
+.breath-reading {
+  position: absolute;
+  left: var(--gutter);
+  bottom: max(calc(var(--gutter) * 2), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--c-ink);
+}
+.breath-reading__k {
+  color: var(--c-ink-dim);
+}
+.breath-reading__v {
+  color: var(--c-ember-hot);
+}
+
+/* --------------------------------------------------------------- scene 4 -- */
+
+/* Altitude ruler on the right edge: ground to the top of the frame, placed every frame. */
+.trap-ruler {
+  position: absolute;
+  right: var(--gutter);
+  top: 0;
+  width: 1px;
+  pointer-events: none;
+}
+.trap-ruler__line {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1px;
+  height: 1px; /* scaled to the ruler's length (scaleY), so it never re-lays out */
+  transform-origin: 50% 0;
+  background: var(--c-ink-dim);
+}
+.trap-ruler__tick {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -0.7em;
+  white-space: nowrap;
+  color: var(--c-ink-dim);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 0.8rem;
+  color: var(--c-ink);
+  transform-origin: 100% 50%;
+}
+.trap-ruler__tick::after {
+  content: '';
+  width: 8px;
+  height: 1px;
+  background: var(--c-ink-dim);
+}
+/* "THE CEILING 1,500 m", riding the line, just left of the ruler. */
+.trap-ceiling {
+  position: absolute;
+  right: calc(var(--gutter) + 5.5rem);
+  top: 0;
+  margin-top: -2em;
+  font-size: var(--fs-base);
+  display: flex;
+  gap: var(--space-s);
+  color: var(--c-ceiling);
+  white-space: nowrap;
+  will-change: transform;
+}
+.trap-ceiling__value {
+  font-variant-numeric: tabular-nums;
+}
+/* The PM2.5 counter, beside the ruler, under the clock. */
+.trap-counter {
+  position: absolute;
+  right: calc(var(--gutter) + 5.5rem);
+  top: 17%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: var(--c-ink);
+}
+.trap-counter__label {
+  color: var(--c-ink-dim);
+}
+.trap-counter__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-s);
+  font-family: var(--font-display);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 200;
+  line-height: 1;
+}
+.trap-counter__digits {
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ember-hot);
+  text-shadow: 0 0 22px rgb(var(--c-ember-rgb) / 0.4);
+}
+.trap-counter__unit {
+  font-size: var(--fs-base);
+}
+.trap-counter__peak {
+  color: var(--c-ember-hot);
+}
+.trap-landmark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--c-ink);
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 639px) {
+  .trap-counter,
+  .trap-ceiling {
+    right: calc(var(--gutter) + 4.5rem);
+  }
+  /* Phones: in the open sky on the left, below the words and clear of the skyline. */
+  .trap-counter {
+    top: 36%;
+    right: auto;
+    left: var(--gutter);
+    align-items: flex-start;
+  }
+}
+
+/* ------------------------------------------------- the bar (the dashboard's header) -- */
+
+/* The story wears the dashboard's header: the same 1320 px column, the same 64 px row with the
+   logo on the left and the actions on the right, the same numbered mono rail under a hairline.
+   The logo's place stays empty until the story's ember flies into it (core/brand.js). */
+.story-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-top: env(safe-area-inset-top);
+  pointer-events: none;
+}
+/* A little dark behind the bar, so it reads over a bright frame; no glass over the pictures. */
+.story-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -40px;
+  background: linear-gradient(rgb(0 0 0 / 0.55), rgb(0 0 0 / 0));
+  pointer-events: none;
+}
+.story-bar__inner {
+  position: relative;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.story-bar__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+}
+.story-bar__title {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  color: rgb(255 255 255 / 0.66);
+  white-space: nowrap;
+}
+@media (max-width: 639px) {
+  .story-bar__title {
+    display: none;
+  }
+}
+.story-bar__title b {
+  color: #fff;
+  font-weight: 500;
+}
+/* At the end of the story everything but the logo fades (hud.finale). */
+.story-bar::before,
+.story-bar__title,
+.story-bar__rail,
+.story-bar .controls {
+  opacity: var(--chrome, 1);
+}
+.story-bar.is-finale :is(.story-bar__rail, .controls) {
+  pointer-events: none;
+  visibility: hidden;
+}
+.story-bar__rail {
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  pointer-events: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.story-bar__rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* The rail: `01 THE PARTICLE   02 THE SPARK …`, the current scene underlined. */
+.rail {
+  display: flex;
+  gap: 0 36px;
+  min-width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rail__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgb(255 255 255 / 0.45);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.rail__item:hover,
+.rail__item[aria-current='step'] {
+  color: #fff;
+}
+.rail__num {
+  color: rgb(255 255 255 / 0.32);
+  transition: color 0.2s ease;
+}
+.rail__item:hover .rail__num,
+.rail__item[aria-current='step'] .rail__num {
+  color: rgb(255 255 255 / 0.66);
+}
+.rail__item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.rail__item[aria-current='step']::after {
+  transform: scaleX(1);
+}
+.rail__item:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: 3px;
+}
+/* Phones: numbers only, and the current scene's name. */
+@media (max-width: 639px) {
+  .rail {
+    gap: 0 18px;
+  }
+  .rail__item:not([aria-current='step']) .rail__label {
+    display: none;
+  }
+}
+
+/* The logo, set exactly like the dashboard's (components/brand/logo.tsx): the ember, then the
+   spaced wordmark over a mono sub-line. The ember is drawn by the flyer, which lands on the mark. */
+.brand-fly {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* It may give up its width on a narrow bar: the wordmark only shows once the actions have gone. */
+.brand {
+  display: inline-flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding-right: 8px;
+  color: #fff;
+  text-decoration: none;
+  pointer-events: none;
+}
+.brand.is-on {
+  pointer-events: auto;
+}
+.controls {
+  flex: none;
+}
+.brand__mark {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+.brand__text {
+  display: grid;
+  gap: 3px;
+  line-height: 1;
+}
+.brand__word {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+.brand__sub {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.45);
+  opacity: 0;
+}
+@media (max-width: 639px) {
+  .brand__sub {
+    display: none;
+  }
+}
+.brand:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: 6px;
+}
+
+/* The actions, right: Autoplay · Sound outlined, the way into the dashboard solid white. */
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  pointer-events: auto;
+}
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px 0 14px;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  background: rgb(0 0 0 / 0.35);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, opacity 0.4s ease, transform 0.16s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.control:hover {
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4);
+}
+.control:active {
+  transform: translateY(1px);
+}
+.control:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: 3px;
+}
+.control[aria-pressed='true'] {
+  color: #000;
+  background: #fff;
+  box-shadow: none;
+}
+.control__icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+.control__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.control--skip {
+  gap: 14px;
+  padding: 0 18px 0 20px;
+  color: #000;
+  background: #fff;
+  box-shadow: none;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.control--skip:hover {
+  background: #d9d9d9;
+  box-shadow: none;
+}
+.control--skip .control__icon {
+  width: 10px;
+  height: 10px;
+  order: 2;
+  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.control--skip:hover .control__icon {
+  transform: translate(2px, -2px);
+}
+/* Phones: icons only (and a short label on the way in). */
+@media (max-width: 639px) {
+  .control {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+  .control__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .control--skip {
+    width: auto;
+    padding: 0 14px;
+  }
+  .control--skip .control__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+}
+/* Skip and Home close over the page with this. */
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-hud) - 1);
+  background: #000;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ------------------------------------------------------------- the finale (Scene 6) -- */
+
+/* "AEROFUSION / tracks them, live." The word is set like the logo's wordmark, only larger, so it
+   can shrink straight into it. */
+.finale {
+  gap: clamp(10px, 1.6vw, 18px);
+}
+:is(#story) .finale__word {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: clamp(1.7rem, 5.2vw, 4.2rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.finale__word-inner {
+  display: inline-block;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+:is(#story) p.finale__rest {
+  font-weight: 200;
+  font-size: clamp(1.4rem, 3.4vw, 2.6rem);
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: #fff;
+}
+
+/* ------------------------------------------- the bridge: story → dashboard -- */
+
+/* After the story: black, the engineering grid, and the airborne particles; the dashboard rises
+   over it and locks (core/site.js). */
+.bridge-field {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    #000;
+  background-size: 96px 96px, 96px 96px, auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.bridge-field canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.bridge-field__cue {
+  position: absolute;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: rgb(255 255 255 / 0.45);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.bridge-field__cue::after {
+  content: '';
+  width: 1px;
+  height: 36px;
+  background: linear-gradient(rgb(255 255 255 / 0.5), transparent);
+  transform-origin: top;
+  animation: cue 2.2s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+}
+@keyframes cue {
+  0% { transform: scaleY(0); opacity: 1; }
+  60% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+#bridge {
+  position: relative;
+  height: 100vh;
+  pointer-events: none;
+}
+/* The dashboard, under the story: opaque, so it covers the field as it rises. */
+#app {
+  position: relative;
+  z-index: 45;
+}
+html:not(.mode-dash) #app {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    var(--bg, #000);
+  background-size: 96px 96px, 96px 96px, auto;
+}
+/* Until it locks, the dashboard's logo place is held by the story's, which flies there. */
+html:not(.mode-dash) #app [data-logo] {
+  visibility: hidden;
+}
+
+/* Locked into the dashboard: the story steps out of the page entirely. */
+html.mode-dash {
+  background: #000;
+}
+.mode-dash :is(#story, #bridge, .hud, .vignette, .grain, .veil, .ember-cursor, .bridge-field) {
+  display: none !important;
+}
+
+/* Between the two (Back to the story, Skip): one black frame over everything. */
+.site-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.45s cubic-bezier(0.77, 0, 0.175, 1), visibility 0s linear 0.45s;
+}
+.site-veil.is-on {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.45s cubic-bezier(0.77, 0, 0.175, 1), visibility 0s;
+}
+
+
+/* -------------------------------------------------------- reduced motion -- */
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
+}

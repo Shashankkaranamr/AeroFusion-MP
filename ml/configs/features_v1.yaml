@@ -1,0 +1,41 @@
+# PROGRESS §3.6. DRAFT until feature freeze (end of week 6); after that this file is immutable and a change means v2.
+# Order here = feature order in x_node[..., feat]. `group` feeds source-group attribution gating (§2).
+version: v1
+status: draft
+features:
+  # history
+  - {key: pm25,  group: history}
+  - {key: pm10,  group: history}
+  - {key: no2,   group: traffic_proxy}
+  - {key: co,    group: traffic_proxy}
+  - {key: o3,    group: history}
+  # met
+  - {key: t2m,         group: met}
+  - {key: rh,          group: met}
+  - {key: u10,         group: met}
+  - {key: v10,         group: met}
+  - {key: wind_speed,  group: met}
+  - {key: pressure,    group: met}
+  - {key: precip,      group: met}
+  - {key: blh,         group: met}
+  - {key: ventilation, group: met}     # wind_speed * blh
+  # fire (FIRMS, firms_latency_h applied)
+  - {key: fires_300km,        group: fire}
+  - {key: frp_300km,          group: fire}
+  - {key: fires_upwind_500km, group: fire}   # within ±45° of wind direction, city → source
+  # dust / CAMS analysis (lead 0)
+  - {key: cams_pm25,     group: cams}
+  - {key: cams_aod550,   group: dust}
+  - {key: cams_dust_aod, group: dust}
+  # calendar (hour in local time UTC+5.5)
+  - {key: weekday,        group: traffic_proxy}
+  - {key: holiday,        group: traffic_proxy}
+  - {key: hour_sin,       group: calendar}
+  - {key: hour_cos,       group: calendar}
+  - {key: doy_sin,        group: calendar}
+  - {key: doy_cos,        group: calendar}
+  - {key: diwali_window,  group: calendar}
+  - {key: stubble_season, group: calendar}
+  - {key: lockdown,       group: calendar}
+masks: [pm25, pm10, no2, co, o3]   # m_node carries a missing-mask for every feature; these are also input channels
+static: [lat, lon, elevation, coastal, region, city_population]

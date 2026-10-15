@@ -1,0 +1,46 @@
+# PROGRESS P0.2: copy the live snapshot to durable storage (the `data-archive` branch) every 6 h.
+# Render's disk is ephemeral; these snapshots are the prospective winter 2026-27 test archive.
+# Duplicate snapshots (same updated_at) are skipped by the script.
+name: archive-snapshot
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: archive-snapshot
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: code
+
+      - name: Check out data-archive branch (create it on first run)
+        env:
+          REPO_URL: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+        run: |
+          if git clone --depth 1 --branch data-archive "$REPO_URL" archive; then :; else
+            mkdir archive && cd archive && git init -b data-archive && git remote add origin "$REPO_URL"
+          fi
+
+      - name: Fetch snapshot
+        env:
+          AEROFUSION_API: ${{ vars.AEROFUSION_API || 'https://aerofusion-api.onrender.com' }}
+        run: python code/scripts/archive_snapshot.py --out archive/snapshots
+
+      - name: Commit
+        working-directory: archive
+        run: |
+          git config user.name "aerofusion-archiver"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add snapshots
+          if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+          git commit -m "snapshot $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push origin data-archive

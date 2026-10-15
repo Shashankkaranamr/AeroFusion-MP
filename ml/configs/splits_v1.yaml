@@ -1,0 +1,15 @@
+# PROGRESS §3.3. All times UTC, inclusive dates. The test split is FROZEN: only scripts/final_eval.py (P4) reads it.
+version: v1
+timezone: UTC
+issue_hours_eval: [0, 12]      # evaluation issue times (match CAMS runs)
+input_window_h: 72
+leads_h: [1, 24, 48]           # reported; the model predicts all 48 steps
+splits:
+  train:       {start: "2019-01-01", end: "2022-12-31"}
+  val:         {start: "2023-01-01", end: "2023-12-31"}
+  test:        {start: "2024-01-01", end: "2026-03-31", frozen: true}
+  prospective: {start: "2026-10-15", end: "2027-02-28", source: "live archive + S8"}
+rolling_origin_fold:           # robustness fold; final model + best baselines only
+  train: {start: "2019-01-01", end: "2023-06-30"}
+  val:   {start: "2023-07-01", end: "2024-06-30"}
+  test:  {start: "2024-07-01", end: "2026-03-31", frozen: true}

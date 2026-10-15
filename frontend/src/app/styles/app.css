@@ -1,0 +1,550 @@
+@import "tailwindcss";
+
+/*
+ * AEROFUSION — THE INSTRUMENT
+ *
+ * A measuring instrument, drawn as a schematic: a black field, white ink, a faint engineering grid,
+ * and 1 px rules doing the work that shadows and rounded corners used to. Hierarchy comes from
+ * type weight (ultra-thin against heavy), never from colour.
+ *
+ *   Colour is reserved for data. Ember means particles (pollution values, fires, the brand mark);
+ *   the CPCB category colours mean AQI. Everything interactive is white on black.
+ *
+ * Type: Inter for everything you read (100–300 for display, 400–500 for UI), JetBrains Mono for
+ * the annotation layer (eyebrows, readings, units, times), uppercase and widely tracked.
+ * Motion: one expo-out curve, long for reveals (700 ms), short for state (180 ms).
+ */
+
+@custom-variant dark (&:where([data-theme="dusk"], [data-theme="dusk"] *));
+
+:root {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #060606;
+  --surface-2: #0d0d0d;
+  --surface-3: #171717;
+  --ink: #ffffff;
+  --ink-rgb: 255 255 255;
+  /* Quieter inks: white at fixed strengths (on #060606: ink-2 ≈ 9:1, ink-3 ≈ 4.6:1). */
+  --ink-2: rgb(255 255 255 / 0.66);
+  --ink-3: rgb(255 255 255 / 0.45);
+  --line: rgb(255 255 255 / 0.1);
+  --line-2: rgb(255 255 255 / 0.2);
+  --grid: rgb(255 255 255 / 0.035);
+  --ember: #ff8a3d;
+  --ember-rgb: 255 138 61;
+  --ember-hot: #ffc27a;
+  --ember-ink: #ff9a55;
+  --haze: #8b4a83;
+  --moon: #c9d2e3;
+  --lamp: #f3d39b;
+  --distance: #8a90b4;
+  --clinical: #e0a0a8;
+  --good: #3bb27a;
+  --warn: #e8b931;
+  --bad: #e5484d;
+  --shadow-rgb: 0 0 0;
+  --glass: rgb(0 0 0 / 0.8);
+  --glass-edge: rgb(255 255 255 / 0.08);
+  --press: rgb(255 255 255 / 0.04);
+  --press-2: rgb(255 255 255 / 0.08);
+
+  /* Hairline figures sit on the card colour (their plates are filled). */
+  --hairline-plate: var(--surface);
+  --hairline-hi: var(--ink);
+  --hairline-edge: rgb(255 255 255 / 0.7);
+  --hairline-mid: rgb(255 255 255 / 0.32);
+  --hairline-lo: rgb(255 255 255 / 0.14);
+  --hairline-stroke: 0.9;
+
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-card: 0px;
+  --gutter: clamp(16px, 3vw, 32px);
+}
+
+/* Paper: the light theme, for readers whose system is set to light. Same drawing, ink on paper. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dusk"]) {
+    color-scheme: light;
+    --bg: #f4f3ee;
+    --surface: #f9f8f4;
+    --surface-2: #ffffff;
+    --surface-3: #ebeae4;
+    --ink: #141414;
+    --ink-rgb: 20 20 20;
+    --ink-2: rgb(20 20 20 / 0.7);
+    --ink-3: rgb(20 20 20 / 0.52);
+    --line: rgb(20 20 20 / 0.12);
+    --line-2: rgb(20 20 20 / 0.24);
+    --grid: rgb(20 20 20 / 0.045);
+    --ember-ink: #b8531a;
+    --haze: #7a3b72;
+    --moon: #5a6b8c;
+    --lamp: #9a6b1c;
+    --distance: #5b6190;
+    --clinical: #a5546a;
+    --shadow-rgb: 40 36 30;
+    --glass: rgb(244 243 238 / 0.85);
+    --glass-edge: rgb(20 20 20 / 0.1);
+    --press: rgb(20 20 20 / 0.04);
+    --press-2: rgb(20 20 20 / 0.08);
+    --hairline-edge: rgb(20 20 20 / 0.7);
+    --hairline-mid: rgb(20 20 20 / 0.32);
+    --hairline-lo: rgb(20 20 20 / 0.14);
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ember: var(--ember);
+  --color-ember-hot: var(--ember-hot);
+  --color-ember-ink: var(--ember-ink);
+  --color-haze: var(--haze);
+  --color-moon: var(--moon);
+  --color-lamp: var(--lamp);
+  --color-press: var(--press);
+  --color-press-2: var(--press-2);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+  --ease-drawer: var(--ease-drawer);
+  /* Square by default: blocks are drawn, not moulded. Only `rounded-full` (dots) stays round. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 1px;
+  --radius-lg: 1px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+}
+
+@layer base {
+/* ------------------------------------------------------------------ base -- */
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The engineering grid: 96 px cells, and a faint light from above. */
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% 0, rgb(var(--ink-rgb) / 0.045), transparent 60%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--bg);
+  background-size:
+    100% 100vh,
+    96px 96px,
+    96px 96px,
+    auto;
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection {
+  background: var(--ink);
+  color: var(--bg);
+}
+:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+
+}
+
+@layer components {
+/* ------------------------------------------------------------ typography -- */
+
+/* Display: Inter, light and tightly tracked; <strong> inside turns the key words heavy, the way a
+   schematic labels its one important part. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.display strong,
+.display b {
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+/* The hero form: ultra-thin uppercase over heavy uppercase. */
+.display-caps {
+  font-weight: 100;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  line-height: 0.86;
+}
+.num {
+  font-family: var(--font-display);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 200;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+}
+/* Tag: the annotation layer — readings, units, places, times. */
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+/* An eyebrow followed by its rule: `01 / SYSTEM ARCHITECTURE ──────────` */
+.eyebrow-rule {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.eyebrow-rule::after {
+  content: "";
+  height: 1px;
+  flex: 0 1 280px;
+  background: var(--line-2);
+}
+@media (max-width: 639px) {
+  .eyebrow-rule::after {
+    flex-basis: 48px;
+    min-width: 24px;
+  }
+}
+
+/* --------------------------------------------------------------- surfaces -- */
+
+/* A panel: barely lifted off the field, outlined by a hairline, square. */
+.card {
+  position: relative;
+  background: var(--surface);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+/* The floating layer (top bar, drawer, popovers): near-black with a blur behind. */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 40px 90px -24px rgb(var(--shadow-rgb) / 0.8);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface-2);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgb(var(--ink-rgb) / 0.3);
+    --line-2: rgb(var(--ink-rgb) / 0.45);
+  }
+}
+
+/* A chip: a small outlined readout. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* Pressables: immediate feedback, no bounce. */
+.press {
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 180ms var(--ease-drawer),
+    box-shadow 180ms var(--ease-drawer),
+    color 180ms var(--ease-drawer),
+    opacity 180ms var(--ease-drawer);
+}
+.press:active {
+  transform: translateY(1px);
+}
+
+/* Skeleton for loading values. */
+.skeleton {
+  border-radius: 0;
+  background: linear-gradient(90deg, var(--press) 0%, var(--press-2) 50%, var(--press) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* View enter: a short rise into place. */
+.view-enter {
+  animation: rise 700ms var(--ease-out) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+}
+/* Children reveal in a 60 ms stagger. Set --i on each. */
+.stagger > * {
+  animation: rise 800ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms + 80ms);
+}
+
+/* Hide scrollbars on horizontal strips but keep them scrollable. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Thin, quiet scrollbars elsewhere. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+/* Reduced motion: opacity only — no rise, no shimmer travel. */
+@media (prefers-reduced-motion: reduce) {
+  .view-enter,
+  .stagger > * {
+    animation: fade-in 200ms ease both;
+  }
+  .skeleton {
+    animation: none;
+  }
+  .press:active {
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+}
+
+/* -------------------------------------------------------------- maplibre -- */
+
+.maplibregl-ctrl-attrib {
+  background: var(--glass) !important;
+  color: var(--ink-3) !important;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  border-radius: 0;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--ink-2) !important;
+}
+.maplibregl-ctrl-group {
+  background: var(--glass) !important;
+  border-radius: 0 !important;
+  box-shadow: inset 0 0 0 1px var(--line-2) !important;
+  backdrop-filter: blur(16px);
+}
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--line) !important;
+}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+  opacity: 0.75;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dusk"]) .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+    filter: none;
+  }
+}
+.maplibregl-ctrl-group button:hover {
+  background-color: var(--press-2) !important;
+}
+.maplibregl-canvas:focus-visible {
+  outline: 1px solid var(--ink);
+}
+
+/* Print view (History › Print): paper, no chrome. */
+@media print {
+  :root {
+    --bg: #fff;
+    --surface: #fff;
+    --ink: #111;
+    --ink-rgb: 17 17 17;
+    --ink-2: #333;
+    --ink-3: #666;
+  }
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .card {
+    box-shadow: inset 0 0 0 1px #ccc;
+    break-inside: avoid;
+  }
+}
+
+/* ------------------------------------------------- the ember (particle.js) -- */
+/* The same component as the story's particle: used for the logo's blob and the cursor. */
+:root {
+  --c-ember-rgb: 255 138 61;
+}
+.particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.particle__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.particle__glow {
+  position: absolute;
+  left: calc(50% - var(--d) * 0.16 * (1 - var(--heat, 0)));
+  top: calc(50% - var(--d) * 0.16 * (1 - var(--heat, 0)));
+  width: calc(var(--d) * 2.8);
+  height: calc(var(--d) * 2.8);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(var(--c-ember-rgb) / 0.42) 0%, rgb(var(--c-ember-rgb) / 0.14) 32%, transparent 68%);
+  mix-blend-mode: screen;
+}
+.particle--fallback .particle__canvas {
+  left: 50%;
+  top: 50%;
+  width: var(--d);
+  height: var(--d);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffb37a, #ff8a3d 55%, #5a200c);
+}
+
+/* ---------------------------------------------------------------- motion -- */
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+/* The live ring: a white pulse leaving a dot. */
+@keyframes live-ring {
+  from {
+    box-shadow: 0 0 0 0 rgb(var(--ring, var(--ink-rgb)) / 0.45);
+  }
+  to {
+    box-shadow: 0 0 0 7px rgb(var(--ring, var(--ink-rgb)) / 0);
+  }
+}
+@keyframes pulse-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+@keyframes breathe {
+  50% {
+    transform: scale(1.12);
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-state="open"],
+  [data-state="delayed-open"] {
+    animation-name: fade-in !important;
+  }
+}
+@keyframes grow {
+  from {
+    transform: scaleY(0.04);
+    opacity: 0.4;
+  }
+}
+@keyframes flow {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+/* A line drawing itself (connectors, rules): set pathLength="1" on the path. */
+@keyframes ink {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* Units keep their case inside uppercase tags (µg/m³ must not become "MG/M³"). */
+.unit {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}

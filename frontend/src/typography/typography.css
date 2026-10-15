@@ -1,0 +1,80 @@
+/*
+ * AEROFUSION — TYPOGRAPHY SYSTEM (the story)
+ *
+ * The one place the story's type is defined, and the same type as the dashboard's, because the two
+ * are one site: Inter for everything you read, JetBrains Mono for the annotation layer.
+ *
+ *   Display (headlines, big numbers)  Inter, heavy and tightly tracked for headlines; ultra-thin
+ *                                     for big numbers — the weight contrast is the hierarchy
+ *   Body    (reading)                 Inter, light, a little larger than usual
+ *   Mono    (tags, instruments)       JetBrains Mono, uppercase and widely tracked — labels,
+ *                                     places, data, times, the clock, scale bars and rulers
+ *
+ * Both come from Bunny Fonts (<link> in index.html). No Google Fonts tracking.
+ *
+ * The dashboard shares this page and is set in Tailwind, so nothing here may touch its elements:
+ * element rules are scoped to the story's own roots, and the sizes are --fs-* (Tailwind owns
+ * --text-*). Fluid scale — no media queries.
+ */
+
+:root {
+  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-sm: clamp(0.66rem, 1.1vw, 0.72rem);
+  --fs-base: clamp(1rem, 1.6vw, 1.1rem);
+  --fs-lg: clamp(1.12rem, 2vw, 1.42rem);
+  --fs-xl: clamp(1.5rem, 3vw, 2rem);
+  --fs-2xl: clamp(2.1rem, 5vw, 4.2rem);
+  --fs-3xl: clamp(2.6rem, 7vw, 5.8rem);
+}
+
+html:not(.mode-dash) body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+:is(#story, .hud) :is(h1, h2, h3) {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+}
+
+/* Big numbers: ultra-thin, even-width digits. */
+.s-display {
+  font-family: var(--font-display);
+  font-weight: 200;
+  letter-spacing: -0.05em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+:is(#story, .hud) h1 { font-size: var(--fs-3xl); line-height: 0.95; }
+:is(#story, .hud) h2 { font-size: var(--fs-2xl); line-height: 0.98; }
+:is(#story, .hud) h3 { font-size: var(--fs-xl); line-height: 1.1; }
+:is(#story, .hud) p  { font-size: var(--fs-base); line-height: 1.6; margin: 0; }
+
+/* A larger reading line (story lines that open a beat): light, against the heavy headline. */
+.s-lead {
+  font-size: var(--fs-lg);
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+}
+:is(#story, .hud) p.s-lead {
+  font-size: var(--fs-lg);
+  line-height: 1.4;
+}
+
+/* Tag: labels, places, data, times, the scene marker, the clock. */
+.s-tag {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,57 @@
+# Node / Next / Vite
+node_modules/
+.next/
+out/
+dist/
+frontend/assets/_originals/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Data & experiments (rebuilt by `make data` / training)
+data/raw/
+data/processed/
+ml/data/raw/
+ml/data/processed/
+# keep each run's metrics.json (paper numbers must be traceable); ignore everything else in runs
+ml/runs/*/*
+!ml/runs/*/metrics.json
+!ml/runs/*/config.yaml
+.cdsapirc
+*.pt
+*.ckpt
+*.parquet
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.dist/
+.claude/settings.local.json
+
+backend/data/
+
+# Not project code: third-party design/skill reference material (unknown licences, repo is public)
+21stdev/
+apple-design-skill-main/
+hairline-main/
+skills-main/
+design-reference/
+# Original proposal PDF contains unearned result claims; keep it private until corrected (PROGRESS P0.4)
+Initial Proposal/
+frontend/.claude/
