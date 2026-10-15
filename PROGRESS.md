@@ -306,12 +306,12 @@ ml/
     Venv at `.venv/` (backend deps + pytest + pyyaml only; `ml/requirements.txt` not installed yet).
 
 ### Phase P1: Data (wk 1–5, → 22 Nov). Owner D
-- [ ] **P1.1 XKDR bulk download.** List `/v1/files`, download the hourly/raw Parquet for 2019–2026-03, all
+- [x] **P1.1 XKDR bulk download.** List `/v1/files`, download the hourly/raw Parquet for 2019–2026-03, all
   stations within 25 km of the 33 cities, pollutants PM2.5/PM10/NO₂/CO/O₃. Write the manifest with sha256.
   - [x] 2026-10-15: whole export downloaded instead (0.41 GB, 209 files, export of 2026-09-30, 2009-01→2026-03, all
     stations/parameters); city/pollutant filtering moves to P1.3/P1.10. `ml/scripts/download_all.py --source xkdr`
     (resumable, size-checked), `ml/data/raw/MANIFEST.json` with sha256 + rows; rows match the listing for all 207 months.
-- [ ] **P1.2 Timestamp check (VERIFY).** Determine IST start-vs-end labelling. Re-bin raw to UTC hours (mean if ≥ 2
+- [x] **P1.2 Timestamp check (VERIFY).** Determine IST start-vs-end labelling. Re-bin raw to UTC hours (mean if ≥ 2
   of 4 quarter-hours present). Unit test on a known station-day.
   - [x] 2026-10-15 VERIFIED: no 15-min data is exposed; `agg=raw` and the bulk export are hourly CPCB means (e.g.
     147.7275 = mean of 4 quarters), so the "≥ 2 of 4" rule is CPCB's, not ours. A day query returns labels 00:00..23:00
