@@ -453,6 +453,9 @@ fixed budget (≤ 20 trials per rung, Optuna or a grid), and the search space is
     writes `docs/paper/tables/<split>_<setting>_station.{tex,md}` from `ml/runs/*/metrics.json` only.
 
 - [ ] P3.1 M0 [ ] P3.2 M1 [ ] P3.3 M2 [ ] P3.4 M3 [ ] P3.5 M4 [ ] P3.6 M5 [ ] P3.7 M6
+  - 2026-10-15: training pipeline ready: `data/torch_dataset.py` (windows on the fly, train-only stats, grid lags: FRP hidden
+    for steps > t0 − 6 h), `train.py` (masked Huber on standardised log1p PM2.5, AdamW + cosine, early stop on val RMSE, AMP on
+    CUDA, run dir with metrics.json/preds/ckpt/norm stats/env), configs `configs/exp/m0_gru.yaml … m6_mwafn.yaml`.
   - 2026-10-15 (code only, no training): `models/{wavelet,graph,temporal,convlstm,gating,mwafn}.py`; every rung M0–M6 is a
     config switch (`mwafn.RUNGS`). Tests: `test_wavelet_causal.py` (bands at t unchanged when the future is perturbed),
     `test_models.py` (all rungs forward/backward with gradients everywhere, gates sum to 1, kNN/600 km adjacency, wind
@@ -561,6 +564,11 @@ model is a complete, honest project; submit the paper when ready.
 **Short answer: yes, ask the college. You need a GPU you can use for long, uninterrupted runs, not a more powerful one.**
 The model is small. The cost is the number of runs (ladder + baselines + ablations × seeds × settings) and
 the ConvLSTM branch.
+
+**Measured 2026-10-15 (code only, no training run):** parameters at hidden 64 with 138 nodes and 29 features: M0 43 k,
+M1 84 k, M2 106 k, M3 152 k, M4 153 k, M5 201 k, **M6 243 k** (smaller than the estimate below). One M6 training step at
+batch 32 takes ~24 s on this laptop's CPU, so an epoch over hourly train issue times would take many hours on CPU: a GPU is
+required for P3/P4. `train.py` was smoke-tested end to end on CPU (5 steps, 1 train month; run deleted, not a result).
 
 **Estimates from the council, reconciled:**
 - Model ≈ 1–3 M parameters.

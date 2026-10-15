@@ -28,10 +28,11 @@ class NodeArrays:
     groups: list[str]
 
     @classmethod
-    def from_zarr(cls, path, features_cfg: dict) -> "NodeArrays":
+    def from_zarr(cls, path, features_cfg: dict, start=None, end=None) -> "NodeArrays":
+        """Reads only time slice [start, end] (tz-naive UTC strings/Timestamps) into memory."""
         import xarray as xr
 
-        ds = xr.open_zarr(path)
+        ds = xr.open_zarr(path).sel(time=slice(start, end))
         feats = list(ds.feat.values)
         gmap = {f["key"]: f["group"] for f in features_cfg["features"]}
         return cls(pd.DatetimeIndex(ds.time.values).tz_localize("UTC"), ds.x_node.values, ds.m_node.values, ds.y.values, feats, [gmap[f] for f in feats])

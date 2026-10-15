@@ -1,0 +1,21 @@
+# PROGRESS P3 ladder rung M3; train on the GPU machine: python ml/aerofusion_ml/train.py --config ml/configs/exp/m3_transformer.yaml
+name: m3_transformer
+rung: M3
+setting: S-A
+seed: 0
+device: auto
+batch: 32
+lr: 0.001
+weight_decay: 0.0001
+epochs: 60
+patience: 8
+grad_clip: 1.0
+amp: true
+hidden: 64
+log_target: true
+train_issue_hours: null
+workers: 2
+wavelet_feats:
+- pm25
+- pm10
+use_grid: false

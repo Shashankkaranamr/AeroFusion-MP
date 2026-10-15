@@ -1,0 +1,30 @@
+# CPU smoke test of the full pipeline on 1 month (train-period dates only). Not a result.
+name: smoke_m6
+rung: M6
+setting: S-A
+seed: 0
+device: cpu
+batch: 4
+lr: 0.001
+weight_decay: 0.0001
+epochs: 1
+patience: 8
+grad_clip: 1.0
+amp: true
+hidden: 16
+log_target: true
+train_issue_hours:
+- 0
+- 12
+workers: 0
+wavelet_feats:
+- pm25
+- pm10
+use_grid: true
+splits_override:
+  train:
+    start: '2019-11-01'
+    end: '2019-11-20'
+  val:
+    start: '2019-11-21'
+    end: '2019-11-30'
