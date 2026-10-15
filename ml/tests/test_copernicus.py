@@ -8,10 +8,10 @@ def test_months_span_years_inclusive():
     assert m[0] == "2017-12" and m[1] == "2018-01" and m[-1] == "2025-09" and len(m) == 94 and len(set(m)) == 94
 
 
-def test_cams_request_covers_whole_month_both_runs_and_leads_0_48():
+def test_cams_request_covers_whole_month_both_runs_and_leads_0_72():
     r = cp.cams_fc_request("2024-02")
     assert r["date"] == ["2024-02-01/2024-02-29"] and r["time"] == ["00:00", "12:00"]
-    assert r["leadtime_hour"][0] == "0" and r["leadtime_hour"][-1] == "48" and len(r["leadtime_hour"]) == 17
+    assert r["leadtime_hour"][0] == "0" and r["leadtime_hour"][-1] == "72" and len(r["leadtime_hour"]) == 25
     assert r["area"] == [38, 66, 5, 98] and "particulate_matter_2.5um" in r["variable"]
 
 

@@ -423,6 +423,10 @@ at the end of week 6:** after that, `features_v1.yaml` and `dataset_v1` never ch
   - LightGBM MOS: CAMS forecast + lags + met → PM2.5 (S-B)
   - LightGBM on lags + met (S-A)
   - LSTM (S-A)
+  - 2026-10-15 code ready (runs need CAMS and/or the bigger machine): `models/gbm.py` + `scripts/run_gbm.py` (S-A; S-B once
+    cams_fc exists), `models/cams_baseline.py` + `scripts/build_cams_fc.py` + `scripts/run_cams_baselines.py` (raw + per-station
+    linear BC fitted on train), LSTM via `configs/exp/base_lstm.yaml` (`models/neural_baselines.py`). Tests: `test_gbm.py`,
+    `test_cams_baseline.py`, `test_models.py`.
   - 2026-10-15: persistence, same-hour-yesterday, climatology done on **val** (`scripts/run_baselines.py`, runs
     `20261015-*-s0-cf6b668`, table `docs/paper/tables/val_sa_station.md`). CAMS raw / CAMS+BC need P1.7; LightGBM and LSTM
     code next, training on the bigger machine.
@@ -461,6 +465,8 @@ fixed budget (≤ 20 trials per rung, Optuna or a grid), and the search space is
     `test_models.py` (all rungs forward/backward with gradients everywhere, gates sum to 1, kNN/600 km adjacency, wind
     alignment direction, masked Huber). Training waits for the GPU machine.
 - [ ] **P3.8 Tier-2 baselines** (same harness, S-A):
+  - 2026-10-15 code ready: `models/neural_baselines.py` (cnn_lstm, convlstm_base, pm25gnn with past-only met, graph_wavenet),
+    configs `configs/exp/base_*.yaml`, trained by `train.py` (`model:` key). Training on the GPU machine.
   - CNN-LSTM (from the proposal)
   - ConvLSTM baseline (on the grid, sampled at nodes)
   - PM2.5-GNN adapted to **past-only met**. The original uses future met; say so, and also run it in S-C.
@@ -642,4 +648,5 @@ the data loader streams from zarr).
 | 2026-10-15 | **CAMS past inputs = short-lead forecasts, not lead-0 analyses (§3.6 deviation).** Hour t uses the newest run R ≤ t − 9 h at lead t − R (9–20 h; 3-hourly on the grid, linear between the run's own 3-hourly leads at nodes). Published at R + 10 h ≤ t + 1 h, so it takes the same 1 h lag as CPCB and is the same product in training and live | lead 0 of a run is only published 10 h after it describes, so a lead-0 'analysis' input would leak up to 10 h |
 | 2026-10-15 | Gating sparsity term = mean entropy of the group weights (not L1) | softmax weights sum to 1, so their L1 norm is constant and an L1 penalty does nothing |
 | 2026-10-15 | Graph edge direction uses `wind_uv` = raw (un-normalised) mean 10 m wind at the sender over the last 6 usable hours, passed in the batch | normalised u/v distort the direction; past-only wind keeps edges leakage-safe |
+| 2026-10-15 | **CAMS request extended to leads 0–72 h** (was 0–48 h). The 2 months already fetched with 0–48 h were set aside (`raw/cams_fc/v1_lead0-48/`) and re-queued; 2 queued 0–48 h jobs were deleted on ADS | a run is usable 10–21 h after it starts, so +48 h at issue time needs leads up to 69 h for S-B and the CAMS baselines (the §3.4 example already implied lead 36 for +24 h) |
 | | VERIFY results (CAMS latency) go here | |

@@ -29,6 +29,7 @@ from aerofusion_ml.data import torch_dataset as tds  # noqa: E402
 from aerofusion_ml.models import graph as gr  # noqa: E402
 from aerofusion_ml.models.convlstm import node_xy  # noqa: E402
 from aerofusion_ml.models.mwafn import MWAFN, Config, masked_huber  # noqa: E402
+from aerofusion_ml.models.neural_baselines import REGISTRY  # noqa: E402
 from aerofusion_ml.runs import make_run_id  # noqa: E402
 
 
@@ -41,12 +42,15 @@ def make_model(cfg: dict, a, grid_lat=None, grid_lon=None) -> MWAFN:
 
     ds = xr.open_zarr(ML / cfg.get("dataset", "data/processed/dataset_v1.zarr"))
     lat, lon = ds.node_lat.values.astype(float), ds.node_lon.values.astype(float)
-    mc = Config.rung(cfg["rung"], n_feat=len(a.feats), n_nodes=len(lat), groups=a.groups,
-                     wavelet_feats=[a.feats.index(f) for f in cfg.get("wavelet_feats", ["pm25", "pm10"])],
-                     hidden=cfg.get("hidden", 64), grid_channels=cfg.get("grid_channels", 8))
     A = torch.from_numpy(gr.static_adjacency(lat, lon, k=8, max_km=600))
     _, bearing = gr.distance_bearing(lat, lon)
     xy = node_xy(lat, lon, torch.tensor([5.25, 37.5]), torch.tensor([66.25, 97.75]))
+    if cfg.get("model", "mwafn") in REGISTRY:
+        return REGISTRY[cfg["model"]](n_feat=len(a.feats), hidden=cfg.get("hidden", 64), n_nodes=len(lat), grid_channels=cfg.get("grid_channels", 8),
+                                      node_xy=xy, A_static=A, bearing=torch.from_numpy(bearing.T.copy()))
+    mc = Config.rung(cfg["rung"], n_feat=len(a.feats), n_nodes=len(lat), groups=a.groups,
+                     wavelet_feats=[a.feats.index(f) for f in cfg.get("wavelet_feats", ["pm25", "pm10"])],
+                     hidden=cfg.get("hidden", 64), grid_channels=cfg.get("grid_channels", 8))
     return MWAFN(mc, A, torch.from_numpy(bearing.T.copy()), xy)
 
 

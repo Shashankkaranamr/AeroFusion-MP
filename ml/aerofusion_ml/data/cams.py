@@ -69,3 +69,23 @@ def series(pts: xr.Dataset, times: pd.DatetimeIndex) -> dict[str, np.ndarray]:
 
 def months_available() -> list[str]:
     return sorted(p.stem for p in RAW.glob("*.zip"))
+
+
+def forecast(fc: xr.Dataset, t0: pd.Timestamp, var: str = "pm2p5", horizon: int = windows.HORIZON_H) -> np.ndarray:
+    """CAMS forecast usable at t0 for valid times t0+1..t0+horizon -> [horizon, point] (S-B input, CAMS baselines).
+
+    fc: (run, lead, point) with run tz-naive UTC. Uses windows.latest_cams_run(t0) and its leads base+1..base+horizon,
+    linear between the 3-hourly leads. NaN if that run is missing or does not reach the lead (download leads 0..72)."""
+    run = windows.latest_cams_run(t0)
+    runs = pd.DatetimeIndex(fc["run"].values).tz_localize("UTC")
+    k = runs.get_indexer([run])[0]
+    out = np.full((horizon, fc.sizes["point"]), np.nan, dtype=np.float32)
+    if k < 0:
+        return out
+    leads = fc["lead"].values
+    want = windows.cams_leads(t0, run, horizon).astype(float)
+    a = fc[var].values[k]  # [lead, point]
+    ok = want <= leads[-1]
+    for p in range(a.shape[1]):
+        out[ok, p] = np.interp(want[ok], leads, a[:, p])
+    return out

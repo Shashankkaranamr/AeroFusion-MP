@@ -54,13 +54,14 @@ def _days(month: str) -> tuple[int, int, int]:
 
 
 def cams_fc_request(month: str) -> dict:
-    """00 & 12 UTC runs, leads 0..48 h every 3 h, PM2.5 + total/dust AOD550, native 0.4°, India bbox."""
+    """00 & 12 UTC runs, leads 0..72 h every 3 h, PM2.5 + total/dust AOD550, native 0.4°, India bbox.
+    72 h, not 48: a run is usable 10-21 h after it starts, so +48 h at t0 needs leads up to 69 h (S-B, CAMS baselines)."""
     y, m, n = _days(month)
     return {
         "variable": ["particulate_matter_2.5um", "total_aerosol_optical_depth_550nm", "dust_aerosol_optical_depth_550nm"],
         "date": [f"{y:04d}-{m:02d}-01/{y:04d}-{m:02d}-{n:02d}"],
         "time": ["00:00", "12:00"],
-        "leadtime_hour": [str(h) for h in range(0, 49, 3)],
+        "leadtime_hour": [str(h) for h in range(0, 73, 3)],
         "type": ["forecast"],
         "area": AREA,
         "data_format": "netcdf_zip",

@@ -67,3 +67,27 @@ def test_masked_huber_ignores_masked_targets():
     p, y = torch.zeros(1, 2, 1), torch.tensor([[[1.0], [float("nan")]]])
     mask = torch.tensor([[[1], [0]]])
     assert masked_huber(p, y, mask).item() == pytest.approx(0.5)
+
+
+@pytest.mark.parametrize("name", ["lstm", "cnn_lstm", "convlstm_base", "pm25gnn", "graph_wavenet"])
+def test_neural_baselines_forward_backward(name):
+    from aerofusion_ml.models.neural_baselines import REGISTRY
+
+    A = torch.from_numpy(gr.static_adjacency(LAT, LON, k=3))
+    _, bearing = gr.distance_bearing(LAT, LON)
+    xy = node_xy(LAT, LON, torch.tensor([5.25, 37.5]), torch.tensor([66.25, 97.75]))
+    m = REGISTRY[name](n_feat=F, hidden=16, n_nodes=N, grid_channels=C, node_xy=xy, A_static=A, bearing=torch.from_numpy(bearing.T.copy()))
+    b = _batch()
+    out = m(b)
+    assert out["pred"].shape == (B, 48, N) and out["gates"] is None and torch.isfinite(out["pred"]).all()
+    masked_huber(out["pred"], b["y"], b["y_mask"]).backward()
+    assert not [n for n, p in m.named_parameters() if p.grad is None]
+
+
+def test_cnn_lstm_conv_is_causal_within_window():
+    from aerofusion_ml.models.neural_baselines import CNNLSTM
+
+    m = CNNLSTM(n_feat=F, hidden=8)
+    z = torch.randn(1, 2 * F, 72)
+    z2 = z.clone(); z2[..., 40:] += 50
+    torch.testing.assert_close(m.conv(z)[..., :40], m.conv(z2)[..., :40])
