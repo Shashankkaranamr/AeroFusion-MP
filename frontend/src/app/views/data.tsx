@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Check, Circle } from "lucide-react";
 import { Figure, type FigureName } from "@/components/figure";
 import { WindGraph } from "@/components/map/wind-graph";
+import { ModelStatus } from "@/components/model-status";
 import { Card, CardBody, CardHeader, SourceNote } from "@/components/ui/card";
 import { ConfirmIcon } from "@/components/ui/confirm-icon";
 import { PulsatingLoader } from "@/components/ui/loader";
@@ -263,6 +264,8 @@ export function DataView() {
           </CardBody>
         </Card>
       </div>
+
+      <ModelStatus />
 
       <Card className="mt-4 p-6 sm:p-8">
         <div className="tag mb-3">Credits and attributions</div>
