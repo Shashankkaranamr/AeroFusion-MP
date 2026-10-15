@@ -24,6 +24,7 @@ import httpx  # noqa: E402
 from .live import ai as AI  # noqa: E402
 from .live import sources as S  # noqa: E402
 from .live.service import LiveService  # noqa: E402
+from .ml.service import ModelService  # noqa: E402
 from .sim.core import CITY_BY_SLUG  # noqa: E402
 
 live = LiveService(interval_s=int(os.getenv("AEROFUSION_REFRESH_SECONDS", "43200")))
@@ -82,6 +83,27 @@ async def rate_limit(request, call_next):
 @app.get("/health")
 def health():
     return {"status": "ok", "last_refresh": live.snapshot["updated_at"] if live.snapshot else None}
+
+
+model = ModelService()
+
+
+@app.get("/api/model/status")
+def model_status():
+    return model.status()
+
+
+@app.get("/api/model/metrics")
+def model_metrics():
+    """Measured metrics of the frozen model (P5.3), or status "pending". Never placeholder numbers."""
+    return model.metrics()
+
+
+@app.get("/api/model/forecast")
+def model_forecast(city: str):
+    if city not in CITY_BY_SLUG:
+        raise HTTPException(404, f"unknown city {city!r}")
+    return model.forecast(city)
 
 
 @app.get("/api/live/status")

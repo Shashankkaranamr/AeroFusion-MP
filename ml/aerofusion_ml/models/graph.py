@@ -8,6 +8,8 @@ Diffusion convolution (DCRNN): sum over k = 0..K of P_fᵏ X W and P_bᵏ X W.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import torch
 from torch import nn
@@ -41,8 +43,8 @@ def static_adjacency(lat: np.ndarray, lon: np.ndarray, k: int = 8, max_km: float
 def wind_alignment(u: torch.Tensor, v: torch.Tensor, bearing_ji: torch.Tensor) -> torch.Tensor:
     """u, v [B, N] (wind at sender j, blowing TO direction); bearing_ji [N, N] deg from sender j to receiver i, indexed [i, j].
     Returns [B, N, N] = max(0, cos(direction wind blows to at j - bearing j->i))."""
-    to_dir = torch.rad2deg(torch.atan2(u, v)) % 360  # direction the air moves towards
-    diff = torch.deg2rad(to_dir[:, None, :] - bearing_ji[None])
+    to_dir = torch.atan2(u, v) * (180.0 / math.pi) % 360  # direction the air moves towards (no rad2deg: not in ONNX)
+    diff = (to_dir[:, None, :] - bearing_ji[None]) * (math.pi / 180.0)
     return torch.clamp(torch.cos(diff), min=0.0)
 
 

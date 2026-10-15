@@ -519,11 +519,16 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
 
 ### Phase P5: Platform integration (wk 13–15, → 31 Jan). Owner X
 - [ ] **P5.1** `export_onnx.py` → `backend/app/ml/mwafn_v1.onnx` + `norm_stats.json` + `graph.json`.
+  - 2026-10-15 code ready: `aerofusion_ml/export_onnx.py --run <id>` (onnx + norm_stats + graph.json + export_check);
+    `tests/test_export_onnx.py`: M0, M6 and M6-S-B export and onnxruntime matches torch (< 1e-3). Export of a trained run at P5.
 - [ ] **P5.2 Inference** `backend/app/ml/inference.py`:
   - Runs on onnxruntime CPU (add `onnxruntime` to `backend/requirements.txt`; no torch on the server).
   - Builds live inputs from the existing fetchers plus S8 live station data and the live CAMS forecast.
   - Note the train/serve differences (ERA5 → Open-Meteo forecast met; S8 vs XKDR) in the UI's honesty notes.
 - [ ] **P5.3 Endpoints:** `GET /api/model/forecast?city=` (station + city mean, leads 1–48, gates) and
+  - 2026-10-15: `/api/model/status`, `/api/model/metrics`, `/api/model/forecast?city=` live in `backend/app/main.py` via
+    `backend/app/ml/service.py`; they answer `status: pending` until a model file and a *measured* metrics file exist
+    (`backend/tests/test_model_endpoints.py`). onnxruntime added to backend requirements (lazy import). Not deployed.
   `GET /api/model/metrics` (serves `ml/runs/<final>/metrics.json` copied to `backend/app/data/model_metrics.json`).
 - [ ] **P5.4 Frontend:**
   - The City view shows the model forecast next to CAMS.
