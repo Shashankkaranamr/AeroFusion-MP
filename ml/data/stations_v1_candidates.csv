@@ -1,0 +1,246 @@
+station_id,station_name,city,city_name,state_name,source,latitude,longitude,dist_km,pm25_start,pm25_last,n_hours,completeness,keep,reason
+site_307,"Sanjay Palace, Agra - UPPCB",agra,Agra,Uttar Pradesh,cpcb_caaqm,27.19865833,78.00598056,2.45,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,58809.0,0.9468,True,kept
+site_5463,"Shastripuram, Agra - UPPCB",agra,Agra,Uttar Pradesh,cpcb_caaqm,27.19862,77.92066,8.99,2021-06-19 10:00:00+00:00,2024-12-31 18:00:00+00:00,28672.0,0.925,False,starts after 2020-01-01
+site_5464,"Manoharpur, Agra - UPPCB",agra,Agra,Uttar Pradesh,cpcb_caaqm,27.23711,78.01936,6.81,2021-06-04 15:00:00+00:00,2024-12-31 18:00:00+00:00,29441.0,0.939,False,starts after 2020-01-01
+site_5465,"Sector-3B Avas Vikas Colony, Agra - UPPCB",agra,Agra,Uttar Pradesh,cpcb_caaqm,27.19412,77.96237,4.92,2021-06-11 12:00:00+00:00,2024-12-31 18:00:00+00:00,29356.0,0.9413,False,starts after 2020-01-01
+site_5482,"Rohta, Agra - UPPCB",agra,Agra,Uttar Pradesh,cpcb_caaqm,27.106972,78.000111,7.79,2021-07-26 11:00:00+00:00,2024-12-31 18:00:00+00:00,22117.0,0.7346,False,starts after 2020-01-01
+site_5501,"Shahjahan Garden, Agra - UPPCB",agra,Agra,Uttar Pradesh,cpcb_caaqm,27.169338,78.03582,2.86,2021-09-07 07:00:00+00:00,2024-12-31 18:00:00+00:00,26322.0,0.9051,False,starts after 2020-01-01
+site_308,"Maninagar, Ahmedabad - GPCB",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.002657,72.591912,3.05,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,58610.0,0.9436,True,kept
+site_5066,"Sector-10, Gandhinagar - GPCB",ahmedabad,Gandhinagar,Gujarat,cpcb_caaqm,23.221714,72.654328,23.72,2019-02-01 12:00:00+00:00,2024-12-31 10:00:00+00:00,48518.0,0.9357,True,kept
+site_5067,"Phase-4 GIDC, Vatva - GPCB",ahmedabad,Vatva,Gujarat,cpcb_caaqm,22.969611,72.6435,9.44,2019-02-04 12:00:00+00:00,2024-12-31 18:00:00+00:00,48748.0,0.9414,True,kept
+site_5450,"Gyaspur, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,22.977134,72.553024,5.38,2021-06-04 17:00:00+00:00,2024-12-31 18:00:00+00:00,20649.0,0.6586,False,starts after 2020-01-01
+site_5451,"Rakhial, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.016834,72.625775,5.6,2021-06-04 16:00:00+00:00,2024-12-31 18:00:00+00:00,22982.0,0.733,False,starts after 2020-01-01
+site_5452,"Raikhad, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.020509,72.579261,0.83,2021-06-30 09:00:00+00:00,2024-12-31 10:00:00+00:00,20607.0,0.6705,False,starts after 2020-01-01
+site_5453,"Chandkheda, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.107969,72.574648,9.51,2021-06-04 16:00:00+00:00,2024-12-31 18:00:00+00:00,24482.0,0.7809,False,starts after 2020-01-01
+site_5454,"SAC ISRO Bopal, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.041137,72.456691,11.92,2021-06-16 10:00:00+00:00,2024-12-31 18:00:00+00:00,20094.0,0.6467,False,starts after 2020-01-01
+site_5455,"SAC ISRO Satellite, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.023389,72.515201,5.75,2021-06-16 11:00:00+00:00,2024-12-31 18:00:00+00:00,23674.0,0.762,False,starts after 2020-01-01
+site_5456,"SVPI Airport Hansol, Ahmedabad - IITM",ahmedabad,Ahmedabad,Gujarat,cpcb_caaqm,23.076793,72.627874,8.36,2021-06-16 10:00:00+00:00,2024-12-31 18:00:00+00:00,22535.0,0.7253,False,starts after 2020-01-01
+site_5458,"GIFT City, Gandhinagar - IITM",ahmedabad,Gandhinagar,Gujarat,cpcb_caaqm,23.163798,72.677768,19.11,2021-06-17 11:00:00+00:00,2024-12-31 10:00:00+00:00,22361.0,0.7203,False,starts after 2020-01-01
+site_256,"Golden Temple, Amritsar - PPCB",amritsar,Amritsar,Punjab,cpcb_caaqm,31.62,74.876512,1.61,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56242.0,0.9055,True,kept
+site_1553,"Bapuji Nagar, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.951913,77.539784,6.33,2018-06-25 09:00:00+00:00,2024-12-31 18:00:00+00:00,51173.0,0.8953,True,kept
+site_1554,"Hebbal, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,13.029152,77.585901,6.47,2018-06-25 06:00:00+00:00,2024-12-31 18:00:00+00:00,49965.0,0.8741,True,kept
+site_1555,"Hombegowda Nagar, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.938539,77.5901,3.71,2018-07-03 12:00:00+00:00,2024-12-31 17:00:00+00:00,53264.0,0.935,True,kept
+site_1556,"Jayanagar 5th Block, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.920984,77.584908,5.73,2018-06-25 11:00:00+00:00,2024-12-31 18:00:00+00:00,49834.0,0.8719,True,kept
+site_1558,"Silk Board, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.917348,77.622813,6.76,2018-06-25 08:00:00+00:00,2024-12-31 18:00:00+00:00,50831.0,0.8893,True,kept
+site_162,"BTM Layout, Bengaluru - CPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.9135218,77.5950804,6.46,2018-01-09 06:00:00+00:00,2024-12-31 18:00:00+00:00,53930.0,0.8816,True,kept
+site_163,"Peenya, Bengaluru - CPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,13.0270199,77.494094,12.51,2017-12-06 12:00:00+00:00,2024-12-31 18:00:00+00:00,49791.0,0.8033,True,kept
+site_164,"BWSSB Kadabesanahalli, Bengaluru - CPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.9352049,77.6814488,10.24,2017-12-01 00:00:00+00:00,2022-08-27 15:00:00+00:00,34229.0,0.5511,False,completeness < 60 %
+site_165,"City Railway Station, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.9756843,77.5660749,3.12,,,,,False,no PM2.5 in window
+site_166,"Sanegurava Halli, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.990328,77.5431385,5.95,,,,,False,no PM2.5 in window
+site_5678,"RVCE-Mailasandra, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.921418,77.502466,11.44,2022-12-14 03:00:00+00:00,2024-12-31 18:00:00+00:00,13970.0,0.7773,False,starts after 2020-01-01
+site_5681,"Kasturi Nagar, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,13.003872,77.664217,8.35,2023-04-20 11:00:00+00:00,2024-12-31 18:00:00+00:00,14235.0,0.9543,False,starts after 2020-01-01
+site_5686,"Shivapura_Peenya, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,13.0246342,77.5080115,11.08,2023-02-01 10:00:00+00:00,2024-12-31 10:00:00+00:00,14824.0,0.8829,False,starts after 2020-01-01
+site_5729,"Jigani, Bengaluru - KSPCB",bengaluru,Bengaluru,Karnataka,cpcb_caaqm,12.7816279,77.6299145,21.47,2023-04-12 12:00:00+00:00,2024-12-31 18:00:00+00:00,12545.0,0.8304,False,starts after 2020-01-01
+site_1403,"Sector-D Industrial Area, Mandideep - MPPCB",bhopal,Mandideep,Madhya Pradesh,cpcb_caaqm,23.10844,77.511428,19.64,2018-01-02 07:00:00+00:00,2024-12-31 11:00:00+00:00,57819.0,0.9426,True,kept
+site_5247,"T T Nagar, Bhopal - MPPCB",bhopal,Bhopal,Madhya Pradesh,cpcb_caaqm,23.233584,77.400574,3.17,2019-09-17 04:00:00+00:00,2024-12-31 18:00:00+00:00,45158.0,0.9735,True,kept
+site_5650,"Paryavaran Parisar, Bhopal - MPPCB",bhopal,Bhopal,Madhya Pradesh,cpcb_caaqm,23.210494,77.425409,5.65,2022-09-19 06:00:00+00:00,2024-12-31 10:00:00+00:00,18930.0,0.9449,False,starts after 2020-01-01
+site_5708,"Idgah Hills, Bhopal - MPPCB",bhopal,Bhopal,Madhya Pradesh,cpcb_caaqm,23.264759,77.381568,3.22,2023-02-21 11:00:00+00:00,2024-12-31 10:00:00+00:00,14874.0,0.912,False,starts after 2020-01-01
+site_5940,"Lingraj Mandir, Bhubaneswar - OSPCB",bhubaneswar,Bhubaneswar,Odisha,cpcb_caaqm,20.24079,85.836784,6.28,2023-10-27 11:00:00+00:00,2024-12-31 18:00:00+00:00,9624.0,0.9292,False,starts after 2020-01-01
+site_5941,"CDA Area, Cuttack - OSPCB",bhubaneswar,Cuttack,Odisha,cpcb_caaqm,20.48891,85.84768,21.58,2023-10-31 04:00:00+00:00,2024-12-31 18:00:00+00:00,9920.0,0.9661,False,starts after 2020-01-01
+site_5943,"Patia, Bhubaneswar - OSPCB",bhubaneswar,Bhubaneswar,Odisha,cpcb_caaqm,20.34652,85.8163,5.67,2023-10-27 11:00:00+00:00,2024-12-31 18:00:00+00:00,9844.0,0.9505,False,starts after 2020-01-01
+site_161,"Sector-6, Panchkula - HSPCB ",chandigarh,Panchkula,Haryana,cpcb_caaqm,30.7057778,76.8531805555555,7.69,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,57633.0,0.9279,True,kept
+site_5127,"Sector-25, Chandigarh - CPCC",chandigarh,Chandigarh,Chandigarh,cpcb_caaqm,30.751462,76.762879,2.56,2019-08-29 07:00:00+00:00,2024-12-31 18:00:00+00:00,45034.0,0.9614,True,kept
+site_5491,"Sector 22, Chandigarh - CPCC",chandigarh,Chandigarh,Chandigarh,cpcb_caaqm,30.735567,76.775714,0.43,2021-08-06 16:00:00+00:00,2024-12-31 18:00:00+00:00,27950.0,0.9367,False,starts after 2020-01-01
+site_5582,"Sector-53, Chandigarh - CPCC",chandigarh,Chandigarh,Chandigarh,cpcb_caaqm,30.719859,76.738637,4.17,2022-01-31 06:00:00+00:00,2024-12-31 18:00:00+00:00,24770.0,0.9684,False,starts after 2020-01-01
+site_5586,"HIMUDA Complex Phase-1, Baddi - HPPCB",chandigarh,Baddi,Himachal Pradesh,cpcb_caaqm,30.943887,76.801991,23.52,2022-03-11 12:00:00+00:00,2024-12-31 18:00:00+00:00,22975.0,0.9326,False,starts after 2020-01-01
+DS1010002,US Embassy - Chennai,chennai,Chennai,Tamil Nadu,us_embassy,13.08784,80.278475,1.02,2019-06-30 19:00:00+00:00,2024-12-31 18:00:00+00:00,43749.0,0.9064,True,kept
+site_288,"Velachery Res. Area, Chennai - CPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,13.0052189,80.2398125,9.24,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,58620.0,0.9438,True,kept
+site_306,"Manali, Chennai - CPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,13.164544,80.26285,9.14,2017-12-31 19:00:00+00:00,2024-12-31 10:00:00+00:00,54874.0,0.8941,True,kept
+site_5092,"Manali Village, Chennai - TNPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,13.1662,80.2584,9.38,2019-03-28 10:00:00+00:00,2024-12-31 18:00:00+00:00,27016.0,0.5346,False,completeness < 60 %
+site_5361,"Arumbakkam, Chennai - TNPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,13.0664,80.2112,6.69,2020-11-07 17:00:00+00:00,2024-12-31 18:00:00+00:00,33100.0,0.9102,False,starts after 2020-01-01
+site_5363,"Perungudi, Chennai - TNPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,12.9533,80.2357,14.88,2020-12-17 12:00:00+00:00,2024-12-31 18:00:00+00:00,32286.0,0.9117,False,starts after 2020-01-01
+site_5364,"Royapuram, Chennai - TNPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,13.1036,80.2909,3.19,2020-11-07 18:00:00+00:00,2024-12-31 18:00:00+00:00,33042.0,0.9086,False,starts after 2020-01-01
+site_5365,"Kodungaiyur, Chennai - TNPCB",chennai,Chennai,TamilNadu,cpcb_caaqm,13.1278,80.2642,5.06,2020-11-07 17:00:00+00:00,2024-12-31 18:00:00+00:00,29667.0,0.8158,False,starts after 2020-01-01
+site_5594,"Doon University, Dehradun - UKPCB",dehradun,Dehradun,Uttarakhand,cpcb_caaqm,30.269444,78.044167,5.36,2022-04-22 11:00:00+00:00,2024-12-31 18:00:00+00:00,19557.0,0.8277,False,starts after 2020-01-01
+DS1010001,US Embassy - New Delhi,delhi,New Delhi,Delhi,us_embassy,28.63576,77.22445,2.86,2019-06-30 22:00:00+00:00,2024-12-31 18:00:00+00:00,47272.0,0.9794,True,kept
+site_103,"CRRI Mathura Road, Delhi - IMD",delhi,Delhi,Delhi,cpcb_caaqm,28.5512005,77.2735737,9.4,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,58255.0,0.9379,True,kept
+site_104,"Burari Crossing, Delhi - IMD",delhi,Delhi,Delhi,cpcb_caaqm,28.7256504,77.2011573,12.45,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,36532.0,0.5882,False,completeness < 60 %
+site_105,"North Campus, DU, Delhi - IMD",delhi,Delhi,Delhi,cpcb_caaqm,28.6573814,77.1585447,6.9,2017-12-01 01:00:00+00:00,2024-12-31 18:00:00+00:00,57056.0,0.9186,True,kept
+site_106,"IGI Airport (T3), Delhi - IMD",delhi,Delhi,Delhi,cpcb_caaqm,28.5627763,77.1180053,10.55,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56911.0,0.9163,True,kept
+site_107,"Pusa, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.639652,77.146275,6.76,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,55206.0,0.8888,True,kept
+site_109,"Lodhi Road, Delhi - IMD",delhi,Delhi,Delhi,cpcb_caaqm,28.5918245,77.2273074,3.04,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,59044.0,0.9506,True,kept
+site_113,"Shadipur, Delhi - CPCB",delhi,Delhi,Delhi,cpcb_caaqm,28.6514781,77.1473105,7.33,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,59523.0,0.9583,True,kept
+site_114,"IHBAS, Dilshad Garden, Delhi - CPCB",delhi,Delhi,Delhi,cpcb_caaqm,28.6811736,77.3025234,11.8,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,57465.0,0.9363,True,kept
+site_117,"ITO, Delhi - CPCB",delhi,Delhi,Delhi,cpcb_caaqm,28.628624,77.24106,3.53,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,57179.0,0.9206,True,kept
+site_118,"DTU, Delhi - CPCB",delhi,Delhi,Delhi,cpcb_caaqm,28.7500499,77.1112615,17.89,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56537.0,0.9102,True,kept
+site_119,"Sirifort, Delhi - CPCB",delhi,Delhi,Delhi,cpcb_caaqm,28.5504249,77.2159377,7.09,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,55489.0,0.8934,True,kept
+site_122,"Mandir Marg, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.636429,77.201067,2.62,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,58120.0,0.9357,True,kept
+site_124,"R K Puram, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.563262,77.186937,6.03,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,57596.0,0.9273,True,kept
+site_125,"Punjabi Bagh, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.674045,77.131023,10.13,2017-12-05 00:00:00+00:00,2024-12-31 18:00:00+00:00,59460.0,0.9588,True,kept
+site_1420,"Ashok Vihar, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.695381,77.181665,9.44,2018-02-01 03:00:00+00:00,2024-12-31 18:00:00+00:00,57669.0,0.9513,True,kept
+site_1423,"Jahangirpuri, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.73282,77.170633,13.74,2018-02-01 03:00:00+00:00,2024-12-31 11:00:00+00:00,58464.0,0.9644,True,kept
+site_1424,"Jawaharlal Nehru Stadium, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.58028,77.233829,4.46,2018-02-01 03:00:00+00:00,2024-12-31 18:00:00+00:00,58351.0,0.9626,True,kept
+site_1425,"Major Dhyan Chand National Stadium, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.611281,77.237738,2.82,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,59244.0,0.9773,True,kept
+site_1428,"Okhla Phase-2, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.530785,77.271255,11.06,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,59395.0,0.9798,True,kept
+site_1429,"Nehru Nagar, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.56789,77.250515,6.53,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,59103.0,0.975,True,kept
+site_1430,"Rohini, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.732528,77.11992,15.8,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,59027.0,0.9737,True,kept
+site_1431,"Patparganj, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.623763,77.287209,7.71,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,58734.0,0.9689,True,kept
+site_1432,"Sonia Vihar, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.710508,77.249485,11.45,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,58400.0,0.9634,True,kept
+site_1434,"Wazirpur, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.699793,77.165453,10.45,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,58318.0,0.962,True,kept
+site_1435,"Vivek Vihar, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.672342,77.31526,12.24,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,57799.0,0.9535,True,kept
+site_1560,"Bawana, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.7762,77.051074,23.73,2018-07-04 13:00:00+00:00,2024-12-31 18:00:00+00:00,55301.0,0.9712,True,kept
+site_1561,"Mundka, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.684678,77.076574,15.13,2018-07-03 13:00:00+00:00,2024-12-31 18:00:00+00:00,54999.0,0.9655,True,kept
+site_1562,"Sri Aurobindo Marg, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.531346,77.190156,9.36,2018-07-03 13:00:00+00:00,2024-12-31 18:00:00+00:00,55773.0,0.9791,True,kept
+site_1563,"Pusa, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.639652,77.146275,6.76,2018-07-03 13:00:00+00:00,2024-12-31 18:00:00+00:00,54277.0,0.9528,True,kept
+site_301,"Anand Vihar, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.647622,77.315809,11.08,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,55461.0,0.8929,True,kept
+site_5024,"Alipur, Delhi - DPCC",delhi,Delhi,Delhi,cpcb_caaqm,28.815329,77.15301,23.05,2018-11-11 09:00:00+00:00,2024-12-31 18:00:00+00:00,51441.0,0.9557,True,kept
+site_5083,"Loni, Ghaziabad - UPPCB",delhi,Ghaziabad,Uttar Pradesh,cpcb_caaqm,28.757294,77.278792,17.34,2019-02-27 11:00:00+00:00,2024-12-31 11:00:00+00:00,46614.0,0.9099,True,kept
+site_5393,"Chandni Chowk, Delhi - IITM",delhi,Delhi,Delhi,cpcb_caaqm,28.656756,77.227234,5.09,2020-11-13 09:00:00+00:00,2024-12-31 08:00:00+00:00,19180.0,0.5294,False,starts after 2020-01-01
+site_5395,"Lodhi Road, Delhi - IMD",delhi,Delhi,Delhi,cpcb_caaqm,28.5918245,77.2273074,3.04,2020-11-13 09:00:00+00:00,2024-12-31 11:00:00+00:00,18693.0,0.5159,False,starts after 2020-01-01
+site_1421,"Dr. Karni Singh Shooting Range, Delhi - DPCC",faridabad,Delhi,Delhi,cpcb_caaqm,28.498571,77.26484,11.24,2018-02-03 11:00:00+00:00,2024-12-31 18:00:00+00:00,56200.0,0.9279,True,kept
+site_263,"Sector 11, Faridabad - HSPCB",faridabad,Faridabad,Haryana,cpcb_caaqm,28.376058,77.315741,3.66,2017-12-01 00:00:00+00:00,2024-11-20 04:00:00+00:00,51119.0,0.823,True,kept
+site_5060,"Nathu Colony, Ballabgarh - HSPCB",faridabad,Ballabgarh,Haryana,cpcb_caaqm,28.3419248,77.319699,7.45,2019-01-18 05:00:00+00:00,2024-12-19 06:00:00+00:00,48324.0,0.9258,True,kept
+site_5340,"New Industrial Town, Faridabad - HSPCB",faridabad,Faridabad,Haryana,cpcb_caaqm,28.39072,77.30059,2.63,2020-03-04 10:00:00+00:00,2024-12-31 18:00:00+00:00,34698.0,0.8198,False,starts after 2020-01-01
+site_5341,"Sector 30, Faridabad - HSPCB",faridabad,Faridabad,Haryana,cpcb_caaqm,28.4417,77.3217,3.67,2020-03-04 11:00:00+00:00,2024-12-31 18:00:00+00:00,33886.0,0.8006,False,starts after 2020-01-01
+site_5342,"Sector 11, Faridabad - HSPCB",faridabad,Faridabad,Haryana,cpcb_caaqm,28.376058,77.315741,3.66,2020-03-03 12:00:00+00:00,2024-12-31 10:00:00+00:00,32816.0,0.7749,False,starts after 2020-01-01
+site_5081,"Sanjay Nagar, Ghaziabad - UPPCB",ghaziabad,Ghaziabad,Uttar Pradesh,cpcb_caaqm,28.685382,77.453839,1.8,2019-02-27 12:00:00+00:00,2024-12-31 18:00:00+00:00,48905.0,0.9547,True,kept
+site_5082,"Indirapuram, Ghaziabad - UPPCB",ghaziabad,Ghaziabad,Uttar Pradesh,cpcb_caaqm,28.646233,77.358075,9.68,2019-02-27 12:00:00+00:00,2024-12-31 18:00:00+00:00,49157.0,0.9596,True,kept
+site_108,"Aya Nagar, Delhi - IMD",gurugram,Delhi,Delhi,cpcb_caaqm,28.4706914,77.1099364,8.24,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,57362.0,0.9235,True,kept
+site_115,"NSIT Dwarka, Delhi - CPCB",gurugram,Delhi,Delhi,cpcb_caaqm,28.60909,77.0325413,16.64,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,59480.0,0.9692,True,kept
+site_1422,"Dwarka-Sector 8, Delhi - DPCC ",gurugram,Delhi,Delhi,cpcb_caaqm,28.5710274,77.0719006,13.17,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,59580.0,0.9829,True,kept
+site_1427,"Najafgarh, Delhi - DPCC",gurugram,Delhi,Delhi,cpcb_caaqm,28.570173,76.933762,15.29,2018-02-01 05:00:00+00:00,2024-12-31 18:00:00+00:00,56949.0,0.9395,True,kept
+site_146,"Vikas Sadan, Gurugram - HSPCB",gurugram,Gurugram,Haryana,cpcb_caaqm,28.4501238,77.0263051,1.04,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,52244.0,0.8513,True,kept
+site_5025,"NISE Gwal Pahari, Gurugram - IMD",gurugram,Gurugram,Haryana,cpcb_caaqm,28.422681,77.148944,12.64,2017-12-30 19:00:00+00:00,2024-12-31 18:00:00+00:00,46422.0,0.7561,True,kept
+site_5039,"Sector-2 IMT, Manesar - HSPCB",gurugram,Manesar,Haryana,cpcb_caaqm,28.360699,76.93609,14.11,2018-12-05 09:00:00+00:00,2024-12-30 06:00:00+00:00,48876.0,0.9179,True,kept
+site_5344,"Teri Gram, Gurugram - HSPCB",gurugram,Gurugram,Haryana,cpcb_caaqm,28.4275,77.1465,12.25,2020-03-05 10:00:00+00:00,2024-12-31 11:00:00+00:00,39513.0,0.9341,False,starts after 2020-01-01
+site_5345,"Sector-51, Gurugram - HSPCB",gurugram,Gurugram,Haryana,cpcb_caaqm,28.4227,77.0667,5.67,2020-03-05 11:00:00+00:00,2024-12-31 11:00:00+00:00,39984.0,0.9452,False,starts after 2020-01-01
+site_5073,"Railway Colony, Guwahati - PCBA",guwahati,Guwahati,Assam,cpcb_caaqm,26.181742,91.78063,6.07,2019-02-16 17:00:00+00:00,2024-12-31 10:00:00+00:00,46170.0,0.8967,True,kept
+site_5417,"Pan Bazaar, Guwahati - PCBA",guwahati,Guwahati,Assam,cpcb_caaqm,26.1875,91.744194,4.85,2020-12-28 07:00:00+00:00,2024-12-31 10:00:00+00:00,31023.0,0.8825,False,starts after 2020-01-01
+site_5669,"Central Academy for SFS, Byrnihat - PCBA",guwahati,Byrnihat,Assam,cpcb_caaqm,26.071318,91.87488,16.06,2022-12-22 05:00:00+00:00,2024-12-31 18:00:00+00:00,14753.0,0.8298,False,starts after 2020-01-01
+site_5683,"LGBI Airport, Guwahati - PCBA",guwahati,Guwahati,Assam,cpcb_caaqm,26.10887,91.589544,15.17,2022-12-19 05:00:00+00:00,2024-12-31 18:00:00+00:00,16381.0,0.9177,False,starts after 2020-01-01
+DS1010005,US Embassy - Hyderabad,hyderabad,Hyderabad,Telangana,us_embassy,17.38405,78.45636,3.22,2019-06-30 19:00:00+00:00,2024-12-31 18:00:00+00:00,44585.0,0.9237,True,kept
+site_199,"Bollaram Industrial Area, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.540891,78.358528,22.03,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56080.0,0.9029,True,kept
+site_262,"Central University, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.460103,78.334361,18.19,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,57000.0,0.9177,True,kept
+site_294,"Sanathnagar, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.4559458,78.4332152,9.72,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,58416.0,0.9405,True,kept
+site_298,"Zoo Park, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.349694,78.451437,5.42,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,52698.0,0.8484,True,kept
+site_5595,"New Malakpet, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.37206,78.50864,2.74,2022-05-26 10:00:00+00:00,2024-12-31 18:00:00+00:00,19978.0,0.8757,False,starts after 2020-01-01
+site_5596,"ECIL Kapra, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.470431,78.566959,12.76,2022-05-26 11:00:00+00:00,2024-12-31 18:00:00+00:00,19032.0,0.8343,False,starts after 2020-01-01
+site_5598,"Somajiguda, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.417094,78.457437,4.73,2022-05-26 12:00:00+00:00,2024-12-31 18:00:00+00:00,17346.0,0.7604,False,starts after 2020-01-01
+site_5599,"Kompally Municipal Office, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.544899,78.486949,17.78,2022-05-26 13:00:00+00:00,2024-12-31 18:00:00+00:00,17832.0,0.7817,False,starts after 2020-01-01
+site_5600,"Nacharam_TSIIC IALA, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.429398,78.569354,10.06,2022-05-26 10:00:00+00:00,2024-12-31 18:00:00+00:00,19697.0,0.8634,False,starts after 2020-01-01
+site_5604,"Kokapet, Hyderabad - TSPCB",hyderabad,Hyderabad,Telangana,cpcb_caaqm,17.393559,78.339194,15.68,2022-06-02 06:00:00+00:00,2024-12-31 18:00:00+00:00,18119.0,0.8,False,starts after 2020-01-01
+site_1402,"Sector-2 Industrial Area, Pithampur - MPPCB",indore,Pithampur,Madhya Pradesh,cpcb_caaqm,22.624758,75.675238,21.49,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,60923.0,0.9809,True,kept
+site_5854,"Residency Area, Indore - IMC",indore,Indore,Madhya Pradesh,cpcb_caaqm,22.7084,75.8815,2.74,2023-12-28 12:00:00+00:00,2024-12-31 18:00:00+00:00,7836.0,0.8836,False,starts after 2020-01-01
+site_5855,"Regional Park, Indore - IMC",indore,Indore,Madhya Pradesh,cpcb_caaqm,22.678,75.8559,4.63,2023-12-21 11:00:00+00:00,2024-12-31 18:00:00+00:00,6878.0,0.7611,False,starts after 2020-01-01
+site_5856,"Maguda Nagar, Indore - IMC",indore,Indore,Madhya Pradesh,cpcb_caaqm,22.7524,75.8872,4.74,2023-12-26 10:00:00+00:00,2024-12-31 18:00:00+00:00,7407.0,0.8306,False,starts after 2020-01-01
+site_5857,"Airport Area, Indore - IMC",indore,Indore,Madhya Pradesh,cpcb_caaqm,22.7289,75.8076,5.24,2024-09-19 06:00:00+00:00,2024-12-31 18:00:00+00:00,1468.0,0.5896,False,starts after 2020-01-01
+site_134,"Police Commissionerate, Jaipur - RSPCB",jaipur,Jaipur,Rajasthan,cpcb_caaqm,26.9164092,75.7994901,1.29,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,52888.0,0.8515,True,kept
+site_1393,"Adarsh Nagar, Jaipur - RSPCB",jaipur,Jaipur,Rajasthan,cpcb_caaqm,26.902909,75.836858,5.03,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,59331.0,0.9667,True,kept
+site_1396,"Shastri Nagar, Jaipur - RSPCB",jaipur,Jaipur,Rajasthan,cpcb_caaqm,26.9502929,75.730943,7.0,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,59168.0,0.9641,True,kept
+site_5725,"Mansarovar Sector-12, Jaipur - RSPCB",jaipur,Jaipur,Rajasthan,cpcb_caaqm,26.843698,75.766894,7.9,2023-03-16 10:00:00+00:00,2024-12-31 18:00:00+00:00,14658.0,0.9302,False,starts after 2020-01-01
+site_5727,"Sector-2 Murlipura, Jaipur - RSPCB",jaipur,Jaipur,Rajasthan,cpcb_caaqm,26.960669,75.771817,5.58,2023-03-16 10:00:00+00:00,2024-12-31 10:00:00+00:00,14698.0,0.9327,False,starts after 2020-01-01
+site_5728,"RIICO Sitapura, Jaipur - RSPCB",jaipur,Jaipur,Rajasthan,cpcb_caaqm,26.786682,75.827928,14.55,2023-06-13 05:00:00+00:00,2024-12-31 18:00:00+00:00,13083.0,0.9601,False,starts after 2020-01-01
+site_136,"Collectorate, Jodhpur - RSPCB",jodhpur,Jodhpur,Rajasthan,cpcb_caaqm,26.268249,73.0193853,3.3,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56987.0,0.9175,True,kept
+site_5694,"Samrat Ashok Udhyan, Jodhpur - RSPCB",jodhpur,Jodhpur,Rajasthan,cpcb_caaqm,26.253384,72.976571,5.03,2023-02-10 04:00:00+00:00,2024-12-31 18:00:00+00:00,16318.0,0.9842,False,starts after 2020-01-01
+site_5720,"Jhalamand, Jodhpur - RSPCB",jodhpur,Jodhpur,Rajasthan,cpcb_caaqm,26.215415,73.070156,5.27,2023-03-13 11:00:00+00:00,2024-12-31 18:00:00+00:00,15403.0,0.9731,False,starts after 2020-01-01
+site_5726,"Digari Kalan, Jodhpur - RSPCB",jodhpur,Jodhpur,Rajasthan,cpcb_caaqm,26.29581,73.082283,8.57,2023-04-10 12:00:00+00:00,2024-12-31 18:00:00+00:00,14704.0,0.9702,False,starts after 2020-01-01
+site_5773,"Mandor, Jodhpur - RSPCB",jodhpur,Jodhpur,Rajasthan,cpcb_caaqm,26.358805,73.047444,13.53,2023-04-26 11:00:00+00:00,2024-12-31 18:00:00+00:00,14409.0,0.9754,False,starts after 2020-01-01
+site_276,"Nehru Nagar, Kanpur - UPPCB",kanpur,Kanpur,Uttar Pradesh,cpcb_caaqm,26.4703136,80.3229863,2.44,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,60048.0,0.9668,True,kept
+site_5474,"NSI Kalyanpur, Kanpur - UPPCB",kanpur,Kanpur,Uttar Pradesh,cpcb_caaqm,26.509954,80.249612,10.57,2021-07-09 15:00:00+00:00,2024-12-31 18:00:00+00:00,29261.0,0.959,False,starts after 2020-01-01
+site_5500,"FTI Kidwai Nagar, Kanpur - UPPCB",kanpur,Kanpur,Uttar Pradesh,cpcb_caaqm,26.428282,80.327067,2.45,2021-09-03 10:00:00+00:00,2024-12-31 18:00:00+00:00,27641.0,0.9475,False,starts after 2020-01-01
+site_5105,"Udyogamandal, Eloor - Kerala PCB",kochi,Eloor,Kerala,cpcb_caaqm,10.073232,76.302765,16.26,2019-05-23 07:00:00+00:00,2024-12-31 18:00:00+00:00,39988.0,0.8129,True,kept
+DS1010003,US Embassy - Kolkata,kolkata,Kolkata,West Bengal,us_embassy,22.56263,88.36304,1.11,2019-06-30 23:00:00+00:00,2024-12-31 18:00:00+00:00,42730.0,0.8853,True,kept
+site_1416,"Padmapukur, Howrah - WBPCB",kolkata,Howrah,West Bengal,cpcb_caaqm,22.5687319,88.2797276,8.65,2018-01-19 09:00:00+00:00,2024-12-31 18:00:00+00:00,58175.0,0.9548,True,kept
+site_274,"Ghusuri, Howrah - WBPCB",kolkata,Howrah,West Bengal,cpcb_caaqm,22.611968,88.347422,4.69,,,,,False,no PM2.5 in window
+site_296,"Rabindra Bharati University, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.627847,88.380669,6.38,2018-11-06 04:00:00+00:00,2024-12-31 10:00:00+00:00,49186.0,0.9117,True,kept
+site_309,"Victoria, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.5448082,88.3403691,3.92,2018-04-10 04:00:00+00:00,2024-12-31 18:00:00+00:00,55313.0,0.9377,True,kept
+site_5101,"Belur Math, Howrah - WBPCB",kolkata,Howrah,West Bengal,cpcb_caaqm,22.629801,88.352017,6.48,2019-05-07 07:00:00+00:00,2024-12-31 18:00:00+00:00,46914.0,0.9463,True,kept
+site_5110,"Fort William, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.55664,88.342674,2.81,2019-05-31 14:00:00+00:00,2024-12-31 18:00:00+00:00,44266.0,0.9035,True,kept
+site_5111,"Jadavpur, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.49929,88.36917,8.17,2019-06-03 05:00:00+00:00,2024-12-31 18:00:00+00:00,47563.0,0.972,True,kept
+site_5126,"Rabindra Sarobar, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.51106,88.35142,6.96,2019-08-08 07:00:00+00:00,2024-12-31 18:00:00+00:00,44749.0,0.9452,True,kept
+site_5129,"Bidhannagar, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.58157048,88.41002457,4.84,2019-08-21 10:00:00+00:00,2024-12-31 10:00:00+00:00,44466.0,0.9455,True,kept
+site_5238,"Ballygunge, Kolkata - WBPCB",kolkata,Kolkata,West Bengal,cpcb_caaqm,22.5367507,88.3638022,3.99,2019-08-30 05:00:00+00:00,2024-12-31 18:00:00+00:00,44494.0,0.9503,True,kept
+site_5959,"SVSPA Campus, Barrackpore - WBPCB",kolkata,Barrackpore,West Bengal,cpcb_caaqm,22.7605581,88.3617589,20.9,2023-12-01 13:00:00+00:00,2024-12-31 18:00:00+00:00,8788.0,0.9236,False,starts after 2020-01-01
+site_5989,"Botanical Garden, Howrah - WBPCB",kolkata,Howrah,West Bengal,cpcb_caaqm,22.554954,88.292568,7.58,2024-06-14 06:00:00+00:00,2024-12-31 18:00:00+00:00,4078.0,0.8464,False,starts after 2020-01-01
+site_6009,"Dasnagar, Howrah - WBPCB",kolkata,Howrah,West Bengal,cpcb_caaqm,22.6025571,88.3105664,6.41,2024-10-15 11:00:00+00:00,2024-12-31 18:00:00+00:00,1823.0,0.9796,False,starts after 2020-01-01
+site_272,"Kendriya Vidyalaya, Lucknow - CPCB",lucknow,Lucknow,Uttar Pradesh,cpcb_caaqm,26.906111,80.948222,6.61,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,31165.0,0.5078,False,completeness < 60 %
+site_277,"Lalbagh, Lucknow - CPCB",lucknow,Lucknow,Uttar Pradesh,cpcb_caaqm,26.8458805,80.9365541,0.96,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,56362.0,0.9184,True,kept
+site_297,"Talkatora District Industries Center, Lucknow - CPCB",lucknow,Lucknow,Uttar Pradesh,cpcb_caaqm,26.83399722,80.8917361,5.59,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,58459.0,0.9525,True,kept
+site_5128,"Gomti Nagar, Lucknow - UPPCB",lucknow,Lucknow,Uttar Pradesh,cpcb_caaqm,26.86812,81.005119,6.31,2019-08-21 10:00:00+00:00,2024-12-31 18:00:00+00:00,43800.0,0.9313,True,kept
+site_5460,"B R Ambedkar University, Lucknow - UPPCB",lucknow,Lucknow,Uttar Pradesh,cpcb_caaqm,26.766433,80.927299,9.12,2021-06-02 10:00:00+00:00,2024-12-31 18:00:00+00:00,29910.0,0.9524,False,starts after 2020-01-01
+site_5462,"Kukrail Picnic Spot-1, Lucknow - UPPCB",lucknow,Lucknow,Uttar Pradesh,cpcb_caaqm,26.90723,80.98579,7.79,2021-07-12 06:00:00+00:00,2024-12-31 18:00:00+00:00,28890.0,0.9488,False,starts after 2020-01-01
+site_253,"Punjab Agricultural University, Ludhiana - PPCB",ludhiana,Ludhiana,Punjab,cpcb_caaqm,30.9028,75.8086,4.65,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,60141.0,0.9683,True,kept
+DS1010004,US Embassy - Mumbai,mumbai,Mumbai,Maharashtra,us_embassy,19.07283,72.88261,0.62,2019-06-30 19:00:00+00:00,2024-12-31 18:00:00+00:00,45811.0,0.9491,True,kept
+site_168,Bandra Mumbai,mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.053536,72.84643,4.13,2018-04-26 04:00:00+00:00,2021-12-24 07:00:00+00:00,26114.0,0.4456,False,completeness < 60 %
+site_261,"Nerul, Navi Mumbai - MPCB",mumbai,Navi Mumbai,Maharashtra,cpcb_caaqm,19.008751,73.01662,16.41,,,,,False,no PM2.5 in window
+site_305,"Pimpleshwar Mandir, Kalyan - MPCB",mumbai,Kalyan,Maharashtra,cpcb_caaqm,19.192056,72.9585188,15.45,,,,,False,no PM2.5 in window
+site_5102,"Malad West, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.19709,72.82204,14.68,2019-06-03 09:00:00+00:00,2024-12-31 18:00:00+00:00,37249.0,0.7613,True,kept
+site_5103,"Nerul, Navi Mumbai - MPCB",mumbai,Navi Mumbai,Maharashtra,cpcb_caaqm,19.008751,73.01662,16.41,2019-06-03 10:00:00+00:00,2024-12-31 18:00:00+00:00,41346.0,0.8451,True,kept
+site_5104,"Kurla, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.0863,72.8888,1.63,2019-06-06 09:00:00+00:00,2024-12-31 10:00:00+00:00,43017.0,0.8805,True,kept
+site_5106,"Vile Parle West, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.10861,72.83622,5.67,2019-06-03 10:00:00+00:00,2024-12-31 18:00:00+00:00,39726.0,0.812,True,kept
+site_5107,"Chhatrapati Shivaji Intl. Airport (T2), Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.10078,72.87462,2.77,2019-06-04 04:00:00+00:00,2024-12-31 18:00:00+00:00,45125.0,0.9227,True,kept
+site_5112,"Powai, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.1375,72.915056,7.88,2019-06-04 05:00:00+00:00,2024-12-31 18:00:00+00:00,45103.0,0.9222,True,kept
+site_5113,"Borivali East, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.23241,72.86895,17.42,2019-06-12 07:00:00+00:00,2024-12-31 10:00:00+00:00,42850.0,0.8796,True,kept
+site_5114,"Mahape, Navi Mumbai - MPCB",mumbai,Navi Mumbai,Maharashtra,cpcb_caaqm,19.1135051,73.008978,14.41,2019-06-19 11:00:00+00:00,2024-12-31 18:00:00+00:00,40281.0,0.8298,True,kept
+site_5115,Worli Mumbai,mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.000083,72.813993,10.78,2019-06-11 04:00:00+00:00,2024-12-31 08:00:00+00:00,42338.0,0.8686,True,kept
+site_5119,"Sion, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.047,72.8746,3.24,2019-06-20 08:00:00+00:00,2024-12-31 18:00:00+00:00,46011.0,0.9483,True,kept
+site_5120,"Colaba, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,18.91,72.82,19.43,2019-06-24 08:00:00+00:00,2024-12-31 10:00:00+00:00,39603.0,0.8178,True,kept
+site_5392,"Bandra Kurla Complex, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.053536,72.84643,4.13,2020-11-10 07:00:00+00:00,2023-12-29 10:00:00+00:00,22352.0,0.6157,False,starts after 2020-01-01
+site_5394,"Mazgaon, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,18.96702,72.84214,12.68,2020-11-10 06:00:00+00:00,2024-12-31 18:00:00+00:00,28902.0,0.7961,False,starts after 2020-01-01
+site_5396,"Deonar, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.04946,72.923,5.6,2020-11-13 08:00:00+00:00,2024-12-31 11:00:00+00:00,28889.0,0.7973,False,starts after 2020-01-01
+site_5397,"Khindipada-Bhandup West, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.1653323,72.922099,10.97,2020-12-16 11:00:00+00:00,2024-12-31 18:00:00+00:00,29774.0,0.8402,False,starts after 2020-01-01
+site_5398,"Navy Nagar-Colaba, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,18.897756,72.81332,20.94,2020-11-13 10:00:00+00:00,2024-12-31 18:00:00+00:00,28910.0,0.798,False,starts after 2020-01-01
+site_5399,"Chakala-Andheri East, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.11074,72.86084,4.25,2020-12-08 04:00:00+00:00,2024-07-08 07:00:00+00:00,25227.0,0.7079,False,starts after 2020-01-01
+site_5400,"Borivali East, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.23241,72.86895,17.42,2020-11-13 09:00:00+00:00,2024-12-31 18:00:00+00:00,28243.0,0.7795,False,starts after 2020-01-01
+site_5402,"Malad West, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.19709,72.82204,14.68,2020-11-13 09:00:00+00:00,2024-12-31 18:00:00+00:00,24037.0,0.6634,False,starts after 2020-01-01
+site_5403,"Siddharth Nagar-Worli, Mumbai - IITM",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.000083,72.813993,10.78,2021-01-12 09:00:00+00:00,2024-12-31 18:00:00+00:00,27686.0,0.7958,False,starts after 2020-01-01
+site_5412,"Kandivali East, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.2058,72.8682,14.47,2020-12-16 10:00:00+00:00,2024-12-31 10:00:00+00:00,30331.0,0.8559,False,starts after 2020-01-01
+site_5413,"Mulund West, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.175,72.9419,12.91,2020-12-16 10:00:00+00:00,2024-12-31 18:00:00+00:00,30335.0,0.856,False,starts after 2020-01-01
+site_5797,"Kasarvadavali, Thane - MPCB",mumbai,Thane,Maharashtra,cpcb_caaqm,19.26777,72.97182,23.5,2023-06-20 10:00:00+00:00,2024-12-31 18:00:00+00:00,10935.0,0.8128,False,starts after 2020-01-01
+site_5799,"Sector-2E Kalamboli, Navi Mumbai - MPCB",mumbai,Navi Mumbai,Maharashtra,cpcb_caaqm,19.02579,73.10297,24.33,2023-07-18 07:00:00+00:00,2024-12-31 10:00:00+00:00,11908.0,0.9314,False,starts after 2020-01-01
+site_5800,"Upvan Fort, Thane - MPCB",mumbai,Thane,Maharashtra,cpcb_caaqm,19.222279,72.957979,18.32,2023-06-23 04:00:00+00:00,2024-12-31 18:00:00+00:00,12786.0,0.955,False,starts after 2020-01-01
+site_5804,"CBD Belapur, Belapur - MPCB",mumbai,Belapur,Maharashtra,cpcb_caaqm,19.0243902,73.0406721,18.06,2023-06-19 10:00:00+00:00,2024-12-31 18:00:00+00:00,12876.0,0.9553,False,starts after 2020-01-01
+site_5805,"Kopripada-Vashi, Navi Mumbai - MPCB",mumbai,Navi Mumbai,Maharashtra,cpcb_caaqm,19.090337,73.014232,14.44,2023-06-16 12:00:00+00:00,2024-12-31 18:00:00+00:00,12784.0,0.9436,False,starts after 2020-01-01
+site_5806,"Bhayandar West, Mira-Bhayandar - MPCB",mumbai,Mira-Bhayandar,Maharashtra,cpcb_caaqm,19.296481,72.840923,24.82,2023-06-26 10:00:00+00:00,2024-12-31 18:00:00+00:00,12558.0,0.9435,False,starts after 2020-01-01
+site_5807,"Mindspace-Malad West, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.1878657,72.8304069,13.39,2023-07-21 11:00:00+00:00,2024-12-31 18:00:00+00:00,11913.0,0.9374,False,starts after 2020-01-01
+site_5810,"Bandra Kurla Complex, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.065931,72.862131,1.98,2023-06-19 05:00:00+00:00,2024-12-31 18:00:00+00:00,12847.0,0.9528,False,starts after 2020-01-01
+site_5811,"Chembur, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.0364585,72.8954371,4.78,2023-06-19 06:00:00+00:00,2024-12-31 18:00:00+00:00,12642.0,0.9377,False,starts after 2020-01-01
+site_5814,"Kherwadi_Bandra East, Mumbai - MPCB",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.0632143,72.8456324,3.66,2023-06-20 10:00:00+00:00,2024-12-31 18:00:00+00:00,12997.0,0.966,False,starts after 2020-01-01
+site_5815,"Sanpada, Navi Mumbai - MPCB",mumbai,Navi Mumbai,Maharashtra,cpcb_caaqm,19.0575752,73.0151367,14.59,2023-06-26 10:00:00+00:00,2024-12-31 18:00:00+00:00,11967.0,0.8991,False,starts after 2020-01-01
+site_5960,"Byculla, Mumbai - BMC",mumbai,Mumbai,Maharashtra,cpcb_caaqm,18.9767,72.838,11.8,2023-11-10 12:00:00+00:00,2024-12-31 18:00:00+00:00,9686.0,0.9667,False,starts after 2020-01-01
+site_5961,"Shivaji Nagar, Mumbai - BMC",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.060498,72.923356,5.1,2023-11-14 06:00:00+00:00,2024-12-31 18:00:00+00:00,6960.0,0.7009,False,starts after 2020-01-01
+site_5962,"Kandivali West, Mumbai - BMC",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.215859,72.831718,16.28,2023-11-14 10:00:00+00:00,2024-12-31 18:00:00+00:00,9028.0,0.9095,False,starts after 2020-01-01
+site_5963,"Sewri, Mumbai - BMC",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.000084,72.85673,8.72,2023-11-21 06:00:00+00:00,2024-12-31 18:00:00+00:00,8568.0,0.8777,False,starts after 2020-01-01
+site_5964,"Ghatkopar, Mumbai - BMC",mumbai,Mumbai,Maharashtra,cpcb_caaqm,19.083694,72.920967,4.63,2023-11-14 06:00:00+00:00,2024-12-31 18:00:00+00:00,9344.0,0.941,False,starts after 2020-01-01
+site_303,"Opp GPO Civil Lines, Nagpur - MPCB",nagpur,Nagpur,Maharashtra,cpcb_caaqm,21.152875,79.0517531,3.86,2017-12-31 19:00:00+00:00,2024-12-31 18:00:00+00:00,54075.0,0.8811,True,kept
+site_5792,"Ambazari, Nagpur - MPCB",nagpur,Nagpur,Maharashtra,cpcb_caaqm,21.121801,79.04952,4.82,2023-06-12 12:00:00+00:00,2024-12-31 18:00:00+00:00,13500.0,0.9894,False,starts after 2020-01-01
+site_5793,"Ram Nagar, Nagpur - MPCB",nagpur,Nagpur,Maharashtra,cpcb_caaqm,21.143383,79.048912,4.08,2023-06-12 12:00:00+00:00,2024-12-31 18:00:00+00:00,11427.0,0.8375,False,starts after 2020-01-01
+site_5796,"Mahal, Nagpur - MPCB",nagpur,Nagpur,Maharashtra,cpcb_caaqm,21.14472,79.107595,2.01,2023-06-19 06:00:00+00:00,2024-12-31 18:00:00+00:00,13299.0,0.9864,False,starts after 2020-01-01
+site_111,"Sector - 62, Noida - IMD",noida,Noida,Uttar Pradesh,cpcb_caaqm,28.6245479,77.3577104,10.42,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56428.0,0.9085,True,kept
+site_153,"Sector - 125, Noida - UPPCB",noida,Noida,Uttar Pradesh,cpcb_caaqm,28.5447608,77.3231257,6.71,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,53858.0,0.8671,True,kept
+site_1541,"Knowledge Park - III, Greater Noida - UPPCB",noida,Greater Noida,Uttar Pradesh,cpcb_caaqm,28.47272,77.482,11.3,2018-05-25 07:00:00+00:00,2024-12-31 18:00:00+00:00,52921.0,0.9139,True,kept
+site_5121,"Knowledge Park - V, Greater Noida - UPPCB",noida,Greater Noida,Uttar Pradesh,cpcb_caaqm,28.557054,77.453663,6.57,2019-06-24 05:00:00+00:00,2024-12-31 18:00:00+00:00,45835.0,0.9465,True,kept
+site_5122,"Sector-116, Noida - UPPCB",noida,Noida,Uttar Pradesh,cpcb_caaqm,28.56923,77.393848,3.76,2019-06-24 08:00:00+00:00,2024-12-31 15:00:00+00:00,45412.0,0.9378,True,kept
+site_5123,"Sector-1, Noida - UPPCB",noida,Noida,Uttar Pradesh,cpcb_caaqm,28.5898,77.3101,9.94,2019-06-19 21:00:00+00:00,2024-12-31 11:00:00+00:00,46455.0,0.9572,True,kept
+site_157,"IGSC Planetarium Complex, Patna - BSPCB",patna,Patna,Bihar,cpcb_caaqm,25.610369,85.132568,1.88,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,53172.0,0.8561,True,kept
+site_5261,"Muradpur, Patna - BSPCB",patna,Patna,Bihar,cpcb_caaqm,25.619651,85.147382,3.01,2019-12-24 13:00:00+00:00,2024-12-31 18:00:00+00:00,41280.0,0.9376,True,kept
+site_5262,"Rajbansi Nagar, Patna - BSPCB",patna,Patna,Bihar,cpcb_caaqm,25.599486,85.113666,2.47,2019-12-24 12:00:00+00:00,2024-12-31 18:00:00+00:00,41980.0,0.9535,True,kept
+site_5263,"Samanpura, Patna - BSPCB",patna,Patna,Bihar,cpcb_caaqm,25.596727,85.085624,5.22,2019-12-24 13:00:00+00:00,2024-12-31 18:00:00+00:00,41133.0,0.9343,True,kept
+site_5335,"Govt. High School Shikarpur, Patna - BSPCB",patna,Patna,Bihar,cpcb_caaqm,25.592539,85.227158,8.98,2020-03-03 15:00:00+00:00,2024-12-14 04:00:00+00:00,38733.0,0.9147,False,starts after 2020-01-01
+site_5336,"DRM Office Danapur, Patna - BSPCB",patna,Patna,Bihar,cpcb_caaqm,25.586562,85.043586,9.47,2020-03-06 06:00:00+00:00,2024-12-31 18:00:00+00:00,36277.0,0.858,False,starts after 2020-01-01
+site_5337,"Industrial Area, Hajipur - BSPCB",patna,Hajipur,Bihar,cpcb_caaqm,25.697189,85.2459,15.79,2020-02-26 05:00:00+00:00,2024-12-31 10:00:00+00:00,37982.0,0.8937,False,starts after 2020-01-01
+site_5404,"Mhada Colony, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.57304,73.927715,9.5,2020-11-13 09:00:00+00:00,2024-12-31 18:00:00+00:00,25996.0,0.7175,False,starts after 2020-01-01
+site_5406,"Bhosari, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.640051,73.848956,13.33,2020-11-13 09:00:00+00:00,2024-07-31 18:00:00+00:00,16450.0,0.454,False,starts after 2020-01-01
+site_5407,"Hadapsar, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.501793,73.927532,7.75,2021-01-12 09:00:00+00:00,2024-12-31 04:00:00+00:00,9801.0,0.2817,False,starts after 2020-01-01
+site_5408,"Transport Nagar-Nigdi, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.664282,73.763966,18.75,2020-11-13 09:00:00+00:00,2024-12-31 01:00:00+00:00,20550.0,0.5672,False,starts after 2020-01-01
+site_5409,"Revenue Colony-Shivajinagar, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.530085,73.849598,1.31,2020-11-13 09:00:00+00:00,2024-12-31 10:00:00+00:00,27642.0,0.7629,False,starts after 2020-01-01
+site_5763,"Gavalinagar, Pimpri Chinchwad - MPCB",pune,Pimpri-Chinchwad,Maharashtra,cpcb_caaqm,18.63673,73.82487,13.36,2023-06-23 10:00:00+00:00,2024-12-31 18:00:00+00:00,11778.0,0.8801,False,starts after 2020-01-01
+site_5764,"Park Street Wakad, Pimpri Chinchwad - MPCB",pune,Pimpri-Chinchwad,Maharashtra,cpcb_caaqm,18.59051,73.77946,11.27,2023-04-27 12:00:00+00:00,2024-12-31 18:00:00+00:00,12640.0,0.8571,False,starts after 2020-01-01
+site_5765,"Thergaon, Pimpri Chinchwad - MPCB",pune,Pimpri-Chinchwad,Maharashtra,cpcb_caaqm,18.616318,73.765797,14.34,2023-05-15 11:00:00+00:00,2024-12-31 18:00:00+00:00,12813.0,0.895,False,starts after 2020-01-01
+site_5766,"Katraj Dairy, Pune - MPCB",pune,Pune,Maharashtra,cpcb_caaqm,18.45445,73.854155,7.34,2023-05-22 12:00:00+00:00,2024-12-31 18:00:00+00:00,11689.0,0.8262,False,starts after 2020-01-01
+site_5988,"Bhumkar Nagar, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.60577,73.749976,14.72,2024-05-21 08:00:00+00:00,2024-12-31 18:00:00+00:00,4740.0,0.8791,False,starts after 2020-01-01
+site_5996,"Panchawati_Pashan, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.536457,73.805454,5.69,2024-07-18 13:00:00+00:00,2024-12-31 18:00:00+00:00,2973.0,0.7442,False,starts after 2020-01-01
+site_5998,"Savta Mali Nagar, Pimpri-Chinchwad - IITM",pune,Pimpri-Chinchwad,Maharashtra,cpcb_caaqm,18.614767,73.799516,12.1,2024-08-05 11:00:00+00:00,2024-12-31 18:00:00+00:00,3300.0,0.9257,False,starts after 2020-01-01
+site_6012,"Dhankawadi, Pune - IITM",pune,Pune,Maharashtra,cpcb_caaqm,18.459883,73.852193,6.75,,,,,False,no PM2.5 in window
+site_5652,"AIIMS, Raipur - CECB",raipur,Raipur,Chhattisgarh,cpcb_caaqm,21.258815,81.578979,5.31,2022-10-21 12:00:00+00:00,2024-12-31 11:00:00+00:00,15716.0,0.816,False,starts after 2020-01-01
+site_5653,"Siltara Phase-II, Raipur - CECB",raipur,Raipur,Chhattisgarh,cpcb_caaqm,21.371751,81.664929,13.87,2022-10-21 11:00:00+00:00,2024-12-31 18:00:00+00:00,14918.0,0.7745,False,starts after 2020-01-01
+site_5654,"Krishak Nagar, Raipur - CECB",raipur,Raipur,Chhattisgarh,cpcb_caaqm,21.237755,81.705301,7.99,2022-10-21 10:00:00+00:00,2024-12-31 10:00:00+00:00,16139.0,0.8379,False,starts after 2020-01-01
+site_5655,"Bhatagaon New ISBT, Raipur - CECB",raipur,Raipur,Chhattisgarh,cpcb_caaqm,21.219665,81.630094,3.53,2022-10-27 11:00:00+00:00,2024-12-31 18:00:00+00:00,15292.0,0.7999,False,starts after 2020-01-01
+site_5659,"Hathkhoj, Bhilai - CECB",raipur,Bhilai,Chhattisgarh,cpcb_caaqm,21.224231,81.40835,23.13,2022-10-21 10:00:00+00:00,2024-12-31 11:00:00+00:00,16584.0,0.861,False,starts after 2020-01-01
+site_252,"Plammoodu, Thiruvananthapuram - Kerala PCB",thiruvananthapuram,Thiruvananthapuram,Kerala,cpcb_caaqm,8.5149093,76.9435879,1.28,2017-12-01 07:00:00+00:00,2024-12-31 18:00:00+00:00,52191.0,0.8404,True,kept
+site_5331,"Kariavattom, Thiruvananthapuram - Kerala PCB",thiruvananthapuram,Thiruvananthapuram,Kerala,cpcb_caaqm,8.5637,76.8865,7.05,2020-02-13 11:00:00+00:00,2024-12-31 18:00:00+00:00,37197.0,0.869,False,starts after 2020-01-01
+site_273,"Ardhali Bazar, Varanasi - UPPCB",varanasi,Varanasi,Uttar Pradesh,cpcb_caaqm,25.3505986,82.9083074,7.54,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,59544.0,0.9587,True,kept
+site_5468,"IESD Banaras Hindu University, Varanasi - UPPCB",varanasi,Varanasi,Uttar Pradesh,cpcb_caaqm,25.262326,82.995408,6.52,2021-06-21 11:00:00+00:00,2024-12-31 18:00:00+00:00,27731.0,0.896,False,starts after 2020-01-01
+site_5469,"Bhelupur, Varanasi - UPPCB",varanasi,Varanasi,Uttar Pradesh,cpcb_caaqm,25.301778,82.996789,2.9,2021-06-21 11:00:00+00:00,2024-12-31 18:00:00+00:00,28548.0,0.9224,False,starts after 2020-01-01
+site_5475,"Maldahiya, Varanasi - UPPCB",varanasi,Varanasi,Uttar Pradesh,cpcb_caaqm,25.32393,82.99687,2.41,2021-07-07 12:00:00+00:00,2024-12-31 18:00:00+00:00,28486.0,0.932,False,starts after 2020-01-01
+site_260,"GVM Corporation, Visakhapatnam - APPCB",visakhapatnam,Visakhapatnam,Andhra Pradesh,cpcb_caaqm,17.72,83.3,9.39,2017-12-01 00:00:00+00:00,2024-12-31 18:00:00+00:00,56259.0,0.9058,True,kept

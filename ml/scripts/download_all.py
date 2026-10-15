@@ -1,6 +1,9 @@
 """Download raw sources into ml/data/raw/ (resumable, idempotent, sha256 in MANIFEST.json). PROGRESS P1.
 
     python ml/scripts/download_all.py --source xkdr
+    python ml/scripts/download_all.py --source cams_fc            # P1.7, ADS; queues can take days: run in background
+    python ml/scripts/download_all.py --source era5_grid          # P1.6, CDS
+    (Copernicus sources take --start/--end YYYY-MM; default 2017-12 -> 2025-09, i.e. a 72 h warm-up before train + the PM-only check)
 """
 
 from __future__ import annotations
@@ -12,7 +15,7 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from aerofusion_ml.data import xkdr  # noqa: E402
+from aerofusion_ml.data import copernicus, xkdr  # noqa: E402
 from aerofusion_ml.env import need  # noqa: E402
 
 
@@ -38,9 +41,19 @@ def run_xkdr() -> None:
         print(f"XKDR complete: {new} downloaded, {len(files) - new} already present", flush=True)
 
 
-SOURCES = {"xkdr": run_xkdr}
+def run_copernicus(source: str, start: str, end: str) -> None:
+    copernicus.run(source, copernicus.months(start, end), log=lambda msg: print(msg, flush=True))
+
+
+SOURCES = {"xkdr": run_xkdr, **{s: s for s in copernicus.SOURCES}}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", choices=sorted(SOURCES), required=True)
-    SOURCES[ap.parse_args().source]()
+    ap.add_argument("--start", default="2017-12")
+    ap.add_argument("--end", default="2025-09")
+    a = ap.parse_args()
+    if a.source in copernicus.SOURCES:
+        run_copernicus(a.source, a.start, a.end)
+    else:
+        SOURCES[a.source]()

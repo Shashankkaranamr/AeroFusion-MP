@@ -15,7 +15,8 @@ ML = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ML))
 from aerofusion_ml.env import load_env  # noqa: E402
 
-DATAGOVIN_AQI = "3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"  # "Real time Air Quality Index from various locations"
+COPERNICUS = {"CDS": "https://cds.climate.copernicus.eu/api", "ADS": "https://ads.atmosphere.copernicus.eu/api"}
+DATAGOVIN_AQI ="3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"  # "Real time Air Quality Index from various locations"
 
 
 def cdsapirc() -> dict[str, str]:
@@ -62,9 +63,18 @@ def main() -> None:
         return ok, f"HTTP {r.status_code}" + ("" if ok else f", {r.text[:80].strip()!r}")
 
     def cds(k):
-        rc = cdsapirc()
-        ok = rc.get("url", "").startswith("https://cds.climate.copernicus.eu/api") and len(k) >= 20
-        return ok, "file format ok (token is validated on the first download)" if ok else f"url should be https://cds.climate.copernicus.eu/api, got {rc.get('url')!r}"
+        # One ECMWF token covers both portals, so either url in the file is fine; check token + licences on each.
+        url = cdsapirc().get("url", "")
+        if url.rstrip("/") not in COPERNICUS.values():
+            return False, f"url should be one of {sorted(COPERNICUS.values())}, got {url!r}"
+        notes, ok = [], True
+        for portal, base in COPERNICUS.items():
+            r = c.get(f"{base}/profiles/v1/account/licences", headers={"PRIVATE-TOKEN": k})
+            accepted = {lic["id"] for lic in r.json().get("licences", [])} if r.status_code == 200 else set()
+            missing = sorted({"cc-by"} - accepted)  # CAMS forecasts, EAC4 and ERA5 all list CC-BY-4.0 (verified 2026-10-15)
+            ok &= r.status_code == 200 and not missing
+            notes.append(f"{portal} HTTP {r.status_code}" + (f", accept licence {missing} on a dataset page" if missing else ", licences ok"))
+        return ok, "; ".join(notes)
 
     checks = [
         ("XKDR_API_KEY (CPCB archive)", env.get("XKDR_API_KEY"), xkdr),

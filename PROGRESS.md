@@ -47,7 +47,7 @@ Run its tests. Tick the box, add a one-line note with date and run_id/file. Phas
 ```
 Phase 0  Live platform (done earlier)          ████████████████████ 100%
 Phase P0 Housekeeping, integrity, setup        ████████░░░░░░░░░░░░  38%   wk 1      (19–25 Oct 2026)
-Phase P1 Data: download, QC, dataset_v1        ███████░░░░░░░░░░░░░  36%   wk 1–5    (→ 22 Nov)
+Phase P1 Data: download, QC, dataset_v1        █████████░░░░░░░░░░░  45%   wk 1–5    (→ 22 Nov)
 Phase P2 Evaluation harness + core baselines   ░░░░░░░░░░░░░░░░░░░░   0%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
 Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   wk 7–12   (→ 10 Jan)  model freeze end wk 12
 Phase P4 Final eval, ablations, XAI validation  ░░░░░░░░░░░░░░░░░░░░   0%   wk 12–14  (→ 24 Jan)
@@ -296,6 +296,8 @@ ml/
   - 2026-10-15: step-by-step sent to the team. `ml/scripts/check_keys.py` validates each credential without printing it
     (`aerofusion_ml/env.py` reads `ml/.env`, falling back to `backend/.env`). Status: XKDR ok (558 stations); FIRMS,
     OpenAQ (`OPENAQ_API_KEY`, added), data.gov.in, `~/.cdsapirc` pending. One ECMWF token serves CDS and ADS.
+  - 2026-10-15: `~/.cdsapirc` **ok**: the token is accepted by both CDS and ADS and the CC-BY licence (the one all three
+    datasets require) is accepted on both; `check_keys.py` now checks this live. Still pending: FIRMS, OpenAQ/data.gov.in, college GPU.
 - [x] **P0.8 Scaffold** `ml/` per §4 with `pytest` running (empty tests pass). Add a project `CLAUDE.md` that
   points to this file and repeats the §0 hard rules.
   - 2026-10-15: `ml/` created (README, requirements, `.env.example`, `configs/splits_v1.yaml`, draft
@@ -316,15 +318,28 @@ ml/
     IST, so labels mark the **interval start**. Mapping: UTC hour = IST label − 5 h (interval centre); value at t ends
     in (t, t+1 h]. `xkdr.to_utc_hour`, `tests/test_xkdr_time.py` (fixture site_103, 2019-11-01, train split; the first probe used 2023-11-01, which became test after the re-split: 3 raw values seen for a timestamp check only, no statistics, fixture replaced). US-Embassy rows are at IST :30
     (= UTC hour start). Their own start/end convention is unverified; it only affects 5 monitors.
-- [ ] **P1.3 Station panel.** Apply the §3.2 rule, write `stations_v1.csv`, then plot the station count per city per year.
+- [x] **P1.3 Station panel.** Apply the §3.2 rule, write `stations_v1.csv`, then plot the station count per city per year.
+  - 2026-10-15: `ml/scripts/build_station_panel.py` (`aerofusion_ml/data/stations.py`, `tests/test_stations.py`).
+    245 stations within 25 km of a city → **116 kept in 28/33 cities** (118 start after 2020-01-01, 5 below 60 %,
+    6 no PM2.5 in window). Delhi 32, Mumbai 12, Kolkata 10, Bengaluru 7, Gurugram 7, … (`ml/data/stations_v1.csv`;
+    all candidates with the reason in `stations_v1_candidates.csv`). **No panel station: Bhubaneswar, Dehradun, Pune, Raipur,
+    Srinagar** (their first monitors start 2020-11 or later); they stay as met/fire/CAMS nodes without a target (§9).
+    Figure `ml/figures/stations_per_city_year.png`: the panel is flat from 2020, all-station counts drift (Mumbai 1 → 36).
+    Test years were used for presence counts only, as §3.2 specifies.
 - [x] **P1.4 QC** per §3.7, plus `tests/test_qc.py` with synthetic flatline, spike and sentinel cases.
   - 2026-10-15: `aerofusion_ml/data/qc.py` + 13 tests (sentinel/bounds, flatline incl. NaN break, spike, city co-spike
     kept, past-only spike check, PM ratio flag, input gap fill ≤ 3 h, count bookkeeping). Spike rule uses a trailing
     window and scaled MAD (§9). Not yet run on real data (happens in P1.10 with the data card).
 - [ ] **P1.5 ERA5 node met** (Open-Meteo archive) for every station plus the 17 regions, 2017-12 → 2025-09 (VERIFY BLH).
 - [ ] **P1.6 ERA5 grid** (CDS): u10, v10, blh, t2m on the §3.2 grid, 3-hourly.
+  - 2026-10-15: `download_all.py --source era5_grid` queued (94 months 2017-12 → 2025-09, native 0.25°, India bbox,
+    netCDF; regrid to 0.75° in P1.10). `aerofusion_ml/data/copernicus.py` keeps job ids in `raw/era5_grid/v1/jobs.json`
+    so a rerun resumes; log `ml/data/raw/logs/era5_grid.log`.
 - [ ] **P1.7 CAMS forecasts (ADS, VERIFY archive).** 00 & 12 UTC runs, leads 0–48 h (3-hourly), pm2p5, aod550,
   duaod550, India bbox, 2018 → 2025-09.
+  - 2026-10-15 **VERIFIED** archive: 2017-12-01 and 2025-09-30 both return 00 and 12 UTC runs with leads 0 and 48 h
+    (valid_time to +48 h), native 0.4°. Full download queued: `download_all.py --source cams_fc` (94 months, leads 0–48
+    every 3 h, netcdf_zip), log `ml/data/raw/logs/cams_fc.log`. The EAC4 fallback is not needed.
   - Queue the requests early, since ADS queues can take days.
   - **Fallback if the archive is missing for early years:** use EAC4 for the training-years grid only, use CAMS
     forecasts for the years where they exist, and record the train/serve product mismatch as a limitation.
@@ -549,4 +564,6 @@ the data loader streams from zarr).
 | 2026-10-15 | diwali_window = IST days D−1..D+1 | firework night + next-day residue |
 | 2026-10-15 | **VERIFY S4 (partial):** ADS catalogue lists CAMS global forecasts as "2015 to present", CC-BY. Leads 0–48 h for 2019→ still to test with a real request (P1.7) | ADS dataset page |
 | 2026-10-15 | **Splits shifted back one year**: train 2018–2021, val 2022, test 2023–2024 (frozen), extra PM-only test 2025-04→09, prospective winter 2026–27 (live, OpenAQ). Rolling fold: train →2022-06, val 2022-07→2023-06, test 2023-07→2024-12. Station-panel completeness now measured to 2024-12-31. Done before any model or metric exists | CPCB coverage gap (above); keeps 2 stubble seasons + all pollutants in test. Team decision |
-| | VERIFY results (P1.5, P1.7, S8, CAMS latency) go here | |
+| 2026-10-15 | **VERIFY S4 (done):** CAMS global forecasts on ADS return 00/12 UTC runs, leads 0 and 48 h, for 2017-12-01 and 2025-09-30 (native 0.4°). One ECMWF token works on CDS and ADS; all three datasets (CAMS forecasts, EAC4, ERA5) need only the CC-BY licence | test requests via `ecmwf-datastores-client` 0.5.3; catalogue `license` links |
+| 2026-10-15 | Station panel: completeness counted from max(first PM2.5, 2017-12-01) to 2024-12-31, presence = non-sentinel, non-negative PM2.5 in a UTC hour; nearest city within 25 km. The 5 cities without a qualifying station (Bhubaneswar, Dehradun, Pune, Raipur, Srinagar) are kept as unlabelled nodes (met/fire/CAMS only, loss masked) and city tables cover 28 cities | follows §3.2 as written; years before the data window shouldn't penalise a station; the rule is not loosened to rescue cities |
+| | VERIFY results (P1.5, S8, CAMS latency) go here | |
