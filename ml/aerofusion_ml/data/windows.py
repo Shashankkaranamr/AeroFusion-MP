@@ -16,7 +16,7 @@ HORIZON_H = 48
 FIRMS_LATENCY_H = 3  # §3.4 `firms_latency_h`: a detection is usable from acquisition + 3 h
 # Lag on the slot stamp t, where slot t covers (t, t+1h]. CPCB/met slots end at t+1h, so t <= t0-1h means "ended by t0".
 # A fire slot holds acquisitions in (t, t+1h], usable from t+1h+3h, so its lag is latency + 1 (not 3: that leaks <= 1 h).
-LAG_H = {"obs": 1, "met": 1, "fire": FIRMS_LATENCY_H + 1}
+LAG_H = {"obs": 1, "met": 1, "fire": FIRMS_LATENCY_H + 1, "cams": 1}  # cams: series built so hour t is published by t+1h (data/cams.py)
 CAMS_LATENCY_H = 10  # §3.4: run R usable from R + 10 h (VERIFY typical availability; config `cams_latency_h`)
 CAMS_RUN_HOURS = (0, 12)
 

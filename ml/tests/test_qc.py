@@ -122,3 +122,17 @@ def test_run_qc_rejects_non_utc_or_gappy_index():
         qc.run_qc(pd.DataFrame({"a": [1.0, 2.0]}, index=pd.date_range("2023-01-01", periods=2, freq="h")), "pm25", {})
     with pytest.raises(ValueError):
         qc.run_qc(pd.DataFrame({"a": [1.0, 2.0]}, index=IDX[[0, 2]]), "pm25", {})
+
+
+def test_cpcb_wide_streamed_matches_long_path():
+    from pathlib import Path
+
+    from aerofusion_ml.data import cpcb, stations as st
+
+    if not st.month_files("2019-11", "2019-11")[0].exists():
+        import pytest
+        pytest.skip("XKDR export not downloaded")
+    ids = ["site_103", "site_113"]
+    a, _ = cpcb.wide_streamed("pm25", ids, "2019-11-01 00:00", "2019-11-30 23:00")
+    b, _ = cpcb.wide(cpcb.load_long(ids, "2019-11", "2019-11"), "pm25", ids, "2019-11-01 00:00", "2019-11-30 23:00")
+    pd.testing.assert_frame_equal(a.astype(float), b.astype(float), check_freq=False, check_names=False)

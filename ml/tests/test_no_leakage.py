@@ -124,11 +124,9 @@ def test_a_real_dataset_sample_ignores_everything_from_t0_on(train_arrays, t0):
     np.testing.assert_array_equal(s1["m_node"], s2["m_node"])
 
 
-def test_a_real_dataset_fire_and_cams_hours_are_hidden(train_arrays):
+def test_a_real_dataset_fire_hours_are_hidden(train_arrays):
     a, t0 = train_arrays, pd.Timestamp("2019-11-01 12:00", tz="UTC")
     s = loader.sample(a, t0)
     fire = [i for i, g in enumerate(a.groups) if g == "fire"]
-    cams = [i for i, f in enumerate(a.feats) if f.startswith("cams_") or f == "cams_dust_aod"]
     assert s["m_node"][-3:, :, fire].sum() == 0 and s["m_node"][:-3, :, fire].sum() > 0  # fires hidden for t > t0-4h
-    assert s["m_node"][:, :, cams].sum() == 0
     assert s["x_node"].shape == (72, a.x.shape[1], a.x.shape[2]) and s["y"].shape == (48, a.x.shape[1])

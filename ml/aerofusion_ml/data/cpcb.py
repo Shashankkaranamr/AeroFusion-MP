@@ -5,6 +5,7 @@ IST labels are converted with `xkdr.to_utc_hour`. Rare duplicate (station, hour)
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from . import stations as st, xkdr
@@ -21,6 +22,26 @@ def load_long(station_ids: list[str], start: str, end: str) -> pd.DataFrame:
         parts.append(pd.DataFrame({"station_id": m["station_id"].astype(str), "t": xkdr.to_utc_hour(m["collected_at"]),
                                    "pollutant": m["parameter_name"].map(PARAMS), "value": m["value"].astype(float)}))
     return pd.concat(parts, ignore_index=True)
+
+
+def wide_streamed(pollutant: str, station_ids: list[str], t0: str, t1: str) -> tuple[pd.DataFrame, int]:
+    """Same result as wide(load_long(...)) for one pollutant, but reads one month at a time and keeps only the wide
+    float32 frame (~30 MB for the panel) instead of tens of millions of long rows (the long path ran out of memory)."""
+    name = {v: k for k, v in PARAMS.items()}[pollutant]
+    idx = pd.date_range(pd.Timestamp(t0, tz="UTC"), pd.Timestamp(t1, tz="UTC"), freq="h")
+    out = pd.DataFrame(np.nan, index=idx, columns=station_ids, dtype=np.float32)
+    dup = 0
+    for f in st.month_files(t0[:7], t1[:7]):
+        m = pd.read_parquet(f, columns=["station_id", "collected_at", "value"],
+                            filters=[("parameter_name", "==", name), ("station_id", "in", list(station_ids))])
+        if m.empty:
+            continue
+        d = pd.DataFrame({"station_id": m["station_id"].astype(str), "t": xkdr.to_utc_hour(m["collected_at"]), "value": m["value"].astype(np.float32)})
+        dup += int(d.duplicated(["station_id", "t"]).sum())
+        w = d.groupby(["t", "station_id"])["value"].mean().unstack("station_id")
+        w = w.loc[w.index.isin(idx)]
+        out.loc[w.index, w.columns] = w.to_numpy(dtype=np.float32)
+    return out, dup
 
 
 def wide(long: pd.DataFrame, pollutant: str, station_ids: list[str], t0: str, t1: str) -> tuple[pd.DataFrame, int]:

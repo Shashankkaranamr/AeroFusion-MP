@@ -41,10 +41,7 @@ class NodeArrays:
         out = []
         for f, g in zip(self.feats, self.groups):
             kind = "obs" if f in CALENDAR else GROUP_KIND[g]
-            if kind == "cams":
-                out.append(-1)  # pending: CAMS analysis latency rule is set when P1.7 lands; masked entirely until then
-            else:
-                out.append(windows.LAG_H[kind])
+            out.append(windows.LAG_H[kind])
         return np.array(out)
 
 

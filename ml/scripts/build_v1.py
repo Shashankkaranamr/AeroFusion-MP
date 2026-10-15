@@ -29,7 +29,7 @@ import yaml
 ML = Path(__file__).resolve().parents[1]
 REPO = ML.parent
 sys.path.insert(0, str(ML))
-from aerofusion_ml.data import cpcb, events, fires as firemod, manifest, openmeteo, qc, stations as st  # noqa: E402
+from aerofusion_ml.data import cams, cpcb, events, fires as firemod, manifest, openmeteo, qc, stations as st  # noqa: E402
 
 DATA = ML / "data"
 OUT = DATA / "processed" / "dataset_v1.zarr"
@@ -130,16 +130,14 @@ def main() -> None:
     # pollutants (stations only): QC -> y (never filled) and causal-filled inputs
     sids = nodes.loc[nodes["kind"] == "station", "node_id"].tolist()
     city_of = dict(zip(nodes["node_id"], nodes["city_slug"]))
-    long = cpcb.load_long(sids, T0[:7], T1[:7])
-    print(f"CPCB rows loaded: {len(long):,}", flush=True)
     for p in ["pm25", "pm10", "no2", "co", "o3"]:
-        w, _ = cpcb.wide(long, p, sids, T0, T1)
-        clean, stats = qc.run_qc(w, p, city_of)
+        w, _ = cpcb.wide_streamed(p, sids, T0, T1)
+        clean, stats = qc.run_qc(w.astype(float), p, city_of)
         if p == "pm25":
             y[:, [ids.index(s) for s in sids]] = clean.to_numpy(dtype=np.float32)
         put(p, qc.fill_short_gaps(clean))
         print(f"  {p}: remaining {stats['remaining']:,}", flush=True)
-    del long
+        del w, clean
 
     met = met_frames(nodes, times)
     met["blh"], missing = fill_blh_from_era5(met["blh"], nodes)
@@ -153,7 +151,20 @@ def main() -> None:
     for k, frame in fire_frames(nodes, times).items():
         put(k, frame)
 
-    pending.append("cams_pm25, cams_aod550, cams_dust_aod: CAMS forecasts still downloading (P1.7)")
+    have = cams.months_available()
+    want = sorted(set(times.strftime("%Y-%m")))
+    for month in have:
+        ds = cams.at_points(cams.open_month(month), nodes["lat"].to_numpy(), nodes["lon"].to_numpy())
+        # hours fed by this month's runs: R + 9 h .. next month's first run + 8 h
+        r = cams.run_for(times)
+        sel = (r.strftime("%Y-%m") == month)
+        if sel.any():
+            for k, v in cams.series(ds, times[sel]).items():
+                x[np.where(sel)[0], :, keys.index(k)] = v
+    missing_cams = [m for m in want if m not in have]
+    if missing_cams:
+        pending.append(f"CAMS months not downloaded yet: {len(missing_cams)} ({missing_cams[0]}..{missing_cams[-1]})")
+    sources["cams"] = "CAMS global forecast, run R <= t-9h at lead t-R (9..20 h), bilinear at node (data/cams.py)"
 
     cal = events.calendar_features(times)
     for k in cal.columns:

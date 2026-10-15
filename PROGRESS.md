@@ -353,6 +353,10 @@ ml/
   - 2026-10-15 **VERIFIED** archive: 2017-12-01 and 2025-09-30 both return 00 and 12 UTC runs with leads 0 and 48 h
     (valid_time to +48 h), native 0.4°. Full download queued: `download_all.py --source cams_fc` (94 months, leads 0–48
     every 3 h, netcdf_zip), log `ml/data/raw/logs/cams_fc.log`. The EAC4 fallback is not needed.
+  - 2026-10-15: first month (2017-12, 68 MB) arrived after ~2 h 50 min in the ADS queue (2 jobs at a time → full archive
+    ≈ several days). Contents: 62 runs × 17 leads × 83 × 81 (0.4°), pm2p5 in kg m⁻³ (×10⁹ → µg/m³), no NaN.
+    `aerofusion_ml/data/cams.py` builds the leakage-safe input series (rule in §9); wired into `build_v1.py` (nodes) and
+    `build_grid_v1.py` (grid channels); `tests/test_cams.py`.
   - Queue the requests early, since ADS queues can take days.
   - **Fallback if the archive is missing for early years:** use EAC4 for the training-years grid only, use CAMS
     forecasts for the years where they exist, and record the train/serve product mismatch as a limitation.
@@ -610,4 +614,5 @@ the data loader streams from zarr).
 | 2026-10-15 | Input gap fill changed from linear interpolation to forward fill ≤ 3 h | interpolation reads the value after the gap, which can be after t0 at a window's end (leakage); forward fill only uses the past |
 | 2026-10-15 | FIRMS fire slots: a detection at time a goes to slot t with a ∈ (t, t+1 h]; issue-time lag on the slot = `firms_latency_h` + 1 = 4 h | a 3 h lag on the slot let detections up to 1 h too recent into the window (caught by `test_no_leakage`) |
 | 2026-10-15 | FIRMS filters: type 0 only (vegetation fire; drop static industrial, offshore, volcano), drop VIIRS confidence 'l' and MODIS < 30; countries India + Pakistan + Nepal + Bangladesh (upwind 500 km crosses borders) | standard FIRMS practice; PB-Pakistan smoke reaches Amritsar/Delhi |
+| 2026-10-15 | **CAMS past inputs = short-lead forecasts, not lead-0 analyses (§3.6 deviation).** Hour t uses the newest run R ≤ t − 9 h at lead t − R (9–20 h; 3-hourly on the grid, linear between the run's own 3-hourly leads at nodes). Published at R + 10 h ≤ t + 1 h, so it takes the same 1 h lag as CPCB and is the same product in training and live | lead 0 of a run is only published 10 h after it describes, so a lead-0 'analysis' input would leak up to 10 h |
 | | VERIFY results (CAMS latency) go here | |
