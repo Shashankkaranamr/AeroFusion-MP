@@ -19,7 +19,7 @@ import yaml
 ML = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ML))
 from aerofusion_ml import evaluate as ev  # noqa: E402
-from aerofusion_ml.data import loader, torch_dataset as tds  # noqa: E402
+from aerofusion_ml.data import cams, loader, torch_dataset as tds  # noqa: E402
 from aerofusion_ml.models import gbm  # noqa: E402
 from aerofusion_ml.runs import make_run_id  # noqa: E402
 
@@ -32,16 +32,23 @@ def main() -> None:
     ap.add_argument("--setting", default="S-A", choices=["S-A", "S-B"])
     ap.add_argument("--train-leads", type=int, default=8)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--smoke", action="store_true", help="pipeline check on Nov/Dec 2019 (train period), writes nothing")
     args = ap.parse_args()
-    if args.setting == "S-B":
-        raise SystemExit("S-B needs processed/cams_fc_v1.zarr (P1.7, scripts/build_cams_fc.py) - wire cams_fc here once it exists")
     sp = yaml.safe_load((ML / "configs" / "splits_v1.yaml").read_text(encoding="utf-8"))
     feats_cfg = yaml.safe_load((ML / "configs" / "features_v1.yaml").read_text(encoding="utf-8"))
+    if args.smoke:
+        sp["splits"]["train"] = {"start": "2019-11-01", "end": "2019-11-20"}
+        sp["splits"]["val"] = {"start": "2019-11-21", "end": "2019-11-30"}
     stop = pd.Timestamp(sp["splits"]["val"]["end"]) + pd.Timedelta(hours=23)
-    a = loader.NodeArrays.from_zarr(ML / "data/processed/dataset_v1.zarr", feats_cfg, None, stop)
+    first = pd.Timestamp(sp["splits"]["train"]["start"]) - pd.Timedelta(hours=73)
+    a = loader.NodeArrays.from_zarr(ML / "data/processed/dataset_v1.zarr", feats_cfg, first, stop)
     ds = xr.open_zarr(ML / "data/processed/dataset_v1.zarr")
     stations = np.where(ds.node_kind.values == "station")[0]
     static = pd.DataFrame({"lat": ds.node_lat.values, "lon": ds.node_lon.values, "elev": ds.node_elevation.values, "region": ds.node_region.values})
+    fc = None
+    if args.setting == "S-B":  # CAMS forecast published by t0 at every node (latency rule inside cams.forecast)
+        fc = xr.open_zarr(ML / "data/processed/cams_fc_v1.zarr").sel(point=[str(v) for v in ds.node.values])[["pm2p5"]].load()
+    fcast = (lambda t0: cams.forecast(fc, t0)) if fc is not None else (lambda t0: None)
     rng = np.random.default_rng(args.seed)
     tz_stop = stop.tz_localize("UTC")
     t_tr = tds.issue_times(a.times, sp["splits"]["train"], sp["issue_hours_eval"], tz_stop)
@@ -49,19 +56,23 @@ def main() -> None:
     Xtr, ytr = [], []
     for t0 in t_tr:
         leads = np.sort(rng.choice(np.arange(1, 49), args.train_leads, replace=False))
-        Xtr.append(gbm.features(a, t0, leads, stations, static))
+        Xtr.append(gbm.features(a, t0, leads, stations, static, fcast(t0)))
         ytr.append(gbm.target(a, t0, leads, stations))
     Xtr, ytr = pd.concat(Xtr, ignore_index=True), np.concatenate(ytr)
     ok = ~np.isnan(ytr)
     cols = [c for c in Xtr.columns if c not in ("t0", "lead_h")]
-    model = lgb.train({**gbm.PARAMS, "seed": args.seed}, lgb.Dataset(Xtr.loc[ok, cols], np.log1p(np.clip(ytr[ok], 0, None))), num_boost_round=800)
+    rounds = 20 if args.smoke else 800
+    model = lgb.train({**gbm.PARAMS, "seed": args.seed}, lgb.Dataset(Xtr.loc[ok, cols], np.log1p(np.clip(ytr[ok], 0, None))), num_boost_round=rounds)
     leads = np.arange(1, 49)
     rows = []
     for t0 in t_va:
-        X = gbm.features(a, t0, leads, stations, static)
+        X = gbm.features(a, t0, leads, stations, static, fcast(t0))
         rows.append(pd.DataFrame({"t0": t0, "lead": X["lead_h"], "node_id": [str(v) for v in ds.node.values[X["node_idx"].to_numpy()]],  # node_idx = absolute node index
                                   "pred": np.expm1(model.predict(X[cols])), "obs": gbm.target(a, t0, leads, stations)}))
     df = pd.concat(rows, ignore_index=True)
+    if args.smoke:
+        print(f"smoke ok: {len(Xtr):,} train rows, {len(df):,} val rows, {len(cols)} features, pred range {df.pred.min():.1f}..{df.pred.max():.1f}")
+        return
     name = "lgbm_sa" if args.setting == "S-A" else "lgbm_mos_sb"
     run_id = make_run_id(name, args.seed)
     city_of = dict(zip(np.array([str(v) for v in ds.node.values]), np.array([str(v) for v in ds.node_city_slug.values])))
