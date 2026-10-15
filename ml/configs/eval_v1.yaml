@@ -1,0 +1,15 @@
+# PROGRESS P2.1 evaluation settings. Fixed before any model exists (2026-10-15); a change is logged in §9.
+version: v1
+leads_report: [1, 24, 48]
+episode_threshold_ugm3: 250          # "severe" PM2.5 hours: hit rate, false-alarm ratio, CSI
+# CPCB National AQI PM2.5 sub-index breakpoints (µg/m³, upper bounds; last class open). Officially defined on 24 h
+# means; applied here to hourly concentrations as a categorical skill score (stated in the paper).
+aqi_breaks: [30, 60, 90, 120, 250]
+aqi_names: [good, satisfactory, moderate, poor, very_poor, severe]
+seasons:                              # by the valid time's UTC month
+  winter_DJF: [12, 1, 2]
+  premonsoon_MAM: [3, 4, 5]
+  monsoon_JJAS: [6, 7, 8, 9]
+  postmonsoon_ON: [10, 11]
+# Indo-Gangetic Plain cities (city slugs from backend/app/data/cities.json); everything else is "rest".
+igp_cities: [amritsar, ludhiana, chandigarh, delhi, gurugram, faridabad, noida, ghaziabad, agra, kanpur, lucknow, varanasi, patna, kolkata]
