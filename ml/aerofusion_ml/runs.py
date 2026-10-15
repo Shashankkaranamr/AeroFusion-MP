@@ -14,7 +14,7 @@ def git_sha7() -> str:
     """Short commit of the repo, with a '+dirty' marker; 'nogit' if this checkout has no git (see PROGRESS P0.5)."""
     try:
         sha = subprocess.run(["git", "rev-parse", "--short=7", "HEAD"], cwd=REPO, capture_output=True, text=True, check=True).stdout.strip()
-        dirty = subprocess.run(["git", "status", "--porcelain"], cwd=REPO, capture_output=True, text=True, check=True).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain", "--", ".", ":(exclude)ml/runs"], cwd=REPO, capture_output=True, text=True, check=True).stdout.strip()
         return sha + ("+dirty" if dirty else "")
     except (OSError, subprocess.CalledProcessError):
         return "nogit"
