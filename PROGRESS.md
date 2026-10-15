@@ -46,7 +46,7 @@ Run its tests. Tick the box, add a one-line note with date and run_id/file. Phas
 
 ```
 Phase 0  Live platform (done earlier)          ████████████████████ 100%
-Phase P0 Housekeeping, integrity, setup        █████░░░░░░░░░░░░░░░  25%   wk 1      (19–25 Oct 2026)
+Phase P0 Housekeeping, integrity, setup        ████████░░░░░░░░░░░░  38%   wk 1      (19–25 Oct 2026)
 Phase P1 Data: download, QC, dataset_v1        ░░░░░░░░░░░░░░░░░░░░   0%   wk 1–5    (→ 22 Nov)
 Phase P2 Evaluation harness + core baselines   ░░░░░░░░░░░░░░░░░░░░   0%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
 Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   wk 7–12   (→ 10 Jan)  model freeze end wk 12
@@ -273,8 +273,12 @@ ml/
   ablations, unit tests, OOM/AMP fixes and imputation that has not happened (Abstract, §5.3, §6.1–6.4, §7.1).
   Replace them with "planned" wording until P4 produces numbers.
   *Acceptance:* no sentence asserts a result that has no run_id.
-- [ ] **P0.5 Version control.** This folder has no `.git` (Vercel deploys from GitHub). Clone or attach the GitHub
+- [x] **P0.5 Version control.** This folder has no `.git` (Vercel deploys from GitHub). Clone or attach the GitHub
   repo here so that runs can log `git_sha`. Add `ml/data/`, `ml/runs/*/` (except `metrics.json`), `*.env` and `.cdsapirc` to `.gitignore`.
+  - 2026-10-15: `git init` here, pushed to https://github.com/Shashankkaranamr/AeroFusion-MP (`main`, public), first commit `9af36ea`.
+    Secret scan clean; `.env` files ignored. Also ignored (public repo): the 5 third-party reference folders,
+    `frontend/.claude/` (third-party skills) and `Initial Proposal/` (unearned claims, until P0.4).
+    **Open:** Vercel/Render still deploy from the older repo; decide whether to repoint them to this one.
 - [ ] **P0.6 Related-work matrix** `docs/related_work.md`: about 25 papers. Columns: task, region, data, graph?,
   wavelet?, CAMS baseline?, leakage-safe?, explainability validated?
   - Must include: PM2.5-GNN (Wang et al., SIGSPATIAL 2020), DCRNN, Graph WaveNet, AirFormer (AAAI 2023), STGCN,
