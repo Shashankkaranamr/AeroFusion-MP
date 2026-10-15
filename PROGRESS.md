@@ -46,7 +46,7 @@ Run its tests. Tick the box, add a one-line note with date and run_id/file. Phas
 
 ```
 Phase 0  Live platform (done earlier)          ████████████████████ 100%
-Phase P0 Housekeeping, integrity, setup        ████████░░░░░░░░░░░░  38%   wk 1      (19–25 Oct 2026)
+Phase P0 Housekeeping, integrity, setup        ██████████░░░░░░░░░░  50%   wk 1      (19–25 Oct 2026)
 Phase P1 Data: download, QC, dataset_v1        █████████░░░░░░░░░░░  45%   wk 1–5    (→ 22 Nov)
 Phase P2 Evaluation harness + core baselines   ░░░░░░░░░░░░░░░░░░░░   0%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
 Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   wk 7–12   (→ 10 Jan)  model freeze end wk 12
@@ -284,13 +284,18 @@ ml/
     Secret scan clean; `.env` files ignored. Also ignored (public repo): the 5 third-party reference folders,
     `frontend/.claude/` (third-party skills) and `Initial Proposal/` (unearned claims, until P0.4).
     **Open:** Vercel/Render still deploy from the older repo; decide whether to repoint them to this one.
-- [ ] **P0.6 Related-work matrix** `docs/related_work.md`: about 25 papers. Columns: task, region, data, graph?,
+- [x] **P0.6 Related-work matrix** `docs/related_work.md`: about 25 papers. Columns: task, region, data, graph?,
   wavelet?, CAMS baseline?, leakage-safe?, explainability validated?
   - Must include: PM2.5-GNN (Wang et al., SIGSPATIAL 2020), DCRNN, Graph WaveNet, AirFormer (AAAI 2023), STGCN,
     wavelet-LSTM hybrids for PM2.5, CAMS evaluations over India / IGP, SAFAR and IITM AQEWS, TFT (variable-selection
     gating, the closest relative of our gating), and Adebayo et al. 2018 (sanity checks for saliency).
   - Each citation must be checked by DOI or URL. Remove the unverifiable references in the original report.
   - *Acceptance:* the matrix exists, plus a 3-sentence honest novelty statement.
+  - 2026-10-15: `docs/related_work.md`: 39 entries, every one verified by Crossref DOI or arXiv API (5 groups: graph/attention
+    lineage, India ML + SAFAR/AQEWS, wavelet hybrids + leakage critique, CAMS evaluation/post-processing, XAI/stats/data), search
+    log, 3-sentence novelty statement (no "first/novel" claim; contribution = leakage-safe Indian benchmark vs CAMS + ablations).
+    `?` cells (leakage/XAI details needing full-text reading) are marked for the team to fill before P6. Original report's 12
+    references checked: 3 verified, 1 exists with a wrong title, **8 not found** → `Initial Proposal/reference_check.md` (private) for P0.4.
 - [ ] **P0.7 Accounts & keys.** Copernicus ADS + CDS account (`~/.cdsapirc`), FIRMS MAP_KEY, W&B academic (or
   local MLflow), data.gov.in or OpenAQ key (S8). Put them in `ml/.env`. **Ask the college for compute** (§7).
   - 2026-10-15: step-by-step sent to the team. `ml/scripts/check_keys.py` validates each credential without printing it
