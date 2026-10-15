@@ -102,8 +102,26 @@ def _save_jobs(out: Path, jobs: dict[str, str]) -> None:
     tmp.replace(out / "jobs.json")
 
 
+def _reason(portal: str, request_id: str) -> str:
+    """The portal's error text for a failed/rejected job (the job record itself carries none)."""
+    import httpx
+
+    try:
+        r = httpx.get(f"{PORTALS[portal]}/retrieve/v1/jobs/{request_id}/results", headers={"PRIVATE-TOKEN": token()}, timeout=60)
+        j = r.json()
+        return str(j.get("traceback") or j.get("detail") or j.get("title") or "").strip()
+    except Exception as e:  # noqa: BLE001 - diagnostics only
+        return type(e).__name__
+
+
+QUEUE_LIMIT = "queued requests for this dataset is temporarily limited"
+
+
 def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 60, log=print) -> None:
-    """Keep up to `max_active` jobs queued on the portal; download each as it completes. Idempotent and resumable."""
+    """Keep up to `max_active` jobs queued on the portal; download each as it completes. Idempotent and resumable.
+
+    A rejection for the per-user queue limit is not a failure: the month is requeued and the active cap is lowered.
+    """
     portal, collection, build, suffix = SOURCES[source]
     out = manifest.RAW / source / "v1"
     known = manifest.load()
@@ -112,36 +130,48 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
     log(f"{source}: {len(month_list)} months, {len(done)} already downloaded, {len(todo)} to fetch")
     c = client(portal)
     jobs = _jobs(out)
-    pending, fails = list(todo), {}
+    pending, fails, limit = list(todo), {}, max_active
     while pending:
         active = [m for m in pending if m in jobs]
-        for m in [m for m in pending if m not in jobs][: max(0, max_active - len(active))]:
-            jobs[m] = c.submit(collection, build(m)).request_id
+        for m in [m for m in pending if m not in jobs][: max(0, limit - len(active))]:
+            try:
+                jobs[m] = c.submit(collection, build(m)).request_id
+            except Exception as e:  # noqa: BLE001 - transient portal/network errors: retry next round
+                log(f"  submit {m} failed ({type(e).__name__}); retrying later")
+                break
             _save_jobs(out, jobs)
             log(f"  submitted {m}")
         for m in [m for m in pending if m in jobs]:
-            r = c.get_remote(jobs[m])
-            status = r.status
-            if status == "successful":
-                dest = out / f"{m}{suffix}"
-                part = dest.with_name(dest.name + ".part")
-                r.download(str(part))
-                part.replace(dest)
-                with _lock:
-                    manifest.record(dest, f"{PORTALS[portal]}/retrieve/v1/jobs/{jobs[m]}", source=source, collection=collection, request=build(m))
-                pending.remove(m)
-                log(f"  downloaded {m} ({dest.stat().st_size / 1e6:.1f} MB); {len(pending)} left")
-            elif status in ("failed", "rejected", "dismissed", "deleted"):
-                fails[m] = fails.get(m, 0) + 1
-                detail = r.json.get("detail") or r.json.get("title") or ""
+            try:
+                r = c.get_remote(jobs[m])
+                status = r.status
+                if status == "successful":
+                    dest = out / f"{m}{suffix}"
+                    part = dest.with_name(dest.name + ".part")
+                    r.download(str(part))
+                    part.replace(dest)
+                    with _lock:
+                        manifest.record(dest, f"{PORTALS[portal]}/retrieve/v1/jobs/{jobs[m]}", source=source, collection=collection, request=build(m))
+                    pending.remove(m)
+                    log(f"  downloaded {m} ({dest.stat().st_size / 1e6:.1f} MB); {len(pending)} left")
+            except Exception as e:  # noqa: BLE001
+                log(f"  poll {m} failed ({type(e).__name__}); retrying later")
+                continue
+            if status in ("failed", "rejected", "dismissed", "deleted"):
+                reason = _reason(portal, jobs[m])
                 del jobs[m]
                 _save_jobs(out, jobs)
+                if QUEUE_LIMIT in reason:
+                    limit = max(1, min(limit, len(active)) - 1)
+                    log(f"  {m} rejected by the queue limit; requeued, active cap now {limit}")
+                    continue
+                fails[m] = fails.get(m, 0) + 1
                 if fails[m] >= 2:
                     pending.remove(m)
-                    log(f"  {m} {status} twice, giving up: {str(detail)[:300]}")
+                    log(f"  {m} {status} twice, giving up: {reason[:300]}")
                 else:
-                    log(f"  {m} {status}: {str(detail)[:300]}; resubmitting")
+                    log(f"  {m} {status}: {reason[:300]}; resubmitting")
         if pending:
             time.sleep(poll_s)
-    missing = [m for m in month_list if m in fails and m not in jobs and fails[m] >= 2]
+    missing = [m for m in month_list if fails.get(m, 0) >= 2]
     log(f"{source}: finished" + (f"; FAILED months: {missing}" if missing else ", all months downloaded"))

@@ -41,8 +41,8 @@ def run_xkdr() -> None:
         print(f"XKDR complete: {new} downloaded, {len(files) - new} already present", flush=True)
 
 
-def run_copernicus(source: str, start: str, end: str) -> None:
-    copernicus.run(source, copernicus.months(start, end), log=lambda msg: print(msg, flush=True))
+def run_copernicus(source: str, start: str, end: str, max_active: int) -> None:
+    copernicus.run(source, copernicus.months(start, end), max_active=max_active, log=lambda msg: print(msg, flush=True))
 
 
 SOURCES = {"xkdr": run_xkdr, **{s: s for s in copernicus.SOURCES}}
@@ -52,8 +52,9 @@ if __name__ == "__main__":
     ap.add_argument("--source", choices=sorted(SOURCES), required=True)
     ap.add_argument("--start", default="2017-12")
     ap.add_argument("--end", default="2025-09")
+    ap.add_argument("--max-active", type=int, default=4, help="jobs kept queued on the portal (lowered automatically on queue-limit rejections)")
     a = ap.parse_args()
     if a.source in copernicus.SOURCES:
-        run_copernicus(a.source, a.start, a.end)
+        run_copernicus(a.source, a.start, a.end, a.max_active)
     else:
         SOURCES[a.source]()
