@@ -570,6 +570,12 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
     Open-Meteo licence still to confirm). `ml/README.md` is the end-to-end runbook.
   The processed-dataset Zenodo DOI is optional; check the CAMS/ERA5 licence for redistribution, or ship the scripts only.
 - [ ] **P6.3 Venue:** the next deadline among IEEE INDICON / CONECCT / ICCCNT / a Springer applied-AI conference,
+  - 2026-10-16 search (deadlines not yet on official sites; re-check in Jan 2027):
+    - IEEE CONECCT 2027 (Bangalore, 13 Mar 2027): deadline listed as 2026-12-15 by an aggregator only (myhuiban), **unverified**;
+      too early for final results anyway.
+    - IEEE INDICON 2027: no call yet; past editions had summer deadlines (2023: 23 Jul; 2024: 31 Aug) and December
+      conferences, so it fits a Feb-2027 draft. **Current best target**, pending the official call.
+    - ICCCNT 2027: no call found. Check UGC-CARE/Scopus indexing of whichever is chosen.
   confirmed via UGC-CARE / Scopus. Submit after the guide reviews it.
 - [ ] **P6.4 Project report rewrite:** report title kept, contents matched to reality. Add the §2 table as a
   - 2026-10-15: draft section `docs/report/deviations_from_proposal.md` (proposal → implementation, protocol decisions, corrections).
