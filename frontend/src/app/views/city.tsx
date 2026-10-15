@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceArea, ReferenceDot, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { ModelForecastNote } from "@/components/model-status";
 import { ArrowUp, Droplets, Flame, Gauge, Layers, Thermometer, Umbrella, Wind } from "lucide-react";
 import { AqiBadge } from "@/components/aqi";
 import { axis, ChartContainer, ChartLegend, ChartTooltipContent } from "@/components/charts/chart";
@@ -154,6 +155,7 @@ export function CityView({ slug }: { slug: string }) {
             <WindowSpan label="Best time to be outside" w={win.best} tone="var(--good)" />
             <WindowSpan label="Keep windows shut" w={win.worst} tone="var(--bad)" />
           </div>
+          <ModelForecastNote city={c.slug} />
         </CardBody>
       </Card>
 

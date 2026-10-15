@@ -91,3 +91,32 @@ export function ModelStatus() {
     </Card>
   );
 }
+
+interface ModelForecast {
+  status: "pending" | "available";
+  message?: string;
+}
+
+/** City view: where our model's forecast will sit next to CAMS. Says plainly that it is not there yet. */
+export function ModelForecastNote({ city }: { city: string }) {
+  const f = useApi<ModelForecast>(`/api/model/forecast?city=${encodeURIComponent(city)}`);
+  if (f.data?.status === "available") return null; // the forecast chart renders it once wired (P5.2)
+  return (
+    <SourceNote className="mt-4">
+      Our own model, MW-AeroFusion-Net, will appear here next to CAMS once it has been trained and scored on data it never saw. Until then, this chart is CAMS only.
+    </SourceNote>
+  );
+}
+
+/** Why view: the model's learned attribution (gate weights) is shown only after it passes its validation checks. */
+export function AttributionNote() {
+  return (
+    <Card className="mt-4">
+      <CardHeader eyebrow="Learned attribution · not yet available" title="What our model leans on">
+        When our forecast model is ready, this card will show how much weight it gives each group of inputs at each city: fires,
+        weather, dust, a traffic proxy, CAMS and recent history. That is learned attribution, not a measured share of where the
+        pollution comes from. It will only be shown once it passes its checks for faithfulness, sanity and plausibility.
+      </CardHeader>
+    </Card>
+  );
+}

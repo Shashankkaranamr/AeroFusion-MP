@@ -4,6 +4,7 @@ import { ChevronDown, RotateCw } from "lucide-react";
 import { axis, ChartContainer, ChartLegend, ChartTooltipContent } from "@/components/charts/chart";
 import { ModelPicker } from "@/components/shell/chat-drawer";
 import { Figure } from "@/components/figure";
+import { AttributionNote } from "@/components/model-status";
 import { Button, InteractiveHoverButton } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, SourceNote } from "@/components/ui/card";
 import { PulsatingLoader } from "@/components/ui/loader";
@@ -142,6 +143,8 @@ export function WhyView() {
           <ZHeat snap={snap} />
         </CardBody>
       </Card>
+
+      <AttributionNote />
 
       <Card className="mt-4 overflow-hidden">
         <div className="grid items-center gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto]">
