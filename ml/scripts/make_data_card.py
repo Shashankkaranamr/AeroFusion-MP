@@ -81,7 +81,7 @@ def main() -> None:
         by_city.to_markdown(),
         "",
         "Per-station coverage for all pollutants: `coverage_v1_trainval.csv`.",
-        "Targets are never filled. Input gaps ≤ 3 h are interpolated at build time (P1.10), longer gaps stay NaN + mask.",
+        "Targets are never filled. Inputs are forward-filled for at most 3 h at build time (P1.10, causal); the rest stays NaN + mask.",
         "",
     ]
     (DATA / "DATA_CARD.md").write_text("\n".join(md), encoding="utf-8")

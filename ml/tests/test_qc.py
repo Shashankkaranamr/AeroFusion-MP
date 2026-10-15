@@ -87,21 +87,23 @@ def test_pm_ratio_flag():
     assert f["a"].tolist() == [False, True, False]
 
 
-def test_fill_short_gaps_inputs_only():
+def test_fill_short_gaps_is_causal_forward_fill_up_to_3h():
     x = noisy(30)
-    x[5:8] = np.nan  # 3 h -> filled
-    x[15:19] = np.nan  # 4 h -> stays NaN
+    x[5:8] = np.nan  # 3 h -> filled with x[4]
+    x[15:19] = np.nan  # 4 h -> first 3 h filled with x[14], 4th stays NaN (gap length unknown at issue time)
     out = qc.fill_short_gaps(frame(a=x))["a"]
-    assert np.allclose(out.iloc[5:8], np.interp([5, 6, 7], [4, 8], [x[4], x[8]]))
-    assert out.iloc[15:19].isna().all()
+    assert np.allclose(out.iloc[5:8], x[4]) and np.allclose(out.iloc[15:18], x[14]) and np.isnan(out.iloc[18])
 
 
-def test_fill_short_gaps_never_extrapolates_edges():
+def test_fill_short_gaps_never_uses_future_values():
     x = noisy(20)
     x[:2] = np.nan
-    x[-2:] = np.nan
-    out = qc.fill_short_gaps(frame(a=x))["a"]
-    assert out.iloc[:2].isna().all() and out.iloc[-2:].isna().all()
+    x[10:12] = np.nan
+    a = qc.fill_short_gaps(frame(a=x))["a"]
+    y = x.copy()
+    y[12:] += 1e3  # change everything after the gap
+    b = qc.fill_short_gaps(frame(a=y))["a"]
+    assert a.iloc[:2].isna().all() and np.allclose(a.iloc[:12], b.iloc[:12], equal_nan=True)
 
 
 def test_run_qc_counts_add_up():

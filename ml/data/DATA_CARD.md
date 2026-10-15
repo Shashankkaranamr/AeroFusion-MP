@@ -49,4 +49,4 @@ PM2.5 > 1.05 × PM10 (flag only, kept): 8,214 of 3,368,663 hours with both (0.24
 | visakhapatnam      |          1 |           87.4 |         93.8 |
 
 Per-station coverage for all pollutants: `coverage_v1_trainval.csv`.
-Targets are never filled. Input gaps ≤ 3 h are interpolated at build time (P1.10), longer gaps stay NaN + mask.
+Targets are never filled. Inputs are forward-filled for at most 3 h at build time (P1.10, causal); the rest stays NaN + mask.

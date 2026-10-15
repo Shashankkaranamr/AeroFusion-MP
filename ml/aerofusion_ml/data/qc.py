@@ -93,14 +93,12 @@ def pm_ratio_flags(pm25: pd.DataFrame, pm10: pd.DataFrame, tol: float = RATIO_TO
 
 
 def fill_short_gaps(df: pd.DataFrame, max_gap: int = MAX_INPUT_GAP_H) -> pd.DataFrame:
-    """INPUTS ONLY: linearly interpolate interior gaps of <= max_gap hours; longer gaps stay NaN (and masked)."""
-    filled = df.interpolate(method="linear", limit_area="inside")
-    for col in df.columns:
-        s = df[col]
-        gap_id = s.notna().cumsum()
-        gap_len = s.isna().groupby(gap_id).transform("sum")
-        filled.loc[s.isna() & (gap_len > max_gap), col] = np.nan
-    return filled
+    """INPUTS ONLY, causal: carry the last observation forward for at most `max_gap` hours.
+
+    §3.7 originally said "linearly interpolate"; interpolation reads the value after the gap, which can lie after the
+    issue time t0 when the gap is at the end of an input window (leakage, PROGRESS §9). Forward fill only uses the
+    past, and since the gap's eventual length isn't known at t0, the first `max_gap` hours of any gap are filled."""
+    return df.ffill(limit=max_gap)
 
 
 def run_qc(df: pd.DataFrame, pollutant: str, city_of: dict[str, str]) -> tuple[pd.DataFrame, dict]:

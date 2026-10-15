@@ -172,7 +172,7 @@ Everyone writes the paper: D writes Data, E Experiments, M Method, X Related wor
 - **Flatline:** the same value for ≥ 6 consecutive hours → set NaN.
 - **Spike:** rolling 24 h median ± 6 × MAD → NaN, unless ≥ 2 stations in the same city spike together, which is a real event.
 - **PM2.5 > PM10 × 1.05:** flag. Keep, but count it in the data card.
-- **Inputs:** gaps ≤ 3 h linearly interpolated, longer gaps left NaN + mask. **Targets:** never filled; masked in the loss.
+- **Inputs:** last value carried forward for ≤ 3 h (causal; *was* linear interpolation, changed 2026-10-15, §9), the rest NaN + mask. **Targets:** never filled; masked in the loss.
 - Data card `ml/data/DATA_CARD.md` (generated): per-station coverage, % removed by each rule, final counts.
 
 ### 3.8 Storage & formats
@@ -591,4 +591,7 @@ the data loader streams from zarr).
 | 2026-10-15 | QC bounds for gases (inputs only) set before looking at data: NO₂ ≤ 1000 µg/m³, CO ≤ 50 mg/m³, O₃ ≤ 1000 µg/m³. Data card restricted to train + val | CPCB 'severe' thresholds are far below these caps; keeps test statistics unseen |
 | 2026-10-15 | **VERIFY P1.5 (update):** Open-Meteo ERA5 archive returns no BLH for 2024-01→2024-06 (all cells); fill those hours from the CDS ERA5 grid (P1.6), same ERA5 variable | presence count over the downloaded files |
 | 2026-10-15 | **VERIFY S8 (OpenAQ v3):** 757 Indian PM2.5 locations, 643 from CPCB/caaqm. CPCB is **not real-time** on OpenAQ: on 2026-10-15 the latest CPCB hour was 2026-10-13 18:00 UTC (486 stations), i.e. ~2 days behind; live-now sources are AirGradient low-cost sensors + 3 US-Embassy monitors. History check on one station (R K Puram, sensor 12234787): hourly PM2.5 present 2025-02 → 2026-10 (row counts only, no values read). Each parameter has an old (2016–18) and a current sensor id: always pick the sensor with the latest `datetimeLast`. Hour periods end at :30 UTC (IST-aligned) → needs its own UTC mapping, like P1.2. Rate limit 60 req/min. Consequence: the prospective winter 2026–27 test can use CPCB via OpenAQ with a ~2-day lag (fine for scoring; the live platform keeps using XKDR/CAMS for display) | OpenAQ `/v3/locations`, `/v3/sensors/{id}/hours` |
+| 2026-10-15 | Input gap fill changed from linear interpolation to forward fill ≤ 3 h | interpolation reads the value after the gap, which can be after t0 at a window's end (leakage); forward fill only uses the past |
+| 2026-10-15 | FIRMS fire slots: a detection at time a goes to slot t with a ∈ (t, t+1 h]; issue-time lag on the slot = `firms_latency_h` + 1 = 4 h | a 3 h lag on the slot let detections up to 1 h too recent into the window (caught by `test_no_leakage`) |
+| 2026-10-15 | FIRMS filters: type 0 only (vegetation fire; drop static industrial, offshore, volcano), drop VIIRS confidence 'l' and MODIS < 30; countries India + Pakistan + Nepal + Bangladesh (upwind 500 km crosses borders) | standard FIRMS practice; PB-Pakistan smoke reaches Amritsar/Delhi |
 | | VERIFY results (CAMS latency) go here | |
