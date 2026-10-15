@@ -156,7 +156,12 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
                     pending.remove(m)
                     log(f"  downloaded {m} ({dest.stat().st_size / 1e6:.1f} MB); {len(pending)} left")
             except Exception as e:  # noqa: BLE001
-                log(f"  poll {m} failed ({type(e).__name__}); retrying later")
+                if "404" in str(e):  # job expired or deleted on the portal (e.g. after a long pause): submit again
+                    del jobs[m]
+                    _save_jobs(out, jobs)
+                    log(f"  {m}: job no longer on the portal; resubmitting")
+                else:
+                    log(f"  poll {m} failed ({type(e).__name__}); retrying later")
                 continue
             if status in ("failed", "rejected", "dismissed", "deleted"):
                 reason = _reason(portal, jobs[m])
