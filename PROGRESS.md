@@ -535,6 +535,11 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
   - Runs on onnxruntime CPU (add `onnxruntime` to `backend/requirements.txt`; no torch on the server).
   - Builds live inputs from the existing fetchers plus S8 live station data and the live CAMS forecast.
   - Note the train/serve differences (ERA5 → Open-Meteo forecast met; S8 vs XKDR) in the UI's honesty notes.
+  - **2026-10-16 OPEN QUESTION (team):** live station observations are only available via OpenAQ with a ~2-day lag (S8), but
+    S-A/S-B assume CPCB data up to t0 − 1 h. Served live, the model would see the last ~48 h of station inputs masked, a
+    train/serve mismatch. Options: (a) train a serving variant with `LAG_H['obs'] = 48` (an extra row in the ablation table),
+    (b) find a near-real-time CPCB feed (CPCB/data.gov.in, VERIFY), (c) serve S-B only and state the gap. Decide before P5.2;
+    the live input builder is not written until then.
 - [ ] **P5.3 Endpoints:** `GET /api/model/forecast?city=` (station + city mean, leads 1–48, gates) and
   - 2026-10-15: `/api/model/status`, `/api/model/metrics`, `/api/model/forecast?city=` live in `backend/app/main.py` via
     `backend/app/ml/service.py`; they answer `status: pending` until a model file and a *measured* metrics file exist
