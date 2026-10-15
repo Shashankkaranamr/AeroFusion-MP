@@ -51,3 +51,23 @@ def test_every_cited_run_exists():
             if not (ML / "runs" / rid / "metrics.json").exists():
                 missing.append(rid)
     assert not missing, f"tables cite runs with no metrics.json: {missing}"
+
+
+def test_paper_cites_only_verified_references():
+    """Every \cite key in docs/paper/main.tex must exist in refs.bib (generated from docs/related_work.md DOIs/arXiv)."""
+    import re
+
+    tex = (REPO / "docs" / "paper" / "main.tex").read_text(encoding="utf-8")
+    bib = (REPO / "docs" / "paper" / "refs.bib").read_text(encoding="utf-8")
+    keys = {k.strip() for grp in re.findall(r"\\cite\{([^}]*)\}", tex) for k in grp.split(",")}
+    have = set(re.findall(r"@\w+\{([^,]+),", bib))
+    assert not keys - have, f"cited but not in refs.bib: {sorted(keys - have)}"
+
+
+def test_paper_has_no_hand_typed_results():
+    """Outside the Data section's facts, main.tex must not contain metric-like numbers (results come from tables)."""
+    import re
+
+    tex = (REPO / "docs" / "paper" / "main.tex").read_text(encoding="utf-8")
+    body = tex.split(r"\section{Results}", 1)[1].split(r"\section{Limitations}", 1)[0]
+    assert not re.search(r"\d+\.\d+\s*(\\,)?(\\mu|µ|%|\\%)", body), "metric-like number typed into Results/Attribution"
