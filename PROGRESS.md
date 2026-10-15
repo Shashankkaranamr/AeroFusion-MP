@@ -47,7 +47,7 @@ Run its tests. Tick the box, add a one-line note with date and run_id/file. Phas
 ```
 Phase 0  Live platform (done earlier)          ████████████████████ 100%
 Phase P0 Housekeeping, integrity, setup        ████████░░░░░░░░░░░░  38%   wk 1      (19–25 Oct 2026)
-Phase P1 Data: download, QC, dataset_v1        ░░░░░░░░░░░░░░░░░░░░   0%   wk 1–5    (→ 22 Nov)
+Phase P1 Data: download, QC, dataset_v1        ███████░░░░░░░░░░░░░  36%   wk 1–5    (→ 22 Nov)
 Phase P2 Evaluation harness + core baselines   ░░░░░░░░░░░░░░░░░░░░   0%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
 Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   wk 7–12   (→ 10 Jan)  model freeze end wk 12
 Phase P4 Final eval, ablations, XAI validation  ░░░░░░░░░░░░░░░░░░░░   0%   wk 12–14  (→ 24 Jan)
@@ -100,7 +100,7 @@ Everyone writes the paper: D writes Data, E Experiments, M Method, X Related wor
 
 | # | Source | What | Coverage | Access | Use |
 |---|---|---|---|---|---|
-| S1 | **XKDR India Air Quality API** (CPCB CAAQMS + 5 US Embassy) | PM2.5, PM10, NO₂, CO, O₃, SO₂, NH3… hourly | 2009-01 → 2026-03, 558 stations | `https://airquality.xkdr.org/v1`; bearer key (`XKDR_API_KEY`, already have one); **bulk Parquet** via `/v1/files` (use this, not per-query); `agg=raw|hourly|daily|monthly`; free key = no caps; CC BY 4.0 (attribute XKDR Forum, CPCB CAAQM, US State Dept/AirNow) | **Targets** + pollutant history inputs |
+| S1 | **XKDR India Air Quality API** (CPCB CAAQMS + 5 US Embassy) | PM2.5, PM10, NO₂, CO, O₃, SO₂, NH3… hourly | 2009-01 → 2026-03, 558 stations. **Verified 2026-10-15: CPCB coverage effectively ends 2024-12** (see §9); 2025-04→09 PM2.5/PM10 only (~320 stations); otherwise only US-Embassy monitors | `https://airquality.xkdr.org/v1`; bearer key (`XKDR_API_KEY`, already have one); **bulk Parquet** via `/v1/files` (use this, not per-query); `agg=raw|hourly|daily|monthly`; free key = no caps; CC BY 4.0 (attribute XKDR Forum, CPCB CAAQM, US State Dept/AirNow) | **Targets** + pollutant history inputs |
 | S2 | **ERA5** via Open-Meteo Historical Weather API | temp, RH, u/v 10 m, pressure, precip, boundary-layer height, hourly | 1940 → present, 0.25° | `https://archive-api.open-meteo.com/v1/archive`, no key, non-commercial. **VERIFY** `boundary_layer_height` returns values for ERA5 | Node met inputs (past), perfect-prognosis setting |
 | S3 | **ERA5 gridded** via Copernicus CDS (`cdsapi`) | u/v 10 m, BLH, t2m on India bbox | 1940 → present | free CDS account, `~/.cdsapirc` | ConvLSTM grid channels |
 | S4 | **CAMS global atmospheric composition forecasts** via Copernicus ADS (`cdsapi`) | PM2.5, AOD550, dust AOD; leads 0–48 h; 00 UTC runs | **VERIFY** archive start (expected ~2015) & that leads 0–48 h are retrievable for 2019→2026 | free ADS account, `~/.cdsapirc` (ADS URL) | (a) baseline at matched leads, (b) model input in setting S-B, (c) lead-0 analyses as ConvLSTM grid channels (same product train & live) |
@@ -290,6 +290,9 @@ ml/
   - *Acceptance:* the matrix exists, plus a 3-sentence honest novelty statement.
 - [ ] **P0.7 Accounts & keys.** Copernicus ADS + CDS account (`~/.cdsapirc`), FIRMS MAP_KEY, W&B academic (or
   local MLflow), data.gov.in or OpenAQ key (S8). Put them in `ml/.env`. **Ask the college for compute** (§7).
+  - 2026-10-15: step-by-step sent to the team. `ml/scripts/check_keys.py` validates each credential without printing it
+    (`aerofusion_ml/env.py` reads `ml/.env`, falling back to `backend/.env`). Status: XKDR ok (558 stations); FIRMS,
+    OpenAQ (`OPENAQ_API_KEY`, added), data.gov.in, `~/.cdsapirc` pending. One ECMWF token serves CDS and ADS.
 - [x] **P0.8 Scaffold** `ml/` per §4 with `pytest` running (empty tests pass). Add a project `CLAUDE.md` that
   points to this file and repeats the §0 hard rules.
   - 2026-10-15: `ml/` created (README, requirements, `.env.example`, `configs/splits_v1.yaml`, draft
@@ -300,10 +303,21 @@ ml/
 ### Phase P1: Data (wk 1–5, → 22 Nov). Owner D
 - [ ] **P1.1 XKDR bulk download.** List `/v1/files`, download the hourly/raw Parquet for 2019–2026-03, all
   stations within 25 km of the 33 cities, pollutants PM2.5/PM10/NO₂/CO/O₃. Write the manifest with sha256.
+  - [x] 2026-10-15: whole export downloaded instead (0.41 GB, 209 files, export of 2026-09-30, 2009-01→2026-03, all
+    stations/parameters); city/pollutant filtering moves to P1.3/P1.10. `ml/scripts/download_all.py --source xkdr`
+    (resumable, size-checked), `ml/data/raw/MANIFEST.json` with sha256 + rows; rows match the listing for all 207 months.
 - [ ] **P1.2 Timestamp check (VERIFY).** Determine IST start-vs-end labelling. Re-bin raw to UTC hours (mean if ≥ 2
   of 4 quarter-hours present). Unit test on a known station-day.
+  - [x] 2026-10-15 VERIFIED: no 15-min data is exposed; `agg=raw` and the bulk export are hourly CPCB means (e.g.
+    147.7275 = mean of 4 quarters), so the "≥ 2 of 4" rule is CPCB's, not ours. A day query returns labels 00:00..23:00
+    IST, so labels mark the **interval start**. Mapping: UTC hour = IST label − 5 h (interval centre); value at t ends
+    in (t, t+1 h]. `xkdr.to_utc_hour`, `tests/test_xkdr_time.py` (site_103, 2023-11-01). US-Embassy rows are at IST :30
+    (= UTC hour start). Their own start/end convention is unverified; it only affects 5 monitors.
 - [ ] **P1.3 Station panel.** Apply the §3.2 rule, write `stations_v1.csv`, then plot the station count per city per year.
-- [ ] **P1.4 QC** per §3.7, plus `tests/test_qc.py` with synthetic flatline, spike and sentinel cases.
+- [x] **P1.4 QC** per §3.7, plus `tests/test_qc.py` with synthetic flatline, spike and sentinel cases.
+  - 2026-10-15: `aerofusion_ml/data/qc.py` + 13 tests (sentinel/bounds, flatline incl. NaN break, spike, city co-spike
+    kept, past-only spike check, PM ratio flag, input gap fill ≤ 3 h, count bookkeeping). Spike rule uses a trailing
+    window and scaled MAD (§9). Not yet run on real data (happens in P1.10 with the data card).
 - [ ] **P1.5 ERA5 node met** (Open-Meteo archive) for every station plus the 17 regions, 2018-12 → 2026-03 (VERIFY BLH).
 - [ ] **P1.6 ERA5 grid** (CDS): u10, v10, blh, t2m on the §3.2 grid, 3-hourly.
 - [ ] **P1.7 CAMS forecasts (ADS, VERIFY archive).** 00 & 12 UTC runs, leads 0–48 h (3-hourly), pm2p5, aod550,
@@ -313,7 +327,9 @@ ml/
     forecasts for the years where they exist, and record the train/serve product mismatch as a limitation.
 - [ ] **P1.8 FIRMS:** VIIRS S-NPP + MODIS India yearly CSVs → per node per hour: counts and FRP within 300 km;
   upwind count within 500 km (using that hour's ERA5 wind); rasterised FRP on the grid. Apply `firms_latency_h`.
-- [ ] **P1.9 Events:** `events.yaml` with Diwali dates 2019–2026, stubble window, lockdown, national holidays.
+- [x] **P1.9 Events:** `events.yaml` with Diwali dates 2019–2026, stubble window, lockdown, national holidays.
+  - 2026-10-15: `configs/events.yaml` (Diwali 2018–2027 from python-holidays 0.106, pinned), `aerofusion_ml/data/events.py`
+    → weekday, holiday, hour/doy sin-cos, diwali_window, stubble_season, lockdown on IST days; `tests/test_events.py` (6).
 - [ ] **P1.10 Build `dataset_v1.zarr`** (`scripts/build_v1.py`) per the §3.9 contract. Write `SPLITS.lock` with sha256 per split.
   Generate `DATA_CARD.md`.
 - [ ] **P1.11 Leakage tests** `tests/test_no_leakage.py`:
@@ -522,4 +538,11 @@ the data loader streams from zarr).
 | 2026-10-15 | Three input settings S-A/S-B/S-C; CAMS forecasts are the main baseline | leakage safety; reviewer expectations |
 | 2026-10-15 | Prospective archive: per-refresh files on the server + GitHub Actions cron (6 h) committing `/api/live/snapshot` gzips to a `data-archive` branch | free, no new account; snapshot JSON holds every feature value + CAMS/weather hourly series |
 | 2026-10-15 | `run_id` = `YYYYMMDD-<exp>-s<seed>-<git7>[+dirty]`, `nogit` until P0.5 | traceability; dirty marker flags runs from uncommitted code |
-| | VERIFY results (P1.2, P1.5, P1.7, S8, CAMS latency) go here | |
+| 2026-10-15 | Vercel/Render keep deploying from the old repo; repoint to `Shashankkaranamr/AeroFusion-MP` at the end of the project | team decision |
+| 2026-10-15 | P0.1 (guide meeting) and P0.4 (report source) deferred; work continues without them | team decision |
+| 2026-10-15 | **VERIFY P1.2:** XKDR data is hourly, IST interval-start labels; UTC = IST label − 5 h | API spec + day query (P1.2 note) |
+| 2026-10-15 | **VERIFY S1 coverage:** CPCB stations with PM2.5 per month: ~390–524 through 2024-12; **4–5 in 2025-01→03; ~320 (PM2.5+PM10 only) 2025-04→08; 2 (US Embassy Delhi/Hyderabad) 2025-10→2026-03**. NO₂/CO/O₃ end 2024-12-31. Download verified complete (rows = listing). **The frozen test split 2024-01→2026-03 is mostly without ground truth after 2024; decision pending (see open question below).** Only station counts per month were computed for test years; no target values or statistics were looked at | blocks P1.3/P1.10 |
+| 2026-10-15 | QC spike rule: trailing 24 h window (t−24..t−1), threshold 6 × 1.4826 × MAD (Hampel), MAD floor 1 µg/m³, ≥ 12 past values | causal (usable live, no leak); 6 × raw MAD of 24 values flagged plain noise in tests |
+| 2026-10-15 | diwali_window = IST days D−1..D+1 | firework night + next-day residue |
+| 2026-10-15 | **VERIFY S4 (partial):** ADS catalogue lists CAMS global forecasts as "2015 to present", CC-BY. Leads 0–48 h for 2019→ still to test with a real request (P1.7) | ADS dataset page |
+| | VERIFY results (P1.5, P1.7, S8, CAMS latency) go here | |

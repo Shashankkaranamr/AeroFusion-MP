@@ -1,0 +1,14 @@
+# PROGRESS S7 / P1.9. Dates are local (IST) calendar days. Frozen with features_v1.
+version: v1
+diwali:
+  source: "python-holidays 0.106, holidays.India 'Diwali (Deepavali)' (main Lakshmi Puja day)"
+  dates: ["2018-11-07", "2019-10-27", "2020-11-14", "2021-11-04", "2022-10-24", "2023-11-12", "2024-10-31", "2025-10-20", "2026-11-08", "2027-10-29"]
+  window_days: [-1, 1]          # diwali_window = 1 on IST days D-1 .. D+1 (firework night D, residue on D+1)
+stubble_season:                 # every year, IST days inclusive
+  start: "10-01"
+  end: "11-30"
+lockdown:                       # national COVID-19 lockdown, phases 1-4
+  start: "2020-03-25"
+  end: "2020-05-31"
+holidays:
+  source: "python-holidays 0.106, holidays.India (national gazetted holidays incl. estimated lunar dates)"
