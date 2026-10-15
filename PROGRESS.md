@@ -48,12 +48,18 @@ Run its tests. Tick the box, add a one-line note with date and run_id/file. Phas
 Phase 0  Live platform (done earlier)          ████████████████████ 100%
 Phase P0 Housekeeping, integrity, setup        ██████████░░░░░░░░░░  50%   wk 1      (19–25 Oct 2026)
 Phase P1 Data: download, QC, dataset_v1        ███████████░░░░░░░░░  55%   wk 1–5    (→ 22 Nov)
-Phase P2 Evaluation harness + core baselines   ████████████░░░░░░░░  60%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
+Phase P2 Evaluation harness + core baselines   ████████████████░░░░  80%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
 Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   wk 7–12   (→ 10 Jan)  model freeze end wk 12
 Phase P4 Final eval, ablations, XAI validation  ░░░░░░░░░░░░░░░░░░░░   0%   wk 12–14  (→ 24 Jan)
 Phase P5 Platform integration                  ░░░░░░░░░░░░░░░░░░░░   0%   wk 13–15  (→ 31 Jan)
 Phase P6 Paper, report rewrite, viva prep      ░░░░░░░░░░░░░░░░░░░░   0%   wk 14–18  (→ 21 Feb)   paper draft end wk 16
 ```
+**2026-10-16 snapshot:** percentages count ticked tasks only. Code for P3–P6 is written and tested (model ladder,
+baselines, training, final_eval, explain, ONNX export, endpoints, UI cards, paper skeleton, report/viva drafts), but none of
+those tasks is ticked because their acceptance needs trained models. **Blocked on:** the bigger machine (CAMS/ERA5
+downloads paused, dataset rebuild, all training) and team items (guide meeting, report source, data-card review, GPU, live
+station-lag decision in P5.2, Bedrock key rotation).
+
 Week 1 starts **Mon 19 Oct 2026**. **TODO (team):** add BMSCE review dates, exam weeks and the final submission
 date below. If exams fall inside a phase, push the dates and not the rules.
 
