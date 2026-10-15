@@ -1,5 +1,5 @@
 # PROGRESS §4. Install: pip install -r ml/requirements.txt
-torch>=2.3
+torch>=2.3                # CPU wheel is enough for tests: pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch-geometric>=2.5
 pywavelets>=1.6
 numpy>=1.26

@@ -453,6 +453,10 @@ fixed budget (≤ 20 trials per rung, Optuna or a grid), and the search space is
     writes `docs/paper/tables/<split>_<setting>_station.{tex,md}` from `ml/runs/*/metrics.json` only.
 
 - [ ] P3.1 M0 [ ] P3.2 M1 [ ] P3.3 M2 [ ] P3.4 M3 [ ] P3.5 M4 [ ] P3.6 M5 [ ] P3.7 M6
+  - 2026-10-15 (code only, no training): `models/{wavelet,graph,temporal,convlstm,gating,mwafn}.py`; every rung M0–M6 is a
+    config switch (`mwafn.RUNGS`). Tests: `test_wavelet_causal.py` (bands at t unchanged when the future is perturbed),
+    `test_models.py` (all rungs forward/backward with gradients everywhere, gates sum to 1, kNN/600 km adjacency, wind
+    alignment direction, masked Huber). Training waits for the GPU machine.
 - [ ] **P3.8 Tier-2 baselines** (same harness, S-A):
   - CNN-LSTM (from the proposal)
   - ConvLSTM baseline (on the grid, sampled at nodes)
@@ -628,4 +632,6 @@ the data loader streams from zarr).
 | 2026-10-15 | FIRMS fire slots: a detection at time a goes to slot t with a ∈ (t, t+1 h]; issue-time lag on the slot = `firms_latency_h` + 1 = 4 h | a 3 h lag on the slot let detections up to 1 h too recent into the window (caught by `test_no_leakage`) |
 | 2026-10-15 | FIRMS filters: type 0 only (vegetation fire; drop static industrial, offshore, volcano), drop VIIRS confidence 'l' and MODIS < 30; countries India + Pakistan + Nepal + Bangladesh (upwind 500 km crosses borders) | standard FIRMS practice; PB-Pakistan smoke reaches Amritsar/Delhi |
 | 2026-10-15 | **CAMS past inputs = short-lead forecasts, not lead-0 analyses (§3.6 deviation).** Hour t uses the newest run R ≤ t − 9 h at lead t − R (9–20 h; 3-hourly on the grid, linear between the run's own 3-hourly leads at nodes). Published at R + 10 h ≤ t + 1 h, so it takes the same 1 h lag as CPCB and is the same product in training and live | lead 0 of a run is only published 10 h after it describes, so a lead-0 'analysis' input would leak up to 10 h |
+| 2026-10-15 | Gating sparsity term = mean entropy of the group weights (not L1) | softmax weights sum to 1, so their L1 norm is constant and an L1 penalty does nothing |
+| 2026-10-15 | Graph edge direction uses `wind_uv` = raw (un-normalised) mean 10 m wind at the sender over the last 6 usable hours, passed in the batch | normalised u/v distort the direction; past-only wind keeps edges leakage-safe |
 | | VERIFY results (CAMS latency) go here | |
