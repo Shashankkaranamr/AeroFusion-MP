@@ -14,7 +14,7 @@ The original report claimed experimental results that were never produced. Do no
 - **Never write, invent, estimate or "fill in" a metric.** Every number shown anywhere (paper, report, README, UI,
   `PROGRESS.md`) must come from `ml/runs/<run_id>/metrics.json`. Tables come from `ml/scripts/make_tables.py`.
   If asked for numbers that don't exist yet, say so.
-- **The test split (2024-01-01 → 2026-03-31 UTC) is frozen.** Never read it for tuning, selection or early stopping. Only `ml/scripts/final_eval.py` (phase P4) may load it. Check `ml/data/SPLITS.lock` before and after.
+- **The test split (2023-01-01 → 2024-12-31 UTC, plus the PM-only 2025-04 → 2025-09 check) is frozen.** Never read it for tuning, selection or early stopping. Only `ml/scripts/final_eval.py` (phase P4) may load it. Check `ml/data/SPLITS.lock` before and after.
 - **No future leakage.** Build inputs only from data available at issue time `t0` (latencies in PROGRESS §3.4).
   Wavelets are causal and computed per input window. Normalisation is fitted on train only. Targets are never interpolated.
   EAC4 reanalysis is never a test-time input.

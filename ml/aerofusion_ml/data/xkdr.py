@@ -23,7 +23,7 @@ INTERVAL = pd.Timedelta(hours=1)
 def to_utc_hour(collected_at: pd.Series) -> pd.Series:
     """Naive IST interval-start labels -> the UTC hour `t` whose slot (t, t+1h] contains the interval's end.
 
-    Verified 2026-10-15 (PROGRESS §9): the export is hourly (CPCB quarter-hour means), and a day query returns
+    Verified 2026-10-15 on site_103 days 2023-11-01 and 2019-11-01 (PROGRESS §9): the export is hourly (CPCB quarter-hour means), and a day query returns
     labels 00:00..23:00 IST, i.e. labels mark the interval start. CPCB label H IST covers [H-5:30, H-4:30) UTC, so
     t = H - 5h (the hour at the interval's centre); US-Embassy rows (stored at IST :30, i.e. UTC hour starts) map to
     their own UTC start hour. With this rule a value at index t never ends after t+1h, so the §3.4 latency rule

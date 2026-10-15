@@ -15,9 +15,9 @@ def _load(name):
 
 def test_test_split_is_the_frozen_one():
     s = _load("splits_v1.yaml")["splits"]
-    assert s["test"] == {"start": "2024-01-01", "end": "2026-03-31", "frozen": True}
-    assert (s["train"]["start"], s["train"]["end"]) == ("2019-01-01", "2022-12-31")
-    assert (s["val"]["start"], s["val"]["end"]) == ("2023-01-01", "2023-12-31")
+    assert s["test"] == {"start": "2023-01-01", "end": "2024-12-31", "frozen": True}
+    assert (s["train"]["start"], s["train"]["end"]) == ("2018-01-01", "2021-12-31")
+    assert (s["val"]["start"], s["val"]["end"]) == ("2022-01-01", "2022-12-31")
 
 
 @pytest.mark.parametrize("block", ["splits", "rolling_origin_fold"])

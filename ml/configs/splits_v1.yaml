@@ -1,15 +1,16 @@
-# PROGRESS §3.3. All times UTC, inclusive dates. The test split is FROZEN: only scripts/final_eval.py (P4) reads it.
+# PROGRESS §3.3 (revised 2026-10-15: shifted back 1 year because CPCB coverage ends 2024-12, see §9). All times UTC, inclusive dates. The test split is FROZEN: only scripts/final_eval.py (P4) reads it.
 version: v1
 timezone: UTC
 issue_hours_eval: [0, 12]      # evaluation issue times (match CAMS runs)
 input_window_h: 72
 leads_h: [1, 24, 48]           # reported; the model predicts all 48 steps
 splits:
-  train:       {start: "2019-01-01", end: "2022-12-31"}
-  val:         {start: "2023-01-01", end: "2023-12-31"}
-  test:        {start: "2024-01-01", end: "2026-03-31", frozen: true}
+  train:       {start: "2018-01-01", end: "2021-12-31"}
+  val:         {start: "2022-01-01", end: "2022-12-31"}
+  test:        {start: "2023-01-01", end: "2024-12-31", frozen: true}   # 2 stubble seasons, 2 winters, all pollutants
+  extra_pm_only: {start: "2025-04-01", end: "2025-09-30", frozen: true, note: "PM2.5/PM10 only (CPCB coverage gap); robustness check"}
   prospective: {start: "2026-10-15", end: "2027-02-28", source: "live archive + S8"}
 rolling_origin_fold:           # robustness fold; final model + best baselines only
-  train: {start: "2019-01-01", end: "2023-06-30"}
-  val:   {start: "2023-07-01", end: "2024-06-30"}
-  test:  {start: "2024-07-01", end: "2026-03-31", frozen: true}
+  train: {start: "2018-01-01", end: "2022-06-30"}
+  val:   {start: "2022-07-01", end: "2023-06-30"}
+  test:  {start: "2023-07-01", end: "2024-12-31", frozen: true}
