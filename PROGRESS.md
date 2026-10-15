@@ -269,6 +269,8 @@ ml/
   - 2026-10-15: workflow live on GitHub; first run 38694869721 committed that snapshot to `data-archive` (`97c6bcb`).
     Works with the current deployment (no redeploy needed). **Tick when 3 distinct `updated_at` snapshots are on
     `data-archive`** (live refresh is every 12 h, so expect ~2026-10-16 evening; duplicates are skipped).
+  - 2026-10-15 17:03 UTC: scheduled cron run 38774006998 succeeded unattended; `data-archive` holds 2 distinct snapshots
+    (05:06 and 17:03 UTC). Tick when the third lands (~2026-10-16 05:00 UTC).
 - [x] **P0.3 Remove placeholder metrics.** Delete `backend/app/data/metrics_illustrative.json` and every frontend
   reference to it. The Model Lab shows "training in progress" until P5. *Acceptance:* grep finds no `illustrative`.
   - 2026-10-15: file deleted; no frontend reference existed (there is no Model Lab view yet, so nothing to show).
