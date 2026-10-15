@@ -339,6 +339,9 @@ ml/
   - 2026-10-15: **BLH VERIFIED** (Open-Meteo `models=era5` returns `boundary_layer_height`, no gaps on a 2019 test day).
     `download_all.py --source openmeteo` running: 138 nodes (116 stations + 17 regions + 5 unlabelled cities, `ml/data/nodes_v1.csv`)
     → 66 ERA5 0.25° cells × 9 yearly chunks; t2m, rh, wind speed/dir (+ u10/v10), surface pressure, precip, BLH, UTC hours.
+  - 2026-10-15: download complete: 66 cells × 9 years = 594 files, no gaps except **boundary_layer_height missing for every cell
+    2024-01-01 → 2024-06-30** (Open-Meteo archive gap; presence count only). Build fills node BLH for those hours from the CDS
+    ERA5 grid (P1.6, same ERA5 field, bilinear at the node) and records the source in the data card. All other variables 0 % missing.
   - Copernicus progress 2026-10-15: first ERA5 month (2017-12) checked: 248 3-hourly steps, 133 × 129 cells, 4 vars, no NaN.
 - [ ] **P1.6 ERA5 grid** (CDS): u10, v10, blh, t2m on the §3.2 grid, 3-hourly.
   - 2026-10-15: `download_all.py --source era5_grid` queued (94 months 2017-12 → 2025-09, native 0.25°, India bbox,
@@ -585,4 +588,5 @@ the data loader streams from zarr).
 | 2026-10-15 | CDS and ADS reject jobs beyond a small per-user, per-dataset queue ("Number queued requests for this dataset is temporarily limited"; 6 at once was rejected). The downloader keeps 2 queued and lowers the cap on that rejection without counting it as a failure | job results endpoint |
 | 2026-10-15 | **VERIFY P1.5 BLH:** Open-Meteo archive (`models=era5`) serves boundary_layer_height hourly; node met is fetched per ERA5 0.25° cell (66 cells for 138 nodes) | archive-api.open-meteo.com test request |
 | 2026-10-15 | QC bounds for gases (inputs only) set before looking at data: NO₂ ≤ 1000 µg/m³, CO ≤ 50 mg/m³, O₃ ≤ 1000 µg/m³. Data card restricted to train + val | CPCB 'severe' thresholds are far below these caps; keeps test statistics unseen |
+| 2026-10-15 | **VERIFY P1.5 (update):** Open-Meteo ERA5 archive returns no BLH for 2024-01→2024-06 (all cells); fill those hours from the CDS ERA5 grid (P1.6), same ERA5 variable | presence count over the downloaded files |
 | | VERIFY results (S8, CAMS latency) go here | |
