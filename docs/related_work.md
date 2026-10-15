@@ -10,22 +10,27 @@ is the title/venue returned by that lookup. Any reference not in this file must 
 
 Values: `Y` yes, `N` no, `–` not applicable, `?` not yet checked in the full text.
 **The `?` cells must be filled from the full text before the paper's related-work section is written** (owner: team, P6).
+2026-10-16: cells for #1, #5, #9, #10, #11, #22, #23 filled from the open-access full texts (arXiv / Europe PMC / Springer OA),
+quoting what each paper states; "not stated" means the paper does not say. Still `?` (full text not openly accessible from here):
+#6, #7, #8, #14, #15, #20, #21, #26, #27: check via the college library.
+Across the seven papers checked, none compares against CAMS or another chemistry-transport forecast, and none validates its
+explanations.
 
 ## A. Spatio-temporal graph and attention models (method lineage)
 
 | # | Paper | Verified as | Task | Region | Data | Graph | Wavelet | CAMS baseline | Leakage-safe | XAI validated |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Wang et al. 2020, PM2.5-GNN | [10.1145/3397536.3422208](https://doi.org/10.1145/3397536.3422208), SIGSPATIAL '20 | PM2.5 forecast | China, 184 cities | PM2.5 + reanalysis met | Y (distance + wind-direction edges) | N | N | ? (check whether future met is an input) | N |
+| 1 | Wang et al. 2020, PM2.5-GNN | [10.1145/3397536.3422208](https://doi.org/10.1145/3397536.3422208), SIGSPATIAL '20 | PM2.5 forecast | China, 184 cities | PM2.5 + reanalysis met | Y (distance + wind-direction edges) | N | N | **N for operational use**: offline experiments feed ERA5 reanalysis as the "weather forecasting data" for future steps (= our S-C upper bound) | N (interpretability left to future work) |
 | 2 | Li et al. 2018, DCRNN | [arXiv:1707.01926](https://arxiv.org/abs/1707.01926) | traffic forecast | US freeways | loop sensors | Y (diffusion conv) | N | – | – | N |
 | 3 | Wu et al. 2019, Graph WaveNet | [10.24963/ijcai.2019/264](https://doi.org/10.24963/ijcai.2019/264), IJCAI | traffic forecast | US freeways | loop sensors | Y (learned adaptive adjacency) | N (dilated causal conv; "WaveNet" is not a wavelet) | – | – | N |
 | 4 | Yu et al. 2018, STGCN | [10.24963/ijcai.2018/505](https://doi.org/10.24963/ijcai.2018/505), IJCAI | traffic forecast | China / US | loop sensors | Y (spectral graph conv) | N | – | – | N |
-| 5 | Liang et al. 2023, AirFormer | [10.1609/aaai.v37i12.26676](https://doi.org/10.1609/aaai.v37i12.26676), AAAI | air quality forecast | China, nationwide | station AQ + met | N (local spatial attention) | N | N | ? | N |
+| 5 | Liang et al. 2023, AirFormer | [10.1609/aaai.v37i12.26676](https://doi.org/10.1609/aaai.v37i12.26676), AAAI | air quality forecast | China, nationwide | station AQ + met | N (local spatial attention) | N | N | partly: chronological split (2 y / 1 y / 1 y), z-score inputs; scope of normalisation and future-weather use not stated | qualitative only (attention vs wind direction), not validated |
 | 6 | Liang et al. 2018, GeoMAN | [10.24963/ijcai.2018/476](https://doi.org/10.24963/ijcai.2018/476), IJCAI | geo-sensory forecast (incl. AQ) | China | sensors | N (multi-level attention) | N | N | ? | N |
 | 7 | Zheng et al. 2015 | [10.1145/2783258.2788573](https://doi.org/10.1145/2783258.2788573), KDD | AQ forecast | China | station AQ + met + forecasts | N | N | N | ? | N |
 | 8 | Yi et al. 2018, DeepAir | [10.1145/3219819.3219822](https://doi.org/10.1145/3219819.3219822), KDD | AQ forecast | China | station AQ + met | N (spatial fusion net) | N | N | ? | N |
-| 9 | Zhang et al. 2022, TDGTN | [10.3389/fenvs.2022.924986](https://doi.org/10.3389/fenvs.2022.924986), Front. Environ. Sci. | PM2.5 forecast | China (Beijing, Taizhou) | station PM2.5 | Y (graph transformer) | N | N | ? | ? |
-| 10 | Lu et al. 2025, MSDGNN | [10.1371/journal.pone.0338392](https://doi.org/10.1371/journal.pone.0338392), PLOS One | PM2.5 forecast | China, 22 stations | station AQ + met | Y (multi-scale dynamic) | N | N | ? | ? |
-| 11 | Wang et al. 2024, VMD–GAT–BiLSTM | [10.1038/s41598-024-68874-x](https://doi.org/10.1038/s41598-024-68874-x), Sci. Rep. | AQ forecast | China (Beijing) | station AQ | Y (GAT) | N (uses **VMD** decomposition) | N | ? (check whether VMD runs on the full series) | ? |
+| 9 | Zhang et al. 2022, TDGTN | [10.3389/fenvs.2022.924986](https://doi.org/10.3389/fenvs.2022.924986), Front. Environ. Sci. | PM2.5 forecast | China, 2 single stations (Beijing US Embassy, Taizhou) | station PM2.5 | Y (graph transformer) | N | N | partly: test year held out; validation = random 10 % of train; scaling scope not stated | N |
+| 10 | Lu et al. 2025, MSDGNN | [10.1371/journal.pone.0338392](https://doi.org/10.1371/journal.pone.0338392), PLOS One | PM2.5 forecast | China, 22 stations | station pollutants only (no meteorology) | Y (multi-scale dynamic) | N | N | partly: chronological 60/20/20; scaling scope not stated | N |
+| 11 | Wang et al. 2024, VMD–GAT–BiLSTM | [10.1038/s41598-024-68874-x](https://doi.org/10.1038/s41598-024-68874-x), Sci. Rep. | AQ forecast | China (Beijing) | station AQ | Y (GAT) | N (uses **VMD** decomposition) | N | not stated: VMD applied to "the original PM2.5 data"; timing relative to the split not reported (risk) | N (SHAP named as future work) |
 | 12 | Shi et al. 2015, ConvLSTM | [arXiv:1506.04214](https://arxiv.org/abs/1506.04214) | precipitation nowcast | Hong Kong | radar grids | N (conv grid) | N | – | – | N |
 | 13 | Lim et al. 2021, TFT | [10.1016/j.ijforecast.2021.03.012](https://doi.org/10.1016/j.ijforecast.2021.03.012), IJF | multi-horizon forecast | – | various | N | N | – | Y (known future inputs separated) | partial (attention/variable-selection analyses) |
 
@@ -46,8 +51,8 @@ Values: `Y` yes, `N` no, `–` not applicable, `?` not yet checked in the full t
 |---|---|---|---|---|---|---|---|---|---|---|
 | 20 | Bai et al. 2016 | [10.1016/j.apr.2016.01.004](https://doi.org/10.1016/j.apr.2016.01.004), Atmos. Pollut. Res. | pollutant forecast | China | station AQ + met | N | Y (DWT + BPNN) | N | ? | N |
 | 21 | Qiao et al. 2019 | [10.1109/access.2019.2944755](https://doi.org/10.1109/access.2019.2944755), IEEE Access | PM2.5 forecast | China | station PM2.5 | N | Y (WT + improved deep model) | N | ? | N |
-| 22 | He et al. 2025 | [10.3390/toxics13040254](https://doi.org/10.3390/toxics13040254), Toxics | daily PM2.5 | China (Guangzhou) | station PM2.5 | N | Y (wavelet + CNN/BiGRU/BiLSTM) | N | ? | ? |
-| 23 | Lu et al. 2025, WTCrossformer | [10.1007/s44273-025-00067-y](https://doi.org/10.1007/s44273-025-00067-y), Asian J. Atmos. Environ. | PM2.5 forecast | China (Beijing, 12 stations) | station AQ + met | N (cross-variable attention) | Y (wavelet-transform convolution) | N | ? | ? |
+| 22 | He et al. 2025 | [10.3390/toxics13040254](https://doi.org/10.3390/toxics13040254), Toxics | daily PM2.5 | China (Guangzhou) | station PM2.5 | N | Y (wavelet + CNN/BiGRU/BiLSTM) | N | at risk: chronological split, but min-max scaling over the raw sequence; decomposition timing not stated | N |
+| 23 | Lu et al. 2025, WTCrossformer | [10.1007/s44273-025-00067-y](https://doi.org/10.1007/s44273-025-00067-y), Asian J. Atmos. Environ. | PM2.5 forecast | China (Beijing, 12 stations) | station AQ + met | N (cross-variable attention) | Y (wavelet-transform convolution) | N | partly: wavelet is a convolution layer inside the network (per input window); split given only as sample counts | N |
 | 24 | Quilty & Adamowski 2018 | [10.1016/j.jhydrol.2018.05.003](https://doi.org/10.1016/j.jhydrol.2018.05.003), J. Hydrol. | **method critique**: incorrect wavelet use leaks future data | – | – | – | Y | – | (defines the problem) | – |
 | 25 | Barzegar et al. 2021 | [10.1016/j.jhydrol.2021.126196](https://doi.org/10.1016/j.jhydrol.2021.126196), J. Hydrol. | boundary-corrected MODWT + CNN-LSTM | lakes | water level | N | Y (boundary-corrected, leakage-aware) | – | Y (by design) | – |
 
