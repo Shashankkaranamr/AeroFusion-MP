@@ -13,7 +13,10 @@ import pandas as pd
 
 WINDOW_H = 72
 HORIZON_H = 48
-LAG_H = {"obs": 1, "met": 1, "fire": 3}  # §3.4: CPCB t0-1h; ERA5/Open-Meteo past met t0-1h; FIRMS acquisition + 3h
+FIRMS_LATENCY_H = 3  # §3.4 `firms_latency_h`: a detection is usable from acquisition + 3 h
+# Lag on the slot stamp t, where slot t covers (t, t+1h]. CPCB/met slots end at t+1h, so t <= t0-1h means "ended by t0".
+# A fire slot holds acquisitions in (t, t+1h], usable from t+1h+3h, so its lag is latency + 1 (not 3: that leaks <= 1 h).
+LAG_H = {"obs": 1, "met": 1, "fire": FIRMS_LATENCY_H + 1}
 CAMS_LATENCY_H = 10  # §3.4: run R usable from R + 10 h (VERIFY typical availability; config `cams_latency_h`)
 CAMS_RUN_HOURS = (0, 12)
 
@@ -36,6 +39,11 @@ def target_index(times: pd.DatetimeIndex, t0: pd.Timestamp, horizon: int = HORIZ
     if pos < 0 or pos + horizon >= len(times):
         raise IndexError("target horizon outside the data")
     return np.arange(pos + 1, pos + horizon + 1)
+
+
+def fire_slot(acq_utc: pd.Series) -> pd.Series:
+    """FIRMS acquisition time -> slot stamp t with acq in (t, t+1h] (same convention as P1.2)."""
+    return acq_utc.dt.ceil("h") - pd.Timedelta(hours=1)
 
 
 def latest_cams_run(t0: pd.Timestamp, latency_h: int = CAMS_LATENCY_H) -> pd.Timestamp:

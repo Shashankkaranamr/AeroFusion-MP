@@ -3,6 +3,7 @@
     python ml/scripts/download_all.py --source xkdr
     python ml/scripts/download_all.py --source cams_fc            # P1.7, ADS; queues can take days: run in background
     python ml/scripts/download_all.py --source era5_grid          # P1.6, CDS
+    python ml/scripts/download_all.py --source firms              # P1.8, yearly country CSVs (no key)
     python ml/scripts/download_all.py --source openmeteo          # P1.5, node met for stations_v1 + regions (writes nodes_v1.csv)
     (Copernicus sources take --start/--end YYYY-MM; default 2017-12 -> 2025-09, i.e. a 72 h warm-up before train + the PM-only check)
 """
@@ -16,7 +17,7 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from aerofusion_ml.data import copernicus, openmeteo, xkdr  # noqa: E402
+from aerofusion_ml.data import copernicus, firms, openmeteo, xkdr  # noqa: E402
 from aerofusion_ml.env import need  # noqa: E402
 
 
@@ -57,11 +58,35 @@ def run_openmeteo() -> None:
     print("Open-Meteo complete", flush=True)
 
 
+def run_firms() -> None:
+    jobs = [(s, y, c) for s in firms.SENSORS for y in firms.YEARS for c in firms.COUNTRIES]
+    print(f"FIRMS: {len(jobs)} yearly country files", flush=True)
+    with httpx.Client(timeout=httpx.Timeout(60, read=600), follow_redirects=True) as c:
+        for s, y, ctry in jobs:
+            for attempt in range(3):
+                try:
+                    dest, new = firms.download(c, s, y, ctry)
+                    break
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 404:
+                        print(f"  {s} {y} {ctry}: not published (404)", flush=True)
+                        dest, new = None, False
+                        break
+                    print(f"  retry {s} {y} {ctry}: HTTP {e.response.status_code}", flush=True)
+                except httpx.HTTPError as e:
+                    print(f"  retry {s} {y} {ctry}: {type(e).__name__}", flush=True)
+            else:
+                raise SystemExit(f"failed: {s} {y} {ctry}")
+            if new:
+                print(f"  {s} {y} {ctry}: {dest.stat().st_size / 1e6:.1f} MB", flush=True)
+    print("FIRMS complete", flush=True)
+
+
 def run_copernicus(source: str, start: str, end: str, max_active: int) -> None:
     copernicus.run(source, copernicus.months(start, end), max_active=max_active, log=lambda msg: print(msg, flush=True))
 
 
-SOURCES = {"xkdr": run_xkdr, "openmeteo": run_openmeteo, **{s: s for s in copernicus.SOURCES}}
+SOURCES = {"xkdr": run_xkdr, "openmeteo": run_openmeteo, "firms": run_firms, **{s: s for s in copernicus.SOURCES}}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

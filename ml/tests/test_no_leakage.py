@@ -32,7 +32,7 @@ def test_a_inputs_unchanged_when_everything_after_t0_is_perturbed(t0):
 def test_a_window_ends_at_the_latency_lag_and_targets_start_after_t0():
     t0 = TIMES[200]
     assert TIMES[w.window_index(TIMES, t0, "obs")[-1]] == t0 - pd.Timedelta(hours=1)
-    assert TIMES[w.window_index(TIMES, t0, "fire")[-1]] == t0 - pd.Timedelta(hours=3)
+    assert TIMES[w.window_index(TIMES, t0, "fire")[-1]] == t0 - pd.Timedelta(hours=4)
     assert len(w.window_index(TIMES, t0, "met")) == w.WINDOW_H
     tgt = w.target_index(TIMES, t0)
     assert TIMES[tgt[0]] == t0 + pd.Timedelta(hours=1) and len(tgt) == w.HORIZON_H
@@ -77,3 +77,14 @@ def test_c_every_issue_hour_gets_a_run_at_least_latency_old():
     for t0 in pd.date_range("2019-11-01", periods=48, freq="h", tz="UTC"):
         r = w.latest_cams_run(t0)
         assert r.hour in w.CAMS_RUN_HOURS and pd.Timedelta(hours=10) <= t0 - r < pd.Timedelta(hours=22)
+
+
+def test_a_fire_detections_in_the_window_were_all_available_at_t0():
+    t0 = pd.Timestamp("2019-11-01 12:00", tz="UTC")
+    acq = pd.Series(pd.date_range("2019-11-01 00:00", "2019-11-01 12:00", freq="10min", tz="UTC"))
+    slots = w.fire_slot(acq)
+    times = pd.date_range("2019-10-28", "2019-11-02", freq="h", tz="UTC")
+    in_window = slots.isin(times[w.window_index(times, t0, "fire")])
+    assert (acq[in_window] + pd.Timedelta(hours=w.FIRMS_LATENCY_H) <= t0).all()
+    # and nothing usable is dropped beyond the 1-hour slot granularity
+    assert in_window[acq + pd.Timedelta(hours=w.FIRMS_LATENCY_H) <= t0 - pd.Timedelta(hours=1)].all()
