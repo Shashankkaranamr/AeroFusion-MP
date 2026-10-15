@@ -537,6 +537,8 @@ proposed model), and P4 reports it honestly. Optionally also report "M6-best" (b
   - The What-if view stays labelled "illustrative heuristic".
 - [ ] **P5.5 Live monitoring:** the backend logs model-vs-observed error for each new snapshot. This becomes
   the prospective evaluation.
+  - 2026-10-15: ground-truth collector ready: `aerofusion_ml/data/openaq.py` + `scripts/collect_openaq.py --months YYYY-MM`
+    (refuses months before 2026-10); 2026-10 fetched (28,296 station-hours, 112 stations). Re-run monthly through 2027-02.
 
 ### Phase P6: Paper, report, viva (wk 14–18, → 21 Feb)
 - [ ] **P6.1 Paper** in the IEEE conference template, 6 pages: Intro, Related work (from P0.6), Data (+ data card
@@ -660,4 +662,5 @@ the data loader streams from zarr).
 | 2026-10-15 | Gating sparsity term = mean entropy of the group weights (not L1) | softmax weights sum to 1, so their L1 norm is constant and an L1 penalty does nothing |
 | 2026-10-15 | Graph edge direction uses `wind_uv` = raw (un-normalised) mean 10 m wind at the sender over the last 6 usable hours, passed in the batch | normalised u/v distort the direction; past-only wind keeps edges leakage-safe |
 | 2026-10-15 | **CAMS request extended to leads 0–72 h** (was 0–48 h). The 2 months already fetched with 0–48 h were set aside (`raw/cams_fc/v1_lead0-48/`) and re-queued; 2 queued 0–48 h jobs were deleted on ADS | a run is usable 10–21 h after it starts, so +48 h at issue time needs leads up to 69 h for S-B and the CAMS baselines (the §3.4 example already implied lead 36 for +24 h) |
+| 2026-10-15 | **VERIFY S8 hour alignment:** OpenAQ hourly periods starting at :30 UTC, stamped t = start + 30 min, equal the XKDR values exactly (R K Puram old sensor 35, 10–12 Jan 2018, train period; same rule as P1.2). Periods not starting at :30 (some 2018 aggregates) do not match and are dropped. Panel match: 112/116 stations within 1 km (106 CPCB, 4 AirNow, 1 caaqm, 1 StateAir; 4 unmatched); CPCB latest hour 2026-10-13 (~2-day lag) | `scripts/collect_openaq.py --match`, `ml/data/openaq_match_v1.csv` |
 | | VERIFY results (CAMS latency) go here | |
