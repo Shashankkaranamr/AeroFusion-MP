@@ -19,6 +19,7 @@ from . import loader, windows
 
 ML = Path(__file__).resolve().parents[2]
 GRID_STEPS = 24
+SC_FEATS = ["t2m", "rh", "u10", "v10", "wind_speed", "pressure", "precip", "blh", "ventilation"]
 FRP_HIDE_H = windows.FIRMS_LATENCY_H + 3
 
 
@@ -47,8 +48,11 @@ class Stats:
 
 class WindowDataset(torch.utils.data.Dataset):
     def __init__(self, arrays: loader.NodeArrays, t0s: pd.DatetimeIndex, stats: Stats, grid: xr.DataArray | None = None,
-                 grid_stats: tuple[np.ndarray, np.ndarray] | None = None):
+                 grid_stats: tuple[np.ndarray, np.ndarray] | None = None, setting: str = "S-A", cams_fc: xr.Dataset | None = None):
         self.a, self.t0s, self.stats, self.grid, self.grid_stats = arrays, t0s, stats, grid, grid_stats
+        self.setting, self.cams_fc = setting, cams_fc
+        if setting == "S-C":  # perfect prognosis: TRUE future met (upper bound only, never presented as a forecast)
+            self.fut_idx = [arrays.feats.index(k) for k in SC_FEATS]
         self.iu, self.iv = arrays.feats.index("u10"), arrays.feats.index("v10")
         if grid is not None:
             self.gtimes = pd.DatetimeIndex(grid.time.values).tz_localize("UTC")
@@ -64,6 +68,15 @@ class WindowDataset(torch.utils.data.Dataset):
         wind = np.nanmean(s["x_node"][-6:, :, [self.iu, self.iv]], axis=0)  # raw m/s, past only
         out = {"x_node": np.nan_to_num(x).astype(np.float32), "m_node": s["m_node"], "wind_uv": np.nan_to_num(wind).astype(np.float32),
                "y": self.stats.y_fwd(s["y"]).astype(np.float32), "y_mask": s["y_mask"], "t0_ns": np.int64(t0.value)}
+        if self.setting == "S-B":  # CAMS PM2.5 forecast published by t0 (data/cams.forecast applies the latency rule)
+            from . import cams
+
+            f = cams.forecast(self.cams_fc, t0)  # [48, N] µg/m³
+            out["x_fut"] = np.nan_to_num(self.stats.y_fwd(f))[..., None].astype(np.float32)
+        elif self.setting == "S-C":
+            tgt = windows.target_index(self.a.times, t0)
+            fut = (self.a.x[tgt][:, :, self.fut_idx] - self.stats.x_mean[self.fut_idx]) / self.stats.x_std[self.fut_idx]
+            out["x_fut"] = np.nan_to_num(fut).astype(np.float32)
         if self.grid is not None:
             last = self.gtimes.searchsorted(t0 - pd.Timedelta(hours=1), side="right") - 1
             idx = np.arange(last - GRID_STEPS + 1, last + 1)
@@ -109,5 +122,9 @@ def build(cfg: dict, splits_to_load=("train", "val")) -> dict:
     out = {"arrays": a, "stats": stats, "grid_stats": gstats}
     for name in splits_to_load:
         hours = cfg.get("train_issue_hours") if name == "train" else sp["issue_hours_eval"]
-        out[name] = WindowDataset(a, issue_times(a.times, sp["splits"][name], hours, stop), stats, grid, gstats)
+        fc = None
+        if cfg.get("setting", "S-A") == "S-B":
+            ids = [str(n) for n in xr.open_zarr(ML / cfg.get("dataset", "data/processed/dataset_v1.zarr")).node.values]
+            fc = xr.open_zarr(ML / "data/processed/cams_fc_v1.zarr").sel(point=ids)[["pm2p5"]].load()
+        out[name] = WindowDataset(a, issue_times(a.times, sp["splits"][name], hours, stop), stats, grid, gstats, cfg.get("setting", "S-A"), fc)
     return out

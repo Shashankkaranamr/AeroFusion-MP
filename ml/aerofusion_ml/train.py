@@ -50,7 +50,9 @@ def make_model(cfg: dict, a, grid_lat=None, grid_lon=None) -> MWAFN:
                                       node_xy=xy, A_static=A, bearing=torch.from_numpy(bearing.T.copy()))
     mc = Config.rung(cfg["rung"], n_feat=len(a.feats), n_nodes=len(lat), groups=a.groups,
                      wavelet_feats=[a.feats.index(f) for f in cfg.get("wavelet_feats", ["pm25", "pm10"])],
-                     hidden=cfg.get("hidden", 64), grid_channels=cfg.get("grid_channels", 8))
+                     hidden=cfg.get("hidden", 64), grid_channels=cfg.get("grid_channels", 8),
+                     n_future={"S-A": 0, "S-B": 1, "S-C": len(tds.SC_FEATS)}[cfg.get("setting", "S-A")],
+                     **cfg.get("overrides", {}))  # ablations: e.g. {wavelet: false} or {graph: static}
     return MWAFN(mc, A, torch.from_numpy(bearing.T.copy()), xy)
 
 

@@ -52,6 +52,7 @@ class Config:
     grid_hidden: int = 16
     diffusion_k: int = 2
     entropy_weight: float = 0.01
+    n_future: int = 0  # >0 for S-B (CAMS forecast per lead) or S-C (true future met, upper bound only): x_fut [B,48,N,n_future]
 
     @classmethod
     def rung(cls, name: str, **kw) -> "Config":
@@ -87,7 +88,11 @@ class MWAFN(nn.Module):
             self.gconv = nn.ModuleList([DiffusionConv(d, d, cfg.diffusion_k, cfg.graph == "adaptive", cfg.n_nodes) for _ in range(2)])
         if node_xy is not None:
             self.register_buffer("node_xy", node_xy.float())
-        self.dec = nn.Sequential(nn.Linear(d, 2 * H), nn.ELU(), nn.Linear(2 * H, cfg.horizon))
+        if cfg.n_future:
+            self.fut = nn.Linear(cfg.n_future, d)
+            self.dec = nn.Sequential(nn.Linear(d, 2 * H), nn.ELU(), nn.Linear(2 * H, 1))  # per-lead head on [node state + lead input]
+        else:
+            self.dec = nn.Sequential(nn.Linear(d, 2 * H), nn.ELU(), nn.Linear(2 * H, cfg.horizon))
 
     def forward(self, batch: dict) -> dict:
         x, m = batch["x_node"], batch["m_node"].to(batch["x_node"].dtype)
@@ -112,7 +117,10 @@ class MWAFN(nn.Module):
             A = self.A_static[None] * align
             for conv in self.gconv:
                 e = e + torch.relu(conv(e, A))
-        pred = self.dec(e).transpose(1, 2)  # [B, 48, N]
+        if self.cfg.n_future:
+            pred = self.dec(e[:, None] + self.fut(torch.nan_to_num(batch["x_fut"]))).squeeze(-1)  # [B, 48, N]
+        else:
+            pred = self.dec(e).transpose(1, 2)  # [B, 48, N]
         return {"pred": pred, "gates": gates, "aux_loss": aux}
 
 

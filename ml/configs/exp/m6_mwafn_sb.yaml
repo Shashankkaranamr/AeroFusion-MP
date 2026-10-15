@@ -1,0 +1,21 @@
+# P3.9 M6 in S-B: operational + CAMS forecast (post-processing framing)
+name: m6_mwafn_sb
+rung: M6
+setting: S-B
+seed: 0
+device: auto
+batch: 32
+lr: 0.001
+weight_decay: 0.0001
+epochs: 60
+patience: 8
+grad_clip: 1.0
+amp: true
+hidden: 64
+log_target: true
+train_issue_hours: null
+workers: 2
+wavelet_feats:
+- pm25
+- pm10
+use_grid: true

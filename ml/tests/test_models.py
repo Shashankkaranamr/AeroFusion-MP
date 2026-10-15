@@ -91,3 +91,41 @@ def test_cnn_lstm_conv_is_causal_within_window():
     z = torch.randn(1, 2 * F, 72)
     z2 = z.clone(); z2[..., 40:] += 50
     torch.testing.assert_close(m.conv(z)[..., :40], m.conv(z2)[..., :40])
+
+
+@pytest.mark.parametrize("n_future", [1, 9])
+def test_future_inputs_settings_sb_sc(n_future):
+    A = torch.from_numpy(gr.static_adjacency(LAT, LON, k=3))
+    _, bearing = gr.distance_bearing(LAT, LON)
+    xy = node_xy(LAT, LON, torch.tensor([5.25, 37.5]), torch.tensor([66.25, 97.75]))
+    cfg = Config.rung("M6", n_feat=F, n_nodes=N, groups=GROUPS, wavelet_feats=[0, 1], grid_channels=C, hidden=16, n_future=n_future)
+    m = MWAFN(cfg, A, torch.from_numpy(bearing.T.copy()), xy)
+    b = _batch()
+    b["x_fut"] = torch.randn(B, 48, N, n_future)
+    m.eval()  # no dropout, so only the perturbed lead can change
+    out = m(b)
+    assert out["pred"].shape == (B, 48, N)
+    b2 = dict(b); b2["x_fut"] = b["x_fut"].clone(); b2["x_fut"][:, 10] += 5
+    d = (m(b2)["pred"] - out["pred"]).abs().sum(dim=(0, 2))
+    assert d[10] > 0 and d[:10].sum() == 0  # lead-h input only affects lead h
+
+
+def test_every_experiment_config_builds():
+    from pathlib import Path
+
+    import yaml
+
+    from aerofusion_ml.models.neural_baselines import REGISTRY
+
+    A = torch.from_numpy(gr.static_adjacency(LAT, LON, k=3))
+    _, bearing = gr.distance_bearing(LAT, LON)
+    xy = node_xy(LAT, LON, torch.tensor([5.25, 37.5]), torch.tensor([66.25, 97.75]))
+    for f in sorted((Path(__file__).resolve().parents[1] / "configs" / "exp").glob("*.yaml")):
+        c = yaml.safe_load(f.read_text(encoding="utf-8"))
+        if c.get("model", "mwafn") in REGISTRY:
+            REGISTRY[c["model"]](n_feat=F, hidden=8, n_nodes=N, grid_channels=C, node_xy=xy, A_static=A, bearing=torch.from_numpy(bearing.T.copy()))
+            continue
+        nf = {"S-A": 0, "S-B": 1, "S-C": 9}[c.get("setting", "S-A")]
+        cfg = Config.rung(c["rung"], n_feat=F, n_nodes=N, groups=GROUPS, wavelet_feats=[0, 1], grid_channels=C, hidden=8, n_future=nf, **c.get("overrides", {}))
+        assert (cfg.convlstm is False) or c.get("use_grid"), f"{f.name}: ConvLSTM needs use_grid"
+        MWAFN(cfg, A, torch.from_numpy(bearing.T.copy()), xy)
