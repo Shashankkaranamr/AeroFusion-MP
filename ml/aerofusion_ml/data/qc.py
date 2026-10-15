@@ -15,7 +15,11 @@ import numpy as np
 import pandas as pd
 from numpy.lib.stride_tricks import sliding_window_view
 
-BOUNDS = {"pm25": (0.0, 1500.0), "pm10": (0.0, 2000.0)}
+BOUNDS = {
+    "pm25": (0.0, 1500.0), "pm10": (0.0, 2000.0),
+    # gases: generous physical caps, set before looking at the data (CPCB "severe" starts at NO2 400, CO 34 mg/m³, O3 748)
+    "no2": (0.0, 1000.0), "co": (0.0, 50.0), "o3": (0.0, 1000.0),
+}
 SENTINELS = (999.0, 9999.0, 99999.0)
 FLATLINE_H = 6
 SPIKE_WINDOW_H = 24
