@@ -3,6 +3,7 @@
     python ml/scripts/download_all.py --source xkdr
     python ml/scripts/download_all.py --source cams_fc            # P1.7, ADS; queues can take days: run in background
     python ml/scripts/download_all.py --source era5_grid          # P1.6, CDS
+    python ml/scripts/download_all.py --source openmeteo          # P1.5, node met for stations_v1 + regions (writes nodes_v1.csv)
     (Copernicus sources take --start/--end YYYY-MM; default 2017-12 -> 2025-09, i.e. a 72 h warm-up before train + the PM-only check)
 """
 
@@ -15,7 +16,7 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from aerofusion_ml.data import copernicus, xkdr  # noqa: E402
+from aerofusion_ml.data import copernicus, openmeteo, xkdr  # noqa: E402
 from aerofusion_ml.env import need  # noqa: E402
 
 
@@ -41,11 +42,26 @@ def run_xkdr() -> None:
         print(f"XKDR complete: {new} downloaded, {len(files) - new} already present", flush=True)
 
 
+def run_openmeteo() -> None:
+    data = Path(__file__).resolve().parents[1] / "data"
+    n = openmeteo.nodes(data / "stations_v1.csv")
+    n.to_csv(data / "nodes_v1.csv", index=False)
+    cells, chunks = sorted(n["cell"].unique()), openmeteo.year_chunks()
+    print(f"Open-Meteo ERA5: {len(n)} nodes -> {len(cells)} cells x {len(chunks)} years", flush=True)
+    new = 0
+    with httpx.Client(timeout=120) as c:
+        for i, cell in enumerate(cells, 1):
+            for year, start, end in chunks:
+                new += openmeteo.fetch(c, cell, year, start, end, log=lambda m: print(m, flush=True))[1]
+            print(f"  {i}/{len(cells)} cells done ({new} files fetched this run)", flush=True)
+    print("Open-Meteo complete", flush=True)
+
+
 def run_copernicus(source: str, start: str, end: str, max_active: int) -> None:
     copernicus.run(source, copernicus.months(start, end), max_active=max_active, log=lambda msg: print(msg, flush=True))
 
 
-SOURCES = {"xkdr": run_xkdr, **{s: s for s in copernicus.SOURCES}}
+SOURCES = {"xkdr": run_xkdr, "openmeteo": run_openmeteo, **{s: s for s in copernicus.SOURCES}}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

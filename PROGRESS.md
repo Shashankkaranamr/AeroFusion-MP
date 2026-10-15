@@ -331,6 +331,10 @@ ml/
     kept, past-only spike check, PM ratio flag, input gap fill ≤ 3 h, count bookkeeping). Spike rule uses a trailing
     window and scaled MAD (§9). Not yet run on real data (happens in P1.10 with the data card).
 - [ ] **P1.5 ERA5 node met** (Open-Meteo archive) for every station plus the 17 regions, 2017-12 → 2025-09 (VERIFY BLH).
+  - 2026-10-15: **BLH VERIFIED** (Open-Meteo `models=era5` returns `boundary_layer_height`, no gaps on a 2019 test day).
+    `download_all.py --source openmeteo` running: 138 nodes (116 stations + 17 regions + 5 unlabelled cities, `ml/data/nodes_v1.csv`)
+    → 66 ERA5 0.25° cells × 9 yearly chunks; t2m, rh, wind speed/dir (+ u10/v10), surface pressure, precip, BLH, UTC hours.
+  - Copernicus progress 2026-10-15: first ERA5 month (2017-12) checked: 248 3-hourly steps, 133 × 129 cells, 4 vars, no NaN.
 - [ ] **P1.6 ERA5 grid** (CDS): u10, v10, blh, t2m on the §3.2 grid, 3-hourly.
   - 2026-10-15: `download_all.py --source era5_grid` queued (94 months 2017-12 → 2025-09, native 0.25°, India bbox,
     netCDF; regrid to 0.75° in P1.10). `aerofusion_ml/data/copernicus.py` keeps job ids in `raw/era5_grid/v1/jobs.json`
@@ -567,4 +571,5 @@ the data loader streams from zarr).
 | 2026-10-15 | **VERIFY S4 (done):** CAMS global forecasts on ADS return 00/12 UTC runs, leads 0 and 48 h, for 2017-12-01 and 2025-09-30 (native 0.4°). One ECMWF token works on CDS and ADS; all three datasets (CAMS forecasts, EAC4, ERA5) need only the CC-BY licence | test requests via `ecmwf-datastores-client` 0.5.3; catalogue `license` links |
 | 2026-10-15 | Station panel: completeness counted from max(first PM2.5, 2017-12-01) to 2024-12-31, presence = non-sentinel, non-negative PM2.5 in a UTC hour; nearest city within 25 km. The 5 cities without a qualifying station (Bhubaneswar, Dehradun, Pune, Raipur, Srinagar) are kept as unlabelled nodes (met/fire/CAMS only, loss masked) and city tables cover 28 cities | follows §3.2 as written; years before the data window shouldn't penalise a station; the rule is not loosened to rescue cities |
 | 2026-10-15 | CDS and ADS reject jobs beyond a small per-user, per-dataset queue ("Number queued requests for this dataset is temporarily limited"; 6 at once was rejected). The downloader keeps 2 queued and lowers the cap on that rejection without counting it as a failure | job results endpoint |
-| | VERIFY results (P1.5, S8, CAMS latency) go here | |
+| 2026-10-15 | **VERIFY P1.5 BLH:** Open-Meteo archive (`models=era5`) serves boundary_layer_height hourly; node met is fetched per ERA5 0.25° cell (66 cells for 138 nodes) | archive-api.open-meteo.com test request |
+| | VERIFY results (S8, CAMS latency) go here | |
