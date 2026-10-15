@@ -22,6 +22,7 @@ HOURLY = ["temperature_2m", "relative_humidity_2m", "wind_speed_10m", "wind_dire
           "precipitation", "boundary_layer_height"]
 RAW = manifest.RAW / "openmeteo_era5" / "v1"
 START, END = "2017-12-01", "2025-09-30"
+PACE_S = 4  # a yearly 7-variable request weighs ~18 calls; stay under the free 600 calls/min
 
 
 def cell_id(lat: float, lon: float) -> str:
@@ -70,17 +71,22 @@ def fetch(client: httpx.Client, cell: str, year: str, start: str, end: str, log=
     params = {"latitude": lat, "longitude": lon, "start_date": start, "end_date": end, "hourly": ",".join(HOURLY),
               "models": "era5", "timezone": "GMT", "wind_speed_unit": "ms"}
     for attempt in range(8):
-        r = client.get(API, params=params)
-        if r.status_code == 429 or (r.status_code >= 500):
-            wait = 3600 if "Daily" in r.text else 60 * (attempt + 1)
-            log(f"  {cell} {year}: HTTP {r.status_code} {r.text[:120]!r}; waiting {wait} s")
-            time.sleep(wait)
-            continue
-        r.raise_for_status()
-        break
+        time.sleep(PACE_S)
+        try:
+            r = client.get(API, params=params)
+            if r.status_code == 429 or r.status_code >= 500:
+                wait = 3600 if "Daily" in r.text else 60 * (attempt + 1)
+                log(f"  {cell} {year}: HTTP {r.status_code} {r.text[:120]!r}; waiting {wait} s")
+                time.sleep(wait)
+                continue
+            r.raise_for_status()
+            df = to_frame(r.json())
+            break
+        except (httpx.TransportError, ValueError, KeyError) as e:  # timeouts, empty/truncated bodies
+            log(f"  {cell} {year}: {type(e).__name__}; retrying in {30 * (attempt + 1)} s")
+            time.sleep(30 * (attempt + 1))
     else:
         raise RuntimeError(f"{cell} {year}: gave up after retries")
-    df = to_frame(r.json())
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
     df.to_parquet(part, index=False)
