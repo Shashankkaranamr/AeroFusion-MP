@@ -1,90 +1,444 @@
-% MW-AeroFusion-Net: IEEE conference paper skeleton (PROGRESS P6.1). 6 pages.
-% RULES (PROGRESS §0): no number in this file is typed by hand. Results come only from \input{tables/...} files that
-% ml/scripts/make_tables.py generates from ml/runs/*/metrics.json (each row carries its run_id). Data facts below
-% (station counts, periods) come from ml/data/stations_v1.csv, DATA_CARD.md and splits_v1.yaml.
-% Wording: "learned attribution" / "source-group attribution gating"; never "causal". No "first"/"novel".
+% MW-AeroFusion-Net: IEEE conference paper, submission draft (PROGRESS P6.1). Target: 6 pages, IEEE conference template.
+% RULES (PROGRESS §0): no result number in this file is typed by hand. Results come only from \input{tables/...} files that
+% ml/scripts/make_tables.py generates from ml/runs/*/metrics.json (each row carries its run_id). Until a table exists,
+% an empty template with "--" cells and a \blank{} note is shown instead. Data facts (station counts, periods) come from
+% ml/data/stations_v1.csv, DATA_CARD.md and ml/configs/splits_v1.yaml.
+% Wording: "learned attribution" / "source-group attribution gating"; never "causal" for attribution. No "first"/"novel".
+% Blanks: every \blank{...} is a field the team fills after training (grey box in the PDF). Search for \blank before submitting.
 \documentclass[conference]{IEEEtran}
-\usepackage{amsmath,amssymb,graphicx,booktabs,url,xcolor}
-\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\usepackage{amsmath,amssymb,graphicx,booktabs,url,xcolor,multirow}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
+\usepackage[hidelinks]{hyperref}
+
+% A field to fill after training. Prints red bracketed text (wraps across lines) so no blank can be missed.
+\newcommand{\blank}[1]{{\color{red!75!black}\sffamily\footnotesize[TO FILL: #1]}}
+% A table cell with no result yet.
+\newcommand{\nd}{--}
+% Inputs a generated table if make_tables.py has written it, otherwise shows the given placeholder.
+\newcommand{\gentable}[2]{\IfFileExists{tables/#1.tex}{\resizebox{\columnwidth}{!}{\input{tables/#1.tex}}}{#2}}
 
 \begin{document}
-\title{MW-AeroFusion-Net: A Leakage-Safe Multi-City Benchmark for Station-Level PM$_{2.5}$ Forecasting in India against CAMS}
-\author{\IEEEauthorblockN{\todo{authors, group 40}}\IEEEauthorblockA{Dept. of CSE, BMS College of Engineering, Bengaluru, India}}
+
+\title{MW-AeroFusion-Net: A Leakage-Safe Multi-City Benchmark for\\Station-Level PM$_{2.5}$ Forecasting in India against CAMS}
+
+\author{
+\IEEEauthorblockN{\blank{Author 1}, \blank{Author 2}, \blank{Author 3}, \blank{Author 4}}
+\IEEEauthorblockA{Department of Computer Science and Engineering\\
+BMS College of Engineering, Bengaluru, India\\
+\blank{emails}}
+\and
+\IEEEauthorblockN{\blank{Guide name}}
+\IEEEauthorblockA{Department of Computer Science and Engineering\\
+BMS College of Engineering, Bengaluru, India\\
+\blank{guide email}}
+}
+
 \maketitle
 
+% ---------------------------------------------------------------------------------------------------------------------
 \begin{abstract}
-\todo{write last, from the final tables only. Structure: problem (station-level PM$_{2.5}$ forecasts for Indian cities, 1--48 h);
-gap (no leakage-safe benchmark against CAMS forecasts over CPCB stations, docs/related\_work.md); what we built (116-station
-panel in 28 cities, three input settings, five-component model with component ablations and validated learned attribution);
-results with run-traceable numbers; limitations.}
+Station-level forecasts of fine particulate matter (PM$_{2.5}$) one to two days ahead are needed for public health
+advisories in Indian cities, yet learned forecasting models are rarely compared with an operational chemistry-transport
+forecast under inputs that would actually be available at issue time. We present a leakage-safe benchmark over a fixed
+panel of 116 Central Pollution Control Board (CPCB) stations in 28 Indian cities, in which every input respects its
+real publication latency and the test years are opened once, after the model is frozen. On this benchmark we evaluate
+MW-AeroFusion-Net, a five-component model that combines causal wavelet bands, a wind-aware adaptive diffusion graph over
+stations and upwind source regions, a ConvLSTM over gridded meteorology, fire and CAMS fields, a Transformer temporal
+encoder, and source-group attribution gating. We compare it with persistence, climatology, raw and bias-corrected CAMS
+global forecasts, LightGBM and five neural baselines at +1, +24 and +48\,h, in a past-only and a CAMS-informed setting.
+\blank{one or two sentences of headline results from tables/test\_sa\_station.tex and test\_sb\_station.tex: RMSE and skill
+versus persistence and versus CAMS with bias correction at +24 and +48\,h, with Diebold--Mariano significance}.
+A component ladder and leave-one-out ablations show \blank{which components helped and which did not, from the ladder and
+ablation tables}. The learned attribution of the gating layer \blank{passed / failed} faithfulness, randomisation and
+plausibility checks. Code, configuration and the station panel are released.
 \end{abstract}
 
+\begin{IEEEkeywords}
+PM$_{2.5}$ forecasting, graph neural networks, CAMS, air quality, India, wavelet, ConvLSTM, explainability, benchmark
+\end{IEEEkeywords}
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Introduction}
-Fine particulate matter (PM$_{2.5}$) is the dominant air-quality risk in Indian cities, and operational forecasts in India come
-from chemistry-transport systems such as SAFAR~\cite{Beig_2021} and the IITM early-warning system~\cite{Ghude_2020,Jena_2021},
-alongside global products such as the CAMS forecasts. Learned spatio-temporal models for PM$_{2.5}$ are well established
-\cite{Wang_2020,Liang_2023,Yi_2018}, including graph models for Indian stations~\cite{Ejurothu_2022,Mandal_2023}, and
-decomposition hybrids are common~\cite{Qiao_2019,Wang_2024}. Two practical questions remain open in the literature we
-reviewed: whether such models beat a calibrated CAMS forecast at matched lead times under strictly causal inputs, and
-which model components actually help.
-\todo{contributions list, phrased as in docs/related\_work.md's novelty statement: (1) leakage-safe protocol and benchmark;
-(2) MW-AeroFusion-Net with full component ladder and leave-one-out ablations; (3) learned attribution validated by
-faithfulness, sanity and plausibility checks; (4) open code and station panel.}
+Fine particulate matter (PM$_{2.5}$) is the dominant air-quality risk in Indian cities. Winter inversions, crop-residue
+burning in Punjab and Haryana, festival fireworks and pre-monsoon dust produce episodes in which concentrations exceed
+the national standard many times over. Operational forecasts in India come from chemistry-transport systems such as
+SAFAR~\cite{Beig_2021} and the IITM early-warning system~\cite{Ghude_2020,Jena_2021}, and from global products such as
+the Copernicus Atmosphere Monitoring Service (CAMS) forecasts. In parallel, learned spatio-temporal models for PM$_{2.5}$
+are well established~\cite{Wang_2020,Liang_2023,Yi_2018,Zheng_2015}, including graph models for Indian
+stations~\cite{Ejurothu_2022,Mandal_2023}, and wavelet or decomposition hybrids are
+common~\cite{Bai_2016,Qiao_2019,Wang_2024,He_2025}.
 
+Two questions are rarely answered in this literature. First, does a learned model beat a calibrated CAMS forecast at
+matched lead times when its inputs are restricted to what was published at issue time? Many studies feed reanalysis
+meteorology for future hours~\cite{Wang_2020}, normalise or decompose the whole series before
+splitting~\cite{Quilty_2018}, or compare only against other neural networks. Second, which parts of a composite
+architecture actually help? Multi-component models are usually reported as a whole, so the contribution of each part is
+unknown.
+
+We address both questions with a benchmark and a component analysis. Our contributions are:
+\begin{enumerate}
+\item A \emph{leakage-safe protocol} for station-level PM$_{2.5}$ forecasting over India: a fixed station panel,
+publication latencies for every input source, causal feature construction, training-only normalisation, and a test
+split that is read once by a single script after model freeze.
+\item \emph{MW-AeroFusion-Net}, which combines causal wavelet bands, a wind-aware adaptive diffusion graph, gridded
+ConvLSTM context, a Transformer encoder and source-group gating, built rung by rung so that each component's effect
+is measured, with leave-one-out ablations over five seeds.
+\item A comparison against \emph{CAMS global forecasts} at matched leads, raw and with per-station bias correction,
+together with LightGBM and five neural baselines, in a past-only setting and a CAMS-informed (post-processing) setting.
+\item A \emph{validation of the learned attribution} produced by the gating layer, using deletion tests, weight
+randomisation, seed stability and physical plausibility, reported whether each check passes or fails.
+\end{enumerate}
+Code, configurations, the station panel and the split hashes are released.\footnote{\blank{public repository URL}}
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Related Work}
-Graph models for traffic and air quality~\cite{li2017diffusion,Wu_2019,Yu_2018,Wang_2020}; attention models~\cite{Liang_2018,Liang_2023};
-wavelet and decomposition hybrids and their leakage pitfall~\cite{Bai_2016,Qiao_2019,Quilty_2018,Barzegar_2021};
-CAMS evaluation and post-processing~\cite{Wu_2020,Petetin_2022,Soni_2021}; interpretability~\cite{Lim_2021,adebayo2018sanity,jain2019attention}.
-\todo{condense docs/related\_work.md tables A--E into $\sim$0.6 column; fill its `?' cells from full texts first.}
+\textbf{Spatio-temporal graph models.} Diffusion convolution~\cite{li2017diffusion} and learned adaptive
+adjacency~\cite{Wu_2019} originated in traffic forecasting alongside spectral graph models~\cite{Yu_2018,kipf2016semisupervised}.
+PM2.5-GNN~\cite{Wang_2020} adds distance and wind-direction edges for PM$_{2.5}$ over Chinese cities, but its offline
+experiments feed reanalysis weather for future steps, which corresponds to our perfect-prognosis upper bound rather than an
+operational forecast. Attention-based models~\cite{Liang_2018,Liang_2023,Yi_2018} and graph transformers~\cite{Zhang_2022,Lu_2025}
+report strong results on Chinese networks. For India, cluster-based and spatially attentive graph networks have been
+applied to CPCB stations~\cite{Ejurothu_2022,Mandal_2023}.
 
+\textbf{Wavelet and decomposition hybrids.} Wavelet or mode decompositions followed by neural regressors are
+common~\cite{Bai_2016,Qiao_2019,Wang_2024,He_2025,Lu_2025b}. Decomposing the full series before splitting leaks future
+samples into the inputs~\cite{Quilty_2018}; boundary-corrected transforms avoid this~\cite{Barzegar_2021}. Several of the
+studies we checked do not state when the decomposition is applied relative to the split. We compute the transform causally
+inside each input window.
+
+\textbf{CAMS evaluation and post-processing.} CAMS forecasts have been validated and calibrated with machine learning over
+China and the United States~\cite{Wu_2020} and post-processed with model output statistics in Europe~\cite{Petetin_2022}.
+Over the Indo-Gangetic Plain, CAMS and its reanalysis~\cite{Inness_2019} have been evaluated for aerosol composition and
+optical depth~\cite{Soni_2021,Ansari_2023,Amarillo_2024}. In our search we did not find a study that scores CAMS global
+PM$_{2.5}$ forecasts against CPCB stations at matched leads.
+
+\textbf{Interpretability.} Variable-selection gating follows the Temporal Fusion Transformer~\cite{Lim_2021}. Attention
+weights are not explanations by default~\cite{jain2019attention}, and saliency methods can fail randomisation
+tests~\cite{adebayo2018sanity}; we therefore test the gate weights with deletion, Integrated
+Gradients~\cite{sundararajan2017axiomatic} and randomisation, and compare them with TreeSHAP~\cite{lundberg2017a} on LightGBM.
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Data}
-\textbf{Targets.} Hourly CPCB PM$_{2.5}$ from the XKDR bulk export, converted from IST interval-start labels to UTC.
-A fixed panel of 116 stations within 25\,km of 28 of the 33 study cities (stations reporting since 2020-01-01 with
-$\geq$60\% hourly completeness); five cities without such a station are kept as unlabelled graph nodes. QC removes
-sentinels, out-of-range values, flat-lines ($\geq$6\,h) and isolated spikes (trailing 24\,h Hampel rule, kept when
-$\geq$2 stations in a city spike together). \textbf{Inputs.} ERA5 meteorology~\cite{Hersbach_2020} at nodes and on a
-0.75$^\circ$ grid, FIRMS fire detections (counts, FRP, upwind counts), CAMS global forecasts, calendar and event flags.
-\todo{data-card summary table generated from ml/data/DATA\_CARD.md.}
+\textbf{Targets.} Hourly CPCB PM$_{2.5}$ from the XKDR bulk export of the CPCB continuous monitoring network (CC BY 4.0).
+CPCB labels hours in Indian Standard Time at the start of the averaging interval; we convert them to UTC hours at ingest.
+Station counts in Indian cities grew several-fold over the study period, so city medians drift. We therefore fix a panel
+of 116 stations within 25\,km of 28 of the 33 study cities: stations reporting since 2020-01-01 with at least 60\% hourly
+completeness through 2024. The five cities without such a station stay in the graph as unlabelled nodes. Quality
+control removes sentinel and out-of-range values, flat-lines of six hours or more, and isolated spikes found with a
+trailing 24\,h Hampel rule; a spike seen at two or more stations of the same city in the same hour is kept as a real
+event. Targets are never filled; missing targets are masked in the loss. Table~\ref{tab:data} summarises the data card.
 
+\textbf{Inputs.} (i) Pollutant history (PM$_{2.5}$, PM$_{10}$, NO$_2$, CO, O$_3$) with missing-value masks; gaps of up to
+three hours are filled forward, never interpolated. (ii) ERA5 meteorology~\cite{Hersbach_2020} at each node: temperature,
+humidity, 10\,m wind, pressure, precipitation, boundary-layer height and ventilation (wind speed $\times$ boundary-layer
+height). (iii) VIIRS and MODIS active fires from NASA FIRMS: counts and fire radiative power (FRP) within 300\,km and
+upwind counts within 500\,km. (iv) CAMS global forecasts of PM$_{2.5}$, total and dust aerosol optical depth. (v)
+Calendar and event flags: hour and day of year, weekday, public holidays, a Diwali window, the stubble-burning season and
+the 2020 lockdown. A gridded dataset on a 0.75$^\circ$ India grid ($44\times43$ cells, 3-hourly) holds 10\,m wind,
+boundary-layer height, temperature, rasterised FRP and CAMS fields for the ConvLSTM branch.
+
+\begin{table}[t]
+\centering
+\caption{Data summary (train and validation years only; from DATA\_CARD.md)}
+\label{tab:data}
+\begin{tabular}{lr}
+\toprule
+Item & Value \\
+\midrule
+Stations in panel / cities with a station & 116 / 28 \\
+Upwind context regions (no target) & 17 \\
+Input window / forecast horizon & 72\,h / 48\,h \\
+PM$_{2.5}$ station-hours after QC (train+val) & \blank{DATA\_CARD} \\
+PM$_{2.5}$ removed by QC, all rules (\%) & \blank{DATA\_CARD} \\
+Median city PM$_{2.5}$ coverage, train / val (\%) & \blank{DATA\_CARD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Method}
-\textbf{Graph.} Nodes are stations plus 17 upwind source regions; edges join the 8 nearest nodes within 600\,km with weight
-$e^{-d/\sigma}\max(0,\cos(\theta_{\text{wind}}-\theta_{j\to i}))$ from past winds, plus a learned adaptive adjacency, and
-diffusion convolution~\cite{li2017diffusion,Wu_2019}.
-\textbf{Temporal encoder.} A causal Transformer~\cite{vaswani2017attention} over the past 72\,h per node (GRU in the ablation).
-\textbf{Wavelet bands.} À-trous db4 bands computed causally inside each window (no full-series transform~\cite{Quilty_2018}).
-\textbf{Regional context.} A ConvLSTM~\cite{shi2015convolutional} over gridded wind, boundary layer, FRP and CAMS fields,
-sampled at node locations. \textbf{Source-group attribution gating.} A per-node softmax over feature groups (fire,
-meteorology, dust, traffic proxy, CAMS, history, calendar) in the spirit of TFT variable selection~\cite{Lim_2021}, with an
-entropy penalty. Its weights are a learned attribution, not a causal source apportionment.
+Fig.~\ref{fig:arch} shows the model. Let $N$ be the number of nodes (stations, unlabelled cities and upwind regions), $T=72$
+the input window and $L=48$ the horizon. The input at issue time $t_0$ is $X\in\mathbb{R}^{T\times N\times F}$ with mask
+$M$; the output is $\hat{y}\in\mathbb{R}^{L\times N}$, the standardised $\log(1+\text{PM}_{2.5})$ at every lead.
 
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners=2pt, align=center, font=\footnotesize, minimum height=0.8cm, inner sep=3pt, fill=white},
+  inp/.style={box, fill=black!5},
+  arr/.style={-{Latex[length=2mm]}, thick}]
+\node[inp] (node) {Node inputs\\$X,M$ (72\,h)};
+\node[inp, below=0.5cm of node] (grid) {Grid fields\\wind, BLH, FRP, CAMS};
+\node[box, right=0.5cm of node] (wav) {Causal SWT\\bands (db4)};
+\node[box, right=0.5cm of wav] (gate) {Source-group\\gating};
+\node[box, right=0.5cm of gate] (tr) {Transformer\\encoder};
+\node[box, right=0.5cm of grid, minimum width=2.6cm] (cl) {ConvLSTM\\sampled at nodes};
+\node[box, right=0.9cm of tr] (gr) {Wind-aware\\adaptive diffusion\\graph};
+\node[box, right=0.5cm of gr] (dec) {Decoder\\$+1\ldots{+48}$\,h};
+\draw[arr] (node) -- (wav);
+\draw[arr] (wav) -- (gate);
+\draw[arr] (gate) -- (tr);
+\draw[arr] (grid) -- (cl);
+\draw[arr] (tr) -- (gr);
+\draw[arr] (cl.east) -| (gr.south);
+\draw[arr] (gr) -- (dec);
+\node[font=\scriptsize, below=0.05cm of gate] {gate weights $g_{n}$};
+\end{tikzpicture}}
+\caption{MW-AeroFusion-Net. Per-node inputs are extended with causal wavelet bands, weighted by source-group gates and
+encoded over time; gridded context from a ConvLSTM is sampled at node locations; a diffusion graph mixes node states before
+a per-lead decoder. Rungs M0--M6 add these parts one at a time.}
+\label{fig:arch}
+\end{figure}
+
+\textbf{Causal wavelet bands.} For PM$_{2.5}$ and PM$_{10}$ we compute an undecimated \`a-trous db4 transform with three
+levels inside each input window, using left-padded causal filters so that the band value at hour $t$ depends only on samples
+at or before $t$. This avoids the leakage of full-series transforms~\cite{Quilty_2018}. The detail and approximation bands
+are appended as input channels.
+
+\textbf{Source-group attribution gating.} Input channels are partitioned into seven groups: pollutant history, traffic
+proxy (NO$_2$, CO, weekday, holiday), meteorology, fire, CAMS, dust and calendar. For node $n$, a summary $s_{n,k}$ of group
+$k$ (window mean and last value) gives gate weights
+\begin{equation}
+g_{n} = \operatorname{softmax}\big(W\,[\phi_1(s_{n,1});\dots;\phi_G(s_{n,G})]\big),
+\end{equation}
+and the per-step input is $h_{t,n}=\sum_k g_{n,k}\,P_k(x_{t,n,\mathcal{G}_k})$ with a linear projection $P_k$ per group,
+in the spirit of TFT variable selection~\cite{Lim_2021}. An entropy penalty $\lambda\,\mathbb{E}[-\sum_k g_{n,k}\log g_{n,k}]$
+encourages sparse weights (an L1 penalty would be constant, since the weights sum to one). We call $g_n$ a \emph{learned
+attribution}; it is not a source apportionment.
+
+\textbf{Temporal encoder.} A two-layer Transformer encoder~\cite{vaswani2017attention} with a causal mask runs over the
+72 steps of each node, and its last state is the node embedding $e_n$. Rungs M0--M2 use a GRU instead.
+
+\textbf{Regional context.} A ConvLSTM~\cite{shi2015convolutional} runs over the past grid fields, and its final hidden map
+is sampled bilinearly at each node's location and concatenated to $e_n$. Fire radiative power on the grid is hidden for the
+most recent hours to respect detection latency.
+
+\textbf{Wind-aware adaptive diffusion graph.} Edges join each node to its eight nearest nodes within 600\,km, with static
+weight $A_{ij}=\exp(-d_{ij}/\sigma)$ ($\sigma$ the median neighbour distance), modulated at issue time by wind alignment
+\begin{equation}
+\tilde A_{ij}(t_0)=A_{ij}\,\max\!\big(0,\cos(\theta^{\text{wind}}_{j}-\beta_{j\to i})\big),
+\end{equation}
+where $\theta^{\text{wind}}_{j}$ is the direction the past six hours of wind at sender $j$ blow toward and $\beta_{j\to i}$
+is the bearing from $j$ to $i$, following PM2.5-GNN~\cite{Wang_2020}. Two residual diffusion-convolution
+layers~\cite{li2017diffusion} use forward and backward random-walk transitions of $\tilde A$ and an adaptive adjacency
+$\operatorname{softmax}(\operatorname{ReLU}(E_1E_2^{\top}))$ learned from node embeddings~\cite{Wu_2019}, each with diffusion
+order $K=2$:
+\begin{equation}
+H' = H + \operatorname{ReLU}\Big(\big[H;\,\{P^{k}H\}_{P\in\mathcal{P},\,k=1..K}\big]\,W\Big).
+\end{equation}
+
+\textbf{Decoder and loss.} A two-layer MLP maps each node state to all 48 leads. In the CAMS-informed setting the latest
+published CAMS forecast for each lead is added through a per-lead input. Training minimises a masked Huber loss on observed
+targets only, plus the gating penalty.
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Experimental Protocol}
-\textbf{Splits (UTC).} Train 2018--2021, validation 2022, test 2023--2024 (frozen, read once by a single script after model
-freeze), a PM-only check April--September 2025, and a prospective winter 2026--27 test from live data.
-\textbf{Latency rules.} Station data usable at $t_0-1$\,h; fire detections at acquisition$+3$\,h; a CAMS run $R$ from
-$R+10$\,h. \textbf{Settings.} S-A past-only (primary); S-B adds the latest published CAMS forecast at matched leads;
-S-C uses true future meteorology and is reported only as an upper bound. \textbf{Baselines.} Persistence, same hour
-yesterday, climatology, raw CAMS, CAMS with per-station linear bias correction, LightGBM (S-A and MOS), LSTM, CNN-LSTM,
-ConvLSTM, PM2.5-GNN with past-only meteorology~\cite{Wang_2020}, Graph WaveNet~\cite{Wu_2019}.
-\textbf{Metrics.} RMSE, MAE, $R^2$, bias, skill against persistence and CAMS at +1/+24/+48\,h, by season, IGP vs rest,
-and city; CSI for $>$250\,$\mu$g/m$^3$; AQI-class accuracy and macro-F1; Diebold--Mariano tests with HLN
-correction~\cite{Diebold_1995} and a 24\,h block bootstrap; 5 seeds.
+\textbf{Splits (UTC).} Train 2018--2021, validation 2022, test 2023--2024 (two winters, two stubble seasons and two
+Diwalis), an extra PM-only test from April to September 2025, and a prospective winter 2026--27 test from live data. The
+test splits are hashed in a lock file and can only be read by one evaluation script after the model is frozen; tuning,
+model selection and early stopping use validation only. A second rolling-origin fold (train to mid-2022, validation to
+mid-2023, test mid-2023 to 2024) checks robustness.
 
+\textbf{Latency rules.} At issue time $t_0$, station observations are usable up to $t_0-1$\,h, fire detections from
+acquisition plus three hours, and a CAMS run $R$ only from $R+10$\,h. Past CAMS inputs therefore use short-lead forecasts
+of the newest usable run rather than analyses. Normalisation statistics come from the training years. Unit tests perturb
+every value after $t_0$ and check that the inputs do not change.
+
+\textbf{Settings.} \emph{S-A} (primary) uses past data only. \emph{S-B} adds the latest published CAMS forecast at matched
+leads, framing the model as CAMS post-processing. \emph{S-C} adds true future meteorology and is reported only as an upper
+bound, never as a forecast.
+
+\textbf{Baselines.} Persistence, same hour yesterday, climatology (station $\times$ month $\times$ hour), raw CAMS at
+matched lead, CAMS with per-station linear bias correction, LightGBM on lags and meteorology (S-A) and as model output
+statistics on CAMS (S-B), LSTM, CNN-LSTM, a ConvLSTM baseline, PM2.5-GNN with past-only meteorology~\cite{Wang_2020}, and
+Graph WaveNet~\cite{Wu_2019}. All neural models share the same data loader, loss and training schedule.
+
+\textbf{Training.} AdamW with cosine decay, batch size 32, up to 60 epochs with early stopping on validation RMSE (patience
+8), mixed precision and gradient clipping. Hyperparameters are tuned on validation with at most 20 trials per rung. Final
+models are trained with five seeds. Hardware: \blank{GPU, from compute.md}.
+
+\textbf{Metrics.} RMSE, MAE, $R^2$, bias, and skill $1-\text{RMSE}/\text{RMSE}_{\text{ref}}$ against persistence and CAMS at
++1, +24 and +48\,h; breakdowns by season, Indo-Gangetic Plain versus rest, and city; hit rate, false-alarm rate and critical
+success index for PM$_{2.5}>250\,\mu$g/m$^3$; AQI-category accuracy and macro-F1. Differences are tested with the
+Diebold--Mariano test with the HLN correction~\cite{Diebold_1995} and a 24\,h moving-block bootstrap.
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Results}
-\todo{\textbackslash input\{tables/test\_sa\_station.tex\} once final\_eval.py has run; until then only validation tables exist
-(tables/val\_sa\_station.tex). Ladder table (M0--M6, val), ablation table (test, 5 seeds), season/IGP/episode tables.}
+\textbf{Main comparison.} Table~\ref{tab:main} reports test-set errors at the three leads in the primary setting S-A, and
+Table~\ref{tab:sb} in the CAMS-informed setting S-B, as mean $\pm$ standard deviation over five seeds.
+\blank{two or three sentences comparing MW-AeroFusion-Net with persistence, LightGBM and CAMS with bias correction at each
+lead, quoting only the generated tables and the Diebold--Mariano p-values}.
 
+\begin{table}[t]
+\centering
+\caption{Test results, setting S-A (station level). Generated from run artifacts.}
+\label{tab:main}
+\gentable{test_sa_station}{%
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccccc}
+\toprule
+& \multicolumn{2}{c}{+1\,h} & \multicolumn{2}{c}{+24\,h} & \multicolumn{2}{c}{+48\,h} & \\
+Model & RMSE & Skill & RMSE & Skill & RMSE & Skill & DM $p$ \\
+\midrule
+Persistence & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+Climatology & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+LightGBM (S-A) & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+LSTM & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+PM2.5-GNN (past met) & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+Graph WaveNet & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+MW-AeroFusion-Net & \nd & \nd & \nd & \nd & \nd & \nd & \nd \\
+\bottomrule
+\end{tabular}}\\[2pt]
+\blank{generated by make\_tables.py --final after final\_eval.py}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Test results, setting S-B (with CAMS forecast). Generated from run artifacts.}
+\label{tab:sb}
+\gentable{test_sb_station}{%
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{+1\,h} & \multicolumn{2}{c}{+24\,h} & \multicolumn{2}{c}{+48\,h} \\
+Model & RMSE & Skill vs CAMS & RMSE & Skill vs CAMS & RMSE & Skill vs CAMS \\
+\midrule
+CAMS raw & \nd & \nd & \nd & \nd & \nd & \nd \\
+CAMS + bias correction & \nd & \nd & \nd & \nd & \nd & \nd \\
+LightGBM MOS (S-B) & \nd & \nd & \nd & \nd & \nd & \nd \\
+MW-AeroFusion-Net (S-B) & \nd & \nd & \nd & \nd & \nd & \nd \\
+\bottomrule
+\end{tabular}}\\[2pt]
+\blank{generated by make\_tables.py --final after final\_eval.py}}
+\end{table}
+
+\textbf{Component ladder and ablations.} Table~\ref{tab:ladder} lists the validation error of rungs M0--M6, each adding one
+component, and Table~\ref{tab:abl} the leave-one-out ablations of the full model on the test set.
+\blank{which components reduced error, which did not; a component that did not help is reported here, not removed}.
+
+\begin{table}[t]
+\centering
+\caption{Validation results (S-A, seed 0): baselines and ladder rungs M0--M6. Generated from run artifacts; rung rows
+appear once the ladder has run.}
+\label{tab:ladder}
+\gentable{val_sa_station}{%
+\begin{tabular}{llccc}
+\toprule
+Rung & Adds & +1\,h & +24\,h & +48\,h \\
+\midrule
+M0 & GRU backbone & \nd & \nd & \nd \\
+M1 & static wind-aware graph & \nd & \nd & \nd \\
+M2 & adaptive adjacency & \nd & \nd & \nd \\
+M3 & Transformer encoder & \nd & \nd & \nd \\
+M4 & causal wavelet bands & \nd & \nd & \nd \\
+M5 & ConvLSTM grid context & \nd & \nd & \nd \\
+M6 & source-group gating & \nd & \nd & \nd \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Leave-one-out ablations of MW-AeroFusion-Net (test, S-A, RMSE, five seeds).}
+\label{tab:abl}
+\begin{tabular}{lccc}
+\toprule
+Variant & +1\,h & +24\,h & +48\,h \\
+\midrule
+Full model (M6) & \nd & \nd & \nd \\
+$-$ wavelet bands & \nd & \nd & \nd \\
+$-$ graph & \nd & \nd & \nd \\
+fixed graph only & \nd & \nd & \nd \\
+$-$ ConvLSTM context & \nd & \nd & \nd \\
+Transformer $\to$ GRU & \nd & \nd & \nd \\
+$-$ gating & \nd & \nd & \nd \\
+\bottomrule
+\end{tabular}\\[2pt]
+\blank{fill from ablation runs via make\_tables.py --final}
+\end{table}
+
+\textbf{Seasons, regions and episodes.} \blank{season (DJF, MAM, JJAS, ON) and IGP-versus-rest breakdown; CSI for
+PM$_{2.5}$ above the severe threshold; AQI-class macro-F1; from the generated tables}.
+
+\textbf{Case studies.} Fig.~\ref{fig:cases} shows Delhi during the stubble-burning seasons of November 2023 and 2024 and
+the two Diwali periods. \blank{one or two sentences on what the forecasts got right and wrong during these events}.
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/cases_delhi.pdf}{\includegraphics[width=\columnwidth]{figures/cases_delhi.pdf}}{%
+\fbox{\parbox[c][3.2cm][c]{0.92\columnwidth}{\centering\blank{figure from make\_figures.py --cases}}}}
+\caption{Observed and forecast city-mean PM$_{2.5}$ in Delhi at +24\,h during stubble-burning and Diwali periods of the test years.}
+\label{fig:cases}
+\end{figure}
+
+\textbf{S-C upper bound and robustness.} With true future meteorology (S-C), \blank{gap between S-A and S-C, labelled as an
+upper bound}. On the rolling-origin fold, \blank{whether the ranking of models holds}. On the PM-only 2025 check,
+\blank{result}. On the prospective winter 2026--27 test, \blank{result, or state that it was not available}.
+
+\textbf{Compute.} MW-AeroFusion-Net has \blank{parameter count} parameters; training took \blank{time per epoch and total
+GPU-hours}; ONNX inference on a CPU takes \blank{latency} per forecast (from compute.md).
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Attribution Validation}
-\todo{faithfulness (deletion vs random vs Integrated Gradients~\cite{sundararajan2017axiomatic}), cascading randomisation
-\cite{adebayo2018sanity}, seed stability, plausibility (fire weight vs upwind FIRMS counts in Oct--Nov; dust weight vs CAMS
-dust AOD in MAM), comparison with TreeSHAP on LightGBM~\cite{lundberg2017a}. Report failed checks as failed.}
+We test the gate weights with four checks, each reported as passed or failed (Table~\ref{tab:xai}).
+(a) \emph{Faithfulness:} masking the top-$k$ gated groups should raise the error more than masking random groups, and
+compares with the top-$k$ groups by Integrated Gradients~\cite{sundararajan2017axiomatic}.
+(b) \emph{Sanity:} randomising the weights layer by layer should change the attributions~\cite{adebayo2018sanity}.
+(c) \emph{Stability:} group rankings should agree across seeds.
+(d) \emph{Plausibility:} for Indo-Gangetic Plain stations in October--November, the fire-group weight should rise with
+upwind FIRMS counts; in March--May the dust-group weight should rise with CAMS dust optical depth; and the traffic-proxy
+weight should fall during the 2020 lockdown relative to the same weeks of 2019.
+We also compare group rankings with TreeSHAP on LightGBM~\cite{lundberg2017a}.
+\blank{summary of which checks passed and which failed}.
 
+\begin{table}[t]
+\centering
+\caption{Attribution checks for the gating layer (test, S-A).}
+\label{tab:xai}
+\begin{tabular}{lcc}
+\toprule
+Check & Statistic & Outcome \\
+\midrule
+(a) Deletion: gated vs random & \nd & \nd \\
+(a) Deletion: gated vs Integrated Gradients & \nd & \nd \\
+(b) Weight randomisation & \nd & \nd \\
+(c) Seed stability (rank corr.) & \nd & \nd \\
+(d) Fire weight vs upwind fires, ON & \nd & \nd \\
+(d) Dust weight vs CAMS dust AOD, MAM & \nd & \nd \\
+(d) Traffic proxy, lockdown vs 2019 & \nd & \nd \\
+Agreement with LightGBM TreeSHAP & \nd & \nd \\
+\bottomrule
+\end{tabular}\\[2pt]
+\blank{from explain.py outputs}
+\end{table}
+
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Limitations}
-ERA5 stands in for operational analyses during training; the live system uses forecast meteorology. CPCB coverage after
-2024 is sparse, so the 2025 check is PM-only. Five study cities have no long-running station. Attribution weights are
-learned associations, validated but not causal. \todo{extend after results.}
+ERA5 reanalysis stands in for operational meteorological analyses during training; the live system uses forecast
+meteorology, so served skill may differ from benchmark skill. CPCB coverage after 2024 is sparse, so the 2025 check uses
+PM$_{2.5}$ and PM$_{10}$ only, and live station data arrive with a delay of about two days, which limits real-time use of
+the past-only setting. Five study cities have no long-running station and are scored only through their neighbours.
+Traffic is represented by proxies (NO$_2$, CO and the calendar), since no traffic data exist at this scale. The gate
+weights are learned associations; they passed \blank{the checks that passed} but are not a causal source apportionment.
+\blank{any further limitation found in the results}.
 
+% ---------------------------------------------------------------------------------------------------------------------
 \section{Conclusion}
-\todo{from results only.}
+We built a leakage-safe benchmark for station-level PM$_{2.5}$ forecasting over 28 Indian cities and used it to evaluate
+MW-AeroFusion-Net component by component against CAMS forecasts and strong statistical and neural baselines.
+\blank{main finding in one or two sentences, from the results only}. \blank{what the ablations show about which components
+matter}. Because every input respects its publication latency and the test years were opened once, these numbers are
+meant to reflect what an operational forecaster could expect. Future work will \blank{next steps, for example a near-real-time
+station feed and longer prospective evaluation}.
+
+\section*{Acknowledgment}
+We thank \blank{guide, department, computing support}. Data: CPCB CAAQM via the XKDR Forum India Air Quality API (CC BY 4.0);
+ERA5 and CAMS from the Copernicus Climate Change and Atmosphere Monitoring Services (CC BY 4.0); FIRMS fire data from NASA.
+The results contain modified Copernicus information; neither the European Commission nor ECMWF is responsible for any use
+of it. AI tools were used to assist with code and drafting; all results are generated from run artifacts and were checked by
+the authors. \blank{college-required AI disclosure wording, if any}.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

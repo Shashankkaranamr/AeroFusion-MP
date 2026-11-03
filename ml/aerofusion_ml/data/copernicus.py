@@ -115,7 +115,13 @@ def _reason(portal: str, request_id: str) -> str:
         return type(e).__name__
 
 
-QUEUE_LIMIT = "queued requests for this dataset is temporarily limited"
+# Per-user queue-limit rejections: not failures. The portals have used both wordings (2026-10-15 and 2026-11-03, §9).
+QUEUE_LIMITS = ("queued requests for this dataset is temporarily limited", "maximum number queued requests for this dataset")
+
+
+def is_queue_limit(reason: str) -> bool:
+    r = reason.lower()
+    return any(q in r for q in QUEUE_LIMITS)
 
 
 def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 60, log=print) -> None:
@@ -167,7 +173,7 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
                 reason = _reason(portal, jobs[m])
                 del jobs[m]
                 _save_jobs(out, jobs)
-                if QUEUE_LIMIT in reason:
+                if is_queue_limit(reason):
                     limit = max(1, min(limit, len(active)) - 1)
                     log(f"  {m} rejected by the queue limit; requeued, active cap now {limit}")
                     continue

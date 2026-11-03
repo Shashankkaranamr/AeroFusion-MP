@@ -54,6 +54,13 @@ Phase P4 Final eval, ablations, XAI validation  ░░░░░░░░░░�
 Phase P5 Platform integration                  ░░░░░░░░░░░░░░░░░░░░   0%   wk 13–15  (→ 31 Jan)
 Phase P6 Paper, report rewrite, viva prep      ░░░░░░░░░░░░░░░░░░░░   0%   wk 14–18  (→ 21 Feb)   paper draft end wk 16
 ```
+**2026-11-03 snapshot (training machine):** Windows 11 workstation, RTX PRO 4500 Blackwell 32 GB, Xeon 12 cores / 24 threads,
+63 GB RAM, 850 GB free. Python 3.12 venv with torch 2.11 + cu128, tests green, all required keys `ok`. The team chose to
+**re-download all data here** (laptop data not copied): XKDR and FIRMS done; Open-Meteo, ERA5 grid and CAMS running in the
+background (logs `ml/data/raw/logs/*.log`). Paper draft written (`docs/paper/main.tex`, 6 pages, results left as
+`lank{}` fields). Synthetic GPU benchmark at batch 32 (random data, compute only, not a result): M0 7 ms/step, M3 36, M5 52,
+M6 68 ms/step, peak 2.6 GB VRAM.
+
 **2026-10-16 snapshot:** percentages count ticked tasks only. Code for P3–P6 is written and tested (model ladder,
 baselines, training, final_eval, explain, ONNX export, endpoints, UI cards, paper skeleton, report/viva drafts), but none of
 those tasks is ticked because their acceptance needs trained models. **Blocked on:** the bigger machine (CAMS/ERA5
@@ -700,4 +707,9 @@ the data loader streams from zarr).
 | 2026-10-15 | Graph edge direction uses `wind_uv` = raw (un-normalised) mean 10 m wind at the sender over the last 6 usable hours, passed in the batch | normalised u/v distort the direction; past-only wind keeps edges leakage-safe |
 | 2026-10-15 | **CAMS request extended to leads 0–72 h** (was 0–48 h). The 2 months already fetched with 0–48 h were set aside (`raw/cams_fc/v1_lead0-48/`) and re-queued; 2 queued 0–48 h jobs were deleted on ADS | a run is usable 10–21 h after it starts, so +48 h at issue time needs leads up to 69 h for S-B and the CAMS baselines (the §3.4 example already implied lead 36 for +24 h) |
 | 2026-10-15 | **VERIFY S8 hour alignment:** OpenAQ hourly periods starting at :30 UTC, stamped t = start + 30 min, equal the XKDR values exactly (R K Puram old sensor 35, 10–12 Jan 2018, train period; same rule as P1.2). Periods not starting at :30 (some 2018 aggregates) do not match and are dropped. Panel match: 112/116 stations within 1 km (106 CPCB, 4 AirNow, 1 caaqm, 1 StateAir; 4 unmatched); CPCB latest hour 2026-10-13 (~2-day lag) | `scripts/collect_openaq.py --match`, `ml/data/openaq_match_v1.csv` |
+| 2026-11-03 | Training machine is Windows + Blackwell (sm_120): torch from the **cu128** index (cu124 has no sm_120 kernels); the VC++ 2015–2022 runtime is required for `import torch` | setup on the training machine; guide Appendix A updated |
+| 2026-11-03 | All raw data **re-downloaded on the training machine** (laptop data and its `jobs.json` not copied; new Copernicus account) | team decision; costs ~1 day of ERA5 queue that the laptop had done |
+| 2026-11-03 | Fresh XKDR export (2026-09-30, 209 files) reproduces `stations_v1.csv` exactly (116/116 station ids, recomputed in memory; frozen file not rewritten) | integrity check after re-download |
+| 2026-11-03 | ADS now words the per-user queue limit "Maximum number queued requests for this dataset has been reached"; `copernicus.is_queue_limit` accepts both wordings (the old check counted it as a failure and gave up on 2 months). ADS asks for sequential requests: CAMS runs with `--max-active 1`. ERA5 (CDS) also capped itself to 1 | ADS job results; `tests/test_copernicus.py` |
+| 2026-11-03 | `MANIFEST.json` writes are now cross-process safe (lock file + per-process tmp + retried replace): concurrent downloaders on Windows crashed on the shared `.tmp` and could drop entries | FIRMS crash in the first run; `tests/test_manifest.py` |
 | | VERIFY results (CAMS latency) go here | |

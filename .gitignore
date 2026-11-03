@@ -55,3 +55,10 @@ design-reference/
 # Original proposal PDF contains unearned result claims; keep it private until corrected (PROGRESS P0.4)
 Initial Proposal/
 frontend/.claude/
+
+# LaTeX build files (docs/paper)
+docs/paper/*.aux
+docs/paper/*.bbl
+docs/paper/*.blg
+docs/paper/*.log
+docs/paper/*.out

@@ -290,18 +290,21 @@ python ml/scripts/make_tables.py                      # tables from metrics.json
 
 ## Appendix A: Windows GPU machine
 
-1. Install Python 3.12 (python.org, tick "Add to PATH"), Git for Windows, and the latest NVIDIA driver.
+1. Install Python 3.12 (python.org, tick "Add to PATH", or `winget install Python.Python.3.12`), Git for Windows, the
+   latest NVIDIA driver, and the **Microsoft Visual C++ 2015–2022 runtime** (`winget install Microsoft.VCRedist.2015+.x64`).
+   Without the runtime, `import torch` fails with `WinError 1114` on `c10.dll`.
 2. In PowerShell:
    ```powershell
    git clone https://github.com/Shashankkaranamr/AeroFusion-MP.git; cd AeroFusion-MP
    python -m venv .venv; .venv\Scripts\activate
-   pip install torch --index-url https://download.pytorch.org/whl/cu124
+   pip install torch --index-url https://download.pytorch.org/whl/cu128   # cu128 is required for Blackwell GPUs (RTX 50xx / RTX PRO Blackwell, sm_120); cu124 is fine on older cards
    pip install -r ml/requirements.txt -r backend/requirements.txt onnxscript pypdf
    python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
    pytest ml/tests -q
    ```
 3. Keys: `ml\.env` as above; the Copernicus file goes to `C:\Users\<you>\.cdsapirc`.
-4. There is no tmux. Run long jobs with `Start-Process` in a separate window, keep the machine from sleeping
+4. There is no tmux. Run long jobs with `Start-Process` (e.g. `-WindowStyle Hidden -RedirectStandardOutput <log>`),
+   which outlives the terminal; keep the machine from sleeping
    (Power settings → Never), and keep Remote Desktop sessions disconnected rather than signed out.
 
 ## Appendix B: no college GPU (Kaggle)

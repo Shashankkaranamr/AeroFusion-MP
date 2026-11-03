@@ -56,3 +56,11 @@ def test_expired_job_is_resubmitted(tmp_path, monkeypatch):
     monkeypatch.setattr(cp, "client", lambda portal: Client())
     cp.run("cams_fc", ["2019-01"], poll_s=0, log=lambda m: None)
     assert submitted == ["2019-01-01/2019-01-31"] and (out / "2019-01.zip").exists()
+
+
+def test_both_queue_limit_wordings_are_requeued_not_failed():
+    """2026-11-03: ADS answered 'Maximum number queued requests for this dataset has been reached', which the old
+    single-string check missed, so months were given up after two rejections (§9)."""
+    assert cp.is_queue_limit("Number queued requests for this dataset is temporarily limited")
+    assert cp.is_queue_limit("Maximum number queued requests for this dataset has been reached. Please configure your scripts")
+    assert not cp.is_queue_limit("Request too large. Cost 631104 over 121000 limit")
