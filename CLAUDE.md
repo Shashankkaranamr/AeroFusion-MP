@@ -43,6 +43,7 @@ frontend/           Vite. index.html = Three.js/GSAP scroll story (src/core, src
                     app.html = React 19 dashboard (src/app: views/, lib/api.ts, lib/live.ts, lib/scenario.ts)
 legacy-dashboard/   old Next.js dashboard, reference only, do not edit
 ml/                 training package (PROGRESS §4; runbook in ml/README.md): data pipeline, models, train/evaluate/final_eval
+Training instructions/  training-machine setup guide, GPU request letter draft, step-by-step procedure for Claude
 docs/               related_work.md, paper/ (main.tex, refs.bib, generated tables), report/, viva_prep.md, data_licences.md
 Initial Proposal/   original report PDF (contains unearned result claims, fixed in P0.4)
 21stdev/, apple-design-skill-main/, hairline-main/, skills-main/, design-reference/
