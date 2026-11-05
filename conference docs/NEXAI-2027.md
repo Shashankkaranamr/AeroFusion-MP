@@ -36,7 +36,7 @@ There are no refunds. One registration form per accepted paper, with the Paper I
 - **Alternative:** *07 AI Applications for Society and Industry*, under "climate, environment and sustainability".
 
 ## Tailored title
-**Interpretable Wavelet–Graph Deep Learning for 48-Hour PM2.5 Forecasting: Validated Source-Group Attribution over 116 Indian Stations**
+**Interpretable Wavelet–Graph Deep Learning for PM2.5 Forecasting: Validated Source-Group Attribution over 116 Indian Stations**
 
 *Why this angle:* NEXAI is an AI-methods venue with explicit GNN and explainable-AI topics. The title leads with the
 architecture and with the part reviewers there will care about most: an attribution mechanism whose explanations are

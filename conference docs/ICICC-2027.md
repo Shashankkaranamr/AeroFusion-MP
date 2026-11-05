@@ -32,7 +32,7 @@ register for the paper to appear.
 - No plagiarism or self-plagiarism, and permission is needed for any copyrighted figure.
 
 ## Tailored title
-**MW-AeroFusion-Net: Fusing Satellite, Reanalysis and Ground-Station Data for Leakage-Safe 48-Hour PM2.5 Forecasting in Indian Cities**
+**MW-AeroFusion-Net: Fusing Satellite, Reanalysis and Ground-Station Data for Leakage-Safe PM2.5 Forecasting in Indian Cities**
 
 *Why this angle:* ICICC is a broad "innovative computing for society and sustainable futures" venue. The title leads
 with the computing contribution (multi-source data fusion) and the societal use (city-level health advisories).
