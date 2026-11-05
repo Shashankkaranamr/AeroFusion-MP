@@ -2,7 +2,8 @@
 
     python ml/scripts/download_all.py --source xkdr
     python ml/scripts/download_all.py --source cams_fc            # P1.7, ADS; queues can take days: run in background
-    python ml/scripts/download_all.py --source era5_grid          # P1.6, CDS
+    python ml/scripts/download_all.py --source era5_grid_arco     # P1.6, same ERA5 fields from Google's public ARCO Zarr (minutes per month)
+    python ml/scripts/download_all.py --source era5_grid          # P1.6, CDS route (kept; ~20 h queue per month in Nov 2026)
     python ml/scripts/download_all.py --source firms              # P1.8, yearly country CSVs (no key)
     python ml/scripts/download_all.py --source openmeteo          # P1.5, node met for stations_v1 + regions (writes nodes_v1.csv)
     (Copernicus sources take --start/--end YYYY-MM; default 2017-12 -> 2025-09, i.e. a 72 h warm-up before train + the PM-only check)
@@ -82,11 +83,25 @@ def run_firms() -> None:
     print("FIRMS complete", flush=True)
 
 
+def run_era5_arco(start: str, end: str, workers: int = 3) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    from aerofusion_ml.data import arco_era5
+
+    todo = [m for m in copernicus.months(start, end) if not (arco_era5.OUT / f"{m}.nc").exists()]
+    print(f"ERA5 grid (ARCO): {len(todo)} months to fetch", flush=True)
+    ds = arco_era5.open_store()
+    with ThreadPoolExecutor(workers) as ex:
+        for i, (m, mb) in enumerate(ex.map(lambda m: arco_era5.download(ds, m), todo), 1):
+            print(f"  {m}: {mb:.1f} MB ({i}/{len(todo)})", flush=True)
+    print("ERA5 grid (ARCO) complete", flush=True)
+
+
 def run_copernicus(source: str, start: str, end: str, max_active: int) -> None:
     copernicus.run(source, copernicus.months(start, end), max_active=max_active, log=lambda msg: print(msg, flush=True))
 
 
-SOURCES = {"xkdr": run_xkdr, "openmeteo": run_openmeteo, "firms": run_firms, **{s: s for s in copernicus.SOURCES}}
+SOURCES = {"xkdr": run_xkdr, "openmeteo": run_openmeteo, "firms": run_firms, "era5_grid_arco": None, **{s: s for s in copernicus.SOURCES}}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -95,7 +110,9 @@ if __name__ == "__main__":
     ap.add_argument("--end", default="2025-09")
     ap.add_argument("--max-active", type=int, default=4, help="jobs kept queued on the portal (lowered automatically on queue-limit rejections)")
     a = ap.parse_args()
-    if a.source in copernicus.SOURCES:
+    if a.source == "era5_grid_arco":
+        run_era5_arco(a.start, a.end)
+    elif a.source in copernicus.SOURCES:
         run_copernicus(a.source, a.start, a.end, a.max_active)
     else:
         SOURCES[a.source]()
