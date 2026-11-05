@@ -53,13 +53,16 @@ def _days(month: str) -> tuple[int, int, int]:
     return y, m, calendar.monthrange(y, m)[1]
 
 
-def cams_fc_request(month: str) -> dict:
+def cams_fc_request(unit: str) -> dict:
     """00 & 12 UTC runs, leads 0..72 h every 3 h, PM2.5 + total/dust AOD550, native 0.4°, India bbox.
-    72 h, not 48: a run is usable 10-21 h after it starts, so +48 h at t0 needs leads up to 69 h (S-B, CAMS baselines)."""
-    y, m, n = _days(month)
+    72 h, not 48: a run is usable 10-21 h after it starts, so +48 h at t0 needs leads up to 69 h (S-B, CAMS baselines).
+    `unit` is one month ("2019-04") or a span of consecutive months ("2019-04_2019-05", see `units`)."""
+    first, last = (unit.split("_") + [unit])[:2]
+    y, m, _ = _days(first)
+    ey, em, n = _days(last)
     return {
         "variable": ["particulate_matter_2.5um", "total_aerosol_optical_depth_550nm", "dust_aerosol_optical_depth_550nm"],
-        "date": [f"{y:04d}-{m:02d}-01/{y:04d}-{m:02d}-{n:02d}"],
+        "date": [f"{y:04d}-{m:02d}-01/{ey:04d}-{em:02d}-{n:02d}"],
         "time": ["00:00", "12:00"],
         "leadtime_hour": [str(h) for h in range(0, 73, 3)],
         "type": ["forecast"],
@@ -85,10 +88,73 @@ def era5_request(month: str) -> dict:
 
 
 SOURCES = {
-    # name: (portal, collection, request builder, file suffix)
-    "cams_fc": ("ads", CAMS_FC, cams_fc_request, ".zip"),
-    "era5_grid": ("cds", ERA5, era5_request, ".nc"),
+    # name: (portal, collection, request builder, file suffix, months per job)
+    # CAMS: 2 months per job. The ADS cost limit is 10000 and one month costs 4500 (two: 9150, three: 13650; costing
+    # endpoint, 2026-11-05). Jobs spend ~2-5 h queued and ~5 min running, so fewer, larger jobs halve the queue waits.
+    "cams_fc": ("ads", CAMS_FC, cams_fc_request, ".zip", 2),
+    "era5_grid": ("cds", ERA5, era5_request, ".nc", 1),
 }
+
+
+def _next_month(month: str) -> str:
+    y, m = map(int, month.split("-"))
+    return f"{y + (m == 12):04d}-{m % 12 + 1:02d}"
+
+
+def unit_months(unit: str) -> list[str]:
+    first, last = (unit.split("_") + [unit])[:2]
+    return months(first, last)
+
+
+def units(todo: list[str], jobs: dict[str, str], per_job: int) -> list[str]:
+    """Group the months still to fetch into request units. Units already submitted (keys of jobs.json) are kept as
+    they are, so a restart keeps polling them; the rest are packed into runs of up to `per_job` consecutive months."""
+    out, taken = [], set()
+    for u in jobs:
+        ms = unit_months(u)
+        if any(m in todo for m in ms):
+            out.append(u)
+            taken.update(ms)
+    run: list[str] = []
+    for m in [m for m in todo if m not in taken]:
+        if run and (len(run) == per_job or _next_month(run[-1]) != m):
+            out.append(run[0] if len(run) == 1 else f"{run[0]}_{run[-1]}")
+            run = []
+        run.append(m)
+    if run:
+        out.append(run[0] if len(run) == 1 else f"{run[0]}_{run[-1]}")
+    return out
+
+
+def split_cams_zip(src: Path, out: Path) -> list[Path]:
+    """Split a multi-month CAMS netcdf_zip into per-month <out>/<YYYY-MM>.zip files holding data_sfc.nc, the layout
+    cams.open_month reads (runs selected by forecast_reference_time; values unchanged)."""
+    import tempfile
+    import zipfile
+
+    import pandas as pd
+    import xarray as xr
+
+    written = []
+    with zipfile.ZipFile(src) as z, tempfile.TemporaryDirectory() as tmp:
+        names = z.namelist()
+        if names != ["data_sfc.nc"]:
+            raise ValueError(f"{src.name}: unexpected contents {names}")
+        z.extractall(tmp)
+        with xr.open_dataset(Path(tmp) / "data_sfc.nc") as ds:
+            ds = ds.load()
+        run_month = pd.DatetimeIndex(ds["forecast_reference_time"].values).strftime("%Y-%m")
+        for month in sorted(set(run_month)):
+            part = ds.isel(forecast_reference_time=(run_month == month).nonzero()[0])
+            nc = Path(tmp) / f"{month}.nc"
+            part.to_netcdf(nc)
+            dest = out / f"{month}.zip"
+            tmpzip = dest.with_name(dest.name + ".part")
+            with zipfile.ZipFile(tmpzip, "w", zipfile.ZIP_STORED) as zo:
+                zo.write(nc, "data_sfc.nc")
+            tmpzip.replace(dest)
+            written.append(dest)
+    return written
 
 
 def _jobs(out: Path) -> dict[str, str]:
@@ -129,7 +195,7 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
 
     A rejection for the per-user queue limit is not a failure: the month is requeued and the active cap is lowered.
     """
-    portal, collection, build, suffix = SOURCES[source]
+    portal, collection, build, suffix, per_job = SOURCES[source]
     out = manifest.RAW / source / "v1"
     known = manifest.load()
     done = {m for m in month_list if (out / f"{m}{suffix}").resolve().relative_to(manifest.RAW.resolve()).as_posix() in known}
@@ -137,7 +203,8 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
     log(f"{source}: {len(month_list)} months, {len(done)} already downloaded, {len(todo)} to fetch")
     c = client(portal)
     jobs = _jobs(out)
-    pending, fails, limit = list(todo), {}, max_active
+    pending, fails, limit = units(todo, jobs, per_job), {}, max_active
+    log(f"  {len(pending)} requests of up to {per_job} months")
     while pending:
         active = [m for m in pending if m in jobs]
         for m in [m for m in pending if m not in jobs][: max(0, limit - len(active))]:
@@ -153,14 +220,19 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
                 r = c.get_remote(jobs[m])
                 status = r.status
                 if status == "successful":
-                    dest = out / f"{m}{suffix}"
+                    url = f"{PORTALS[portal]}/retrieve/v1/jobs/{jobs[m]}"
+                    dest = out / f"{m}{suffix}" if "_" not in m else out / "spans" / f"{m}{suffix}"
+                    dest.parent.mkdir(parents=True, exist_ok=True)
                     part = dest.with_name(dest.name + ".part")
                     r.download(str(part))
                     part.replace(dest)
                     with _lock:
-                        manifest.record(dest, f"{PORTALS[portal]}/retrieve/v1/jobs/{jobs[m]}", source=source, collection=collection, request=build(m))
+                        manifest.record(dest, url, source=source, collection=collection, request=build(m))
+                        if "_" in m:  # per-month files for the builders; the span file stays as the downloaded original
+                            for f in split_cams_zip(dest, out):
+                                manifest.record(f, f"{url}#{f.stem}", source=source, collection=collection, derived_from=dest.name)
                     pending.remove(m)
-                    log(f"  downloaded {m} ({dest.stat().st_size / 1e6:.1f} MB); {len(pending)} left")
+                    log(f"  downloaded {m} ({dest.stat().st_size / 1e6:.1f} MB); {len(pending)} requests left")
             except Exception as e:  # noqa: BLE001
                 if "404" in str(e):  # job expired or deleted on the portal (e.g. after a long pause): submit again
                     del jobs[m]
@@ -185,5 +257,5 @@ def run(source: str, month_list: list[str], max_active: int = 6, poll_s: int = 6
                     log(f"  {m} {status}: {reason[:300]}; resubmitting")
         if pending:
             time.sleep(poll_s)
-    missing = [m for m in month_list if fails.get(m, 0) >= 2]
+    missing = [u for u in fails if fails[u] >= 2]
     log(f"{source}: finished" + (f"; FAILED months: {missing}" if missing else ", all months downloaded"))
