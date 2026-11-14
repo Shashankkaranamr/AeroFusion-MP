@@ -46,14 +46,16 @@ Run its tests. Tick the box, add a one-line note with date and run_id/file. Phas
 
 ```
 Phase 0  Live platform (done earlier)          ████████████████████ 100%
-Phase P0 Housekeeping, integrity, setup        ██████████░░░░░░░░░░  50%   wk 1      (19–25 Oct 2026)
-Phase P1 Data: download, QC, dataset_v1        ███████████░░░░░░░░░  55%   wk 1–5    (→ 22 Nov)
-Phase P2 Evaluation harness + core baselines   ████████████████░░░░  80%   wk 5–7    (→ 6 Dec)   feature freeze end wk 6
-Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   wk 7–12   (→ 10 Jan)  model freeze end wk 12
-Phase P4 Final eval, ablations, XAI validation  ░░░░░░░░░░░░░░░░░░░░   0%   wk 12–14  (→ 24 Jan)
-Phase P5 Platform integration                  ░░░░░░░░░░░░░░░░░░░░   0%   wk 13–15  (→ 31 Jan)
-Phase P6 Paper, report rewrite, viva prep      ░░░░░░░░░░░░░░░░░░░░   0%   wk 14–18  (→ 21 Feb)   paper draft end wk 16
+Phase P0 Housekeeping, integrity, setup        ███████████████░░░░░  75%   open: P0.1 guide meeting, P0.4 report source (team)
+Phase P1 Data: download, QC, dataset_v1        ████████████████████ 100%   feature freeze 2026-11-12
+Phase P2 Evaluation harness + core baselines   ████████████████░░░░  80%   P2.3 val runs in progress (2026-11-14)
+Phase P3 MW-AeroFusion-Net build (M0→M6)       ░░░░░░░░░░░░░░░░░░░░   0%   ladder training on val since 2026-11-14
+Phase P4 Final eval, ablations, XAI validation  ░░░░░░░░░░░░░░░░░░░░   0%   needs model freeze (team)
+Phase P5 Platform integration                  ░░░░░░░░░░░░░░░░░░░░   0%   code written; needs frozen model
+Phase P6 Paper, report rewrite, viva prep      ░░░░░░░░░░░░░░░░░░░░   0%   drafts written; need results
 ```
+**Deadline: 21 Nov 2026** (extended from the 16 Nov presentation; §9 2026-11-14). Percentages count ticked tasks only.
+
 **2026-11-03 snapshot (training machine):** Windows 11 workstation, RTX PRO 4500 Blackwell 32 GB, Xeon 12 cores / 24 threads,
 63 GB RAM, 850 GB free. Python 3.12 venv with torch 2.11 + cu128, tests green, all required keys `ok`. The team chose to
 **re-download all data here** (laptop data not copied): XKDR and FIRMS done; Open-Meteo, ERA5 grid and CAMS running in the
@@ -268,7 +270,7 @@ ml/
   scope change and the renamed "attribution gating". Ask what counts as a "publication" for the college
   (submitted, accepted or indexed) and by when. Agree authorship (guide included?). Fill in the §1 milestone table.
   *Acceptance:* the §1 table has dates; the decision is recorded in §9.
-- [ ] **P0.2 Start the prospective archive. Do this first, because stubble season is running now.** In
+- [x] **P0.2 Start the prospective archive. Do this first, because stubble season is running now.** In
   `backend/app/live/service.py`, after each refresh, also write `backend/data/archive/live_<UTC-ISO>.npz` (keep
   `live_tensor.npz` as "latest") and save the raw CAMS 4-day forecast JSON next to it. Render's disk is ephemeral,
   so also push each snapshot to durable storage: a free S3/R2 bucket, or a GitHub Actions cron that calls
@@ -284,6 +286,7 @@ ml/
     `data-archive`** (live refresh is every 12 h, so expect ~2026-10-16 evening; duplicates are skipped).
   - 2026-10-15 17:03 UTC: scheduled cron run 38774006998 succeeded unattended; `data-archive` holds 2 distinct snapshots
     (05:06 and 17:03 UTC). Tick when the third lands (~2026-10-16 05:00 UTC).
+  - 2026-11-14: **acceptance met.** `origin/data-archive` holds 91 distinct snapshots, 2026-10-15T05:06Z → 2026-11-13T19:44Z.
 - [x] **P0.3 Remove placeholder metrics.** Delete `backend/app/data/metrics_illustrative.json` and every frontend
   reference to it. The Model Lab shows "training in progress" until P5. *Acceptance:* grep finds no `illustrative`.
   - 2026-10-15: file deleted; no frontend reference existed (there is no Model Lab view yet, so nothing to show).
@@ -311,7 +314,7 @@ ml/
     log, 3-sentence novelty statement (no "first/novel" claim; contribution = leakage-safe Indian benchmark vs CAMS + ablations).
     `?` cells (leakage/XAI details needing full-text reading) are marked for the team to fill before P6. Original report's 12
     references checked: 3 verified, 1 exists with a wrong title, **8 not found** → `Initial Proposal/reference_check.md` (private) for P0.4.
-- [ ] **P0.7 Accounts & keys.** Copernicus ADS + CDS account (`~/.cdsapirc`), FIRMS MAP_KEY, W&B academic (or
+- [x] **P0.7 Accounts & keys.** Copernicus ADS + CDS account (`~/.cdsapirc`), FIRMS MAP_KEY, W&B academic (or
   local MLflow), data.gov.in or OpenAQ key (S8). Put them in `ml/.env`. **Ask the college for compute** (§7).
   - 2026-10-15: step-by-step sent to the team. `ml/scripts/check_keys.py` validates each credential without printing it
     (`aerofusion_ml/env.py` reads `ml/.env`, falling back to `backend/.env`). Status: XKDR ok (558 stations); FIRMS,
@@ -319,6 +322,7 @@ ml/
   - 2026-10-15: `~/.cdsapirc` **ok**: the token is accepted by both CDS and ADS and the CC-BY licence (the one all three
     datasets require) is accepted on both; `check_keys.py` now checks this live.
   - 2026-10-15: FIRMS and OpenAQ keys **ok** (`ml/.env`). data.gov.in skipped (optional backup). Only open item: college GPU (§7).
+  - 2026-11-14: done. Compute = the training machine (RTX PRO 4500 Blackwell 32 GB, since 2026-11-03); all keys `ok` there.
 - [x] **P0.8 Scaffold** `ml/` per §4 with `pytest` running (empty tests pass). Add a project `CLAUDE.md` that
   points to this file and repeats the §0 hard rules.
   - 2026-10-15: `ml/` created (README, requirements, `.env.example`, `configs/splits_v1.yaml`, draft
@@ -351,7 +355,7 @@ ml/
   - 2026-10-15: `aerofusion_ml/data/qc.py` + 13 tests (sentinel/bounds, flatline incl. NaN break, spike, city co-spike
     kept, past-only spike check, PM ratio flag, input gap fill ≤ 3 h, count bookkeeping). Spike rule uses a trailing
     window and scaled MAD (§9). Not yet run on real data (happens in P1.10 with the data card).
-- [ ] **P1.5 ERA5 node met** (Open-Meteo archive) for every station plus the 17 regions, 2017-12 → 2025-09 (VERIFY BLH).
+- [x] **P1.5 ERA5 node met** (Open-Meteo archive) for every station plus the 17 regions, 2017-12 → 2025-09 (VERIFY BLH).
   - 2026-10-15: **BLH VERIFIED** (Open-Meteo `models=era5` returns `boundary_layer_height`, no gaps on a 2019 test day).
     `download_all.py --source openmeteo` running: 138 nodes (116 stations + 17 regions + 5 unlabelled cities, `ml/data/nodes_v1.csv`)
     → 66 ERA5 0.25° cells × 9 yearly chunks; t2m, rh, wind speed/dir (+ u10/v10), surface pressure, precip, BLH, UTC hours.
@@ -359,11 +363,13 @@ ml/
     2024-01-01 → 2024-06-30** (Open-Meteo archive gap; presence count only). Build fills node BLH for those hours from the CDS
     ERA5 grid (P1.6, same ERA5 field, bilinear at the node) and records the source in the data card. All other variables 0 % missing.
   - Copernicus progress 2026-10-15: first ERA5 month (2017-12) checked: 248 3-hourly steps, 133 × 129 cells, 4 vars, no NaN.
-- [ ] **P1.6 ERA5 grid** (CDS): u10, v10, blh, t2m on the §3.2 grid, 3-hourly.
+  - 2026-11-14: ticked. Complete in the 2026-11-12 feature-freeze rebuild (commit 79372d0, §9): `dataset_v1.zarr` attrs `pending: []`; BLH 2024-01..06 filled from the ERA5 grid, 0 % NaN.
+- [x] **P1.6 ERA5 grid** (CDS): u10, v10, blh, t2m on the §3.2 grid, 3-hourly.
   - 2026-10-15: `download_all.py --source era5_grid` queued (94 months 2017-12 → 2025-09, native 0.25°, India bbox,
     netCDF; regrid to 0.75° in P1.10). `aerofusion_ml/data/copernicus.py` keeps job ids in `raw/era5_grid/v1/jobs.json`
     so a rerun resumes; log `ml/data/raw/logs/era5_grid.log`.
-- [ ] **P1.7 CAMS forecasts (ADS, VERIFY archive).** 00 & 12 UTC runs, leads 0–48 h (3-hourly), pm2p5, aod550,
+  - 2026-11-14: ticked. Complete in the 2026-11-12 feature-freeze rebuild (commit 79372d0, §9): `dataset_v1.zarr` attrs `pending: []`; 95 monthly files in `raw/era5_grid/v1` (CDS for 2017-12/2018-01, ARCO-ERA5 after), `grid_v1.zarr` `era5_missing_months: []`.
+- [x] **P1.7 CAMS forecasts (ADS, VERIFY archive).** 00 & 12 UTC runs, leads 0–48 h (3-hourly), pm2p5, aod550,
   duaod550, India bbox, 2018 → 2025-09.
   - 2026-10-15 **VERIFIED** archive: 2017-12-01 and 2025-09-30 both return 00 and 12 UTC runs with leads 0 and 48 h
     (valid_time to +48 h), native 0.4°. Full download queued: `download_all.py --source cams_fc` (94 months, leads 0–48
@@ -375,16 +381,18 @@ ml/
   - Queue the requests early, since ADS queues can take days.
   - **Fallback if the archive is missing for early years:** use EAC4 for the training-years grid only, use CAMS
     forecasts for the years where they exist, and record the train/serve product mismatch as a limitation.
-- [ ] **P1.8 FIRMS:** VIIRS S-NPP + MODIS India yearly CSVs → per node per hour: counts and FRP within 300 km;
+  - 2026-11-14: ticked. Complete in the 2026-11-12 feature-freeze rebuild (commit 79372d0, §9): `dataset_v1.zarr` attrs `pending: []`; 95 monthly files in `raw/cams_fc/v1` (leads 0–72 h), `cams_fc_v1.zarr` built; only 2017-11 missing (before the first training input window).
+- [x] **P1.8 FIRMS:** VIIRS S-NPP + MODIS India yearly CSVs → per node per hour: counts and FRP within 300 km;
   upwind count within 500 km (using that hour's ERA5 wind); rasterised FRP on the grid. Apply `firms_latency_h`.
   - 2026-10-15: yearly country CSVs 2017–2025 (MODIS + VIIRS S-NPP; India, Pakistan, Nepal, Bangladesh; 72 files, public,
     no key) via `download_all.py --source firms`. `aerofusion_ml/data/fires.py` + `scripts/build_fires.py` → `processed/fires_v1.parquet`:
     4.81 M detections kept (type 0, confidence not low) → 1.18 M node-hours with fire for 138 nodes; upwind uses the node's
     Open-Meteo wind. Slot/lag rule in §9. Remaining: rasterised FRP on the 0.75° grid (with the grid dataset).
+  - 2026-11-14: ticked. Complete in the 2026-11-12 feature-freeze rebuild (commit 79372d0, §9): `dataset_v1.zarr` attrs `pending: []`; `fires_v1.parquet` rebuilt and FRP rasterised in `grid_v1.zarr`.
 - [x] **P1.9 Events:** `events.yaml` with Diwali dates 2019–2026, stubble window, lockdown, national holidays.
   - 2026-10-15: `configs/events.yaml` (Diwali 2018–2027 from python-holidays 0.106, pinned), `aerofusion_ml/data/events.py`
     → weekday, holiday, hour/doy sin-cos, diwali_window, stubble_season, lockdown on IST days; `tests/test_events.py` (6).
-- [ ] **P1.10 Build `dataset_v1.zarr`** (`scripts/build_v1.py`) per the §3.9 contract. Write `SPLITS.lock` with sha256 per split.
+- [x] **P1.10 Build `dataset_v1.zarr`** (`scripts/build_v1.py`) per the §3.9 contract. Write `SPLITS.lock` with sha256 per split.
   Generate `DATA_CARD.md`.
   - 2026-10-15 first build (`scripts/build_v1.py`, status **partial**): `processed/dataset_v1.zarr` 68,664 h (2017-12-01 →
     2025-09-30) × 138 nodes × 29 features, 212 MB; `SPLITS.lock` written (sha256 of x and y per split). Train-split checks: y only at
@@ -404,6 +412,7 @@ ml/
     (`aerofusion_ml/data/cpcb.py` → wide UTC frames for the 116-station panel → `qc.run_qc`). QC removed ≤ 1 % of PM2.5/PM10
     station-hours (flatline 0.27 %, spike 0.75 % for PM2.5), CO flatline 2.1 % (coarse 0.01 mg/m³ steps). Median city PM2.5
     coverage after QC: 85.8 % train, 94.2 % val. Per-station table `coverage_v1_trainval.csv`. Test-split QC stats not computed.
+  - 2026-11-14: ticked. Complete in the 2026-11-12 feature-freeze rebuild (commit 79372d0, §9): `dataset_v1.zarr` attrs `pending: []`; `SPLITS.lock` committed with all four `sha256_y` unchanged; `DATA_CARD.md` (train + val only) regenerated; feature freeze approved by the user.
 - [x] **P1.11 Leakage tests** `tests/test_no_leakage.py`:
   - (a) Perturb every value after t0 in a sample, rebuild the inputs, and assert the inputs are unchanged.
   - (b) Assert normalisation stats are computed on train only.
