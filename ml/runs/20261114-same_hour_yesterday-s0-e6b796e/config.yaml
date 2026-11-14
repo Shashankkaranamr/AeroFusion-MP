@@ -1,0 +1,8 @@
+fit: none
+issue_hours:
+- 0
+- 12
+model: same_hour_yesterday
+seed: 0
+setting: S-A
+split: val

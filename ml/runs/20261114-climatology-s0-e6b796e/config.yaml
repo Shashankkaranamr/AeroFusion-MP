@@ -1,0 +1,8 @@
+fit: train
+issue_hours:
+- 0
+- 12
+model: climatology
+seed: 0
+setting: S-A
+split: val

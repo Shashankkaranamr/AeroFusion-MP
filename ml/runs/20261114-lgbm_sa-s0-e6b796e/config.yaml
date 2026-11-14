@@ -1,0 +1,57 @@
+features:
+- pm25_lag1
+- pm25_lag2
+- pm25_lag3
+- pm25_lag6
+- pm25_lag12
+- pm25_lag24
+- pm25_lag48
+- pm25_lag72
+- pm25_mean24
+- pm25_max24
+- pm10
+- no2
+- co
+- o3
+- t2m
+- rh
+- u10
+- v10
+- wind_speed
+- pressure
+- precip
+- blh
+- ventilation
+- cams_pm25
+- cams_aod550
+- cams_dust_aod
+- fires_300km_sum24
+- frp_300km_sum24
+- fires_upwind_500km_sum24
+- lead
+- v_hour_sin
+- v_hour_cos
+- v_doy_sin
+- v_doy_cos
+- v_weekday
+- node_idx
+- lat
+- lon
+- elev
+- region
+model: lgbm_sa
+params:
+  alpha: 1.0
+  bagging_fraction: 0.8
+  bagging_freq: 1
+  feature_fraction: 0.8
+  lambda_l2: 1.0
+  learning_rate: 0.05
+  min_data_in_leaf: 200
+  num_leaves: 63
+  objective: huber
+  verbose: -1
+rounds: 800
+seed: 0
+setting: S-A
+train_leads: 8

@@ -459,6 +459,11 @@ at the end of week 6:** after that, `features_v1.yaml` and `dataset_v1` never ch
   - 2026-10-15: persistence, same-hour-yesterday, climatology done on **val** (`scripts/run_baselines.py`, runs
     `20261015-*-s0-cf6b668`, table `docs/paper/tables/val_sa_station.md`). CAMS raw / CAMS+BC need P1.7; LightGBM and LSTM
     code next, training on the bigger machine.
+  - 2026-11-14: re-run on the frozen dataset_v1 at e6b796e (val only): persistence, same-hour-yesterday, climatology,
+    lgbm_sa (S-A); cams_raw, cams_bc, lgbm_mos_sb (S-B). Tables `docs/paper/tables/val_{sa,sb}_station.md` from `make_tables.py`.
+    Open: base_lstm (training, gpuB lane). **To do after the ladder finishes** (an ml/ change would alter the run hash
+    mid-ladder): skill vs persistence is only filled for runs whose preds carry a `ref_persistence` column (tier-1 script),
+    so LightGBM/CAMS/neural rows show `--`; add matched-sample skill for every run.
 - [x] **P2.4 Reproduction sanity check** `tests/test_persistence_repro.py`: persistence RMSE recomputed by an
   independent 20-line script must match `evaluate.py` to 1e-6.
   - 2026-10-15: independent recomputation matches `metrics.json` at leads 1/24/48 (n equal, |ΔRMSE| < 1e-6).
