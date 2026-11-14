@@ -10,12 +10,22 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 
 
+ML_SCOPE = ["--", "ml", ":(exclude)ml/runs"]  # what a training run depends on: ml/ code, configs, frozen data files
+
+
 def git_sha7() -> str:
-    """Short commit of the repo, with a '+dirty' marker; 'nogit' if this checkout has no git (see PROGRESS P0.5)."""
+    """Short id of the last commit that changed ml/ (outside ml/runs), with a '+dirty' marker if ml/ has uncommitted
+    changes; 'nogit' if this checkout has no git (see PROGRESS P0.5).
+
+    Scoped to ml/ (2026-11-14) so that committing PROGRESS.md, the paper or the platform while runs are going does not
+    change the run ids of a running ladder and resume still finds unfinished runs. Checking out that commit gives the
+    exact ml/ tree the run used.
+    """
     try:
-        sha = subprocess.run(["git", "rev-parse", "--short=7", "HEAD"], cwd=REPO, capture_output=True, text=True, check=True).stdout.strip()
-        dirty = subprocess.run(["git", "status", "--porcelain", "--", ".", ":(exclude)ml/runs"], cwd=REPO, capture_output=True, text=True, check=True).stdout.strip()
-        return sha + ("+dirty" if dirty else "")
+        sha = subprocess.run(["git", "log", "-1", "--format=%h", "--abbrev=7", *ML_SCOPE], cwd=REPO, capture_output=True,
+                             text=True, check=True).stdout.strip()[:7]
+        dirty = subprocess.run(["git", "status", "--porcelain", *ML_SCOPE], cwd=REPO, capture_output=True, text=True, check=True).stdout.strip()
+        return (sha or "nogit") + ("+dirty" if dirty else "")
     except (OSError, subprocess.CalledProcessError):
         return "nogit"
 
