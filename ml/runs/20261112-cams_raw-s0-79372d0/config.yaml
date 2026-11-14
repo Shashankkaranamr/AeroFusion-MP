@@ -1,0 +1,4 @@
+cams_latency_h: 10
+fit: none
+model: cams_raw
+setting: S-B

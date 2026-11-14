@@ -23,8 +23,8 @@ def latest_runs() -> dict[tuple[str, str, str], dict]:
     best: dict[tuple[str, str, str], dict] = {}
     for f in sorted((ML / "runs").glob("*/metrics.json")):
         m = json.loads(f.read_text(encoding="utf-8"))
-        if m.get("status") != "measured":
-            continue
+        if m.get("status") != "measured" or "+dirty" in m.get("run_id", "+dirty"):
+            continue  # paper numbers only from finished runs of committed code
         best[(m["split"], m["setting"], m["model"])] = m  # sorted by run_id (date first) -> last wins
     return best
 

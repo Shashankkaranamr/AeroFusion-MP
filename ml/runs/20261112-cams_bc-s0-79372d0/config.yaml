@@ -1,0 +1,4 @@
+cams_latency_h: 10
+fit: train (per station x lead)
+model: cams_bc
+setting: S-B

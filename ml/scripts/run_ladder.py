@@ -7,6 +7,8 @@
     python ml/scripts/run_ladder.py --configs ml/configs/exp/m3_transformer.yaml --seeds 0 1
 
 A failed run is logged and the next one starts; ml/runs/ladder_log.jsonl records every attempt.
+Restart-safe: for the current commit, a config+seed that already has a measured metrics.json is skipped, and one with
+an unfinished run folder (last.pt, no metrics.json) is resumed under its existing run id, whatever day it started.
 """
 
 from __future__ import annotations
@@ -22,6 +24,8 @@ from pathlib import Path
 import yaml
 
 ML = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ML))
+from aerofusion_ml.runs import git_sha7  # noqa: E402
 EXP = ML / "configs" / "exp"
 GROUPS = {
     "ladder": ["m0_gru", "m1_static_graph", "m2_adaptive_graph", "m3_transformer", "m4_wavelet", "m5_convlstm", "m6_mwafn"],
@@ -43,6 +47,7 @@ def main() -> None:
         raise SystemExit("give --group or --configs")
     log = ML / "runs" / "ladder_log.jsonl"
     log.parent.mkdir(exist_ok=True)
+    sha = git_sha7()
     for cfg_path in cfgs:
         cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
         for seed in a.seeds:
@@ -50,13 +55,32 @@ def main() -> None:
             with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False, encoding="utf-8") as f:
                 yaml.safe_dump(cfg, f)
             cmd = [sys.executable, str(ML / "aerofusion_ml" / "train.py"), "--config", f.name]
-            print(f"== {cfg['name']} seed {seed}", flush=True)
+            done, partial = existing_runs(cfg["name"], seed, sha)
+            if done:
+                print(f"== {cfg['name']} seed {seed}: done in {done[0].name}, skipped", flush=True)
+                continue
+            if partial and "+dirty" not in sha:
+                cmd += ["--run-id", partial[0].name]
+            print(f"== {cfg['name']} seed {seed}" + (f" (resuming {partial[0].name})" if partial else ""), flush=True)
             if a.dry_run:
                 continue
             t = time.time()
             rc = subprocess.run(cmd).returncode
             with log.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps({"config": cfg_path.name, "seed": seed, "returncode": rc, "minutes": round((time.time() - t) / 60, 1)}) + "\n")
+
+
+def existing_runs(name: str, seed: int, sha: str) -> tuple[list[Path], list[Path]]:
+    """Run folders of this experiment/seed/commit: (finished with status measured, unfinished with last.pt)."""
+    done, partial = [], []
+    for d in sorted((ML / "runs").glob(f"*-{name}-s{seed}-{sha}")):
+        m = d / "metrics.json"
+        if m.exists():
+            if json.loads(m.read_text(encoding="utf-8")).get("status") == "measured":
+                done.append(d)
+        elif (d / "last.pt").exists():
+            partial.append(d)
+    return done, partial
 
 
 if __name__ == "__main__":

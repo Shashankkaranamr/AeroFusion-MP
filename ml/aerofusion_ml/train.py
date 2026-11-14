@@ -5,6 +5,11 @@
 Writes ml/runs/<run_id>/{config.yaml, metrics.json, preds_val.parquet, ckpt.pt, norm_stats.json, env.txt}.
 Masked Huber on standardised log1p PM2.5, AdamW + cosine, early stopping on val RMSE (µg/m³), AMP on CUDA, grad clip.
 Device comes from the config ("auto" = cuda if available), so the same code runs on a laptop, Kaggle and the GPU box.
+
+Resume: after every epoch the full training state (model, optimiser, scheduler, AMP scaler, early-stopping counters,
+epoch log, RNG states) goes to <run_dir>/last.pt. Started again with --run-id <same id> on an unfinished run, training
+continues from the next epoch (added after the 2026-11-12 power loss killed the validation runs). last.pt is
+deleted once metrics.json is written.
 """
 
 from __future__ import annotations
@@ -73,6 +78,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
     ap.add_argument("--max-steps", type=int, default=None, help="smoke test: stop after N optimiser steps")
+    ap.add_argument("--run-id", default=None, help="reuse this run id (resumes from last.pt if the run is unfinished)")
     args = ap.parse_args()
     cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     seed_all(cfg.get("seed", 0))
@@ -89,11 +95,28 @@ def main() -> None:
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs * max(1, len(dl_tr)))
     amp = device.type == "cuda" and cfg.get("amp", True)
     scaler = torch.amp.GradScaler("cuda", enabled=amp)
-    run_id = make_run_id(cfg["name"], cfg.get("seed", 0))
+    run_id = args.run_id or make_run_id(cfg["name"], cfg.get("seed", 0))
     run_dir = ML / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
+    if (run_dir / "metrics.json").exists():
+        raise SystemExit(f"{run_id} already has metrics.json; refusing to overwrite a finished run")
     best, bad, step, t_start, log = np.inf, 0, 0, time.time(), []
-    for epoch in range(epochs):
+    start_epoch, resumed, wall_before = 0, [], 0.0
+    if (run_dir / "last.pt").exists() and not args.max_steps:
+        st = torch.load(run_dir / "last.pt", map_location=device, weights_only=False)
+        if st["cfg"] != cfg:
+            raise SystemExit(f"{run_id}/last.pt was written with a different config; start a new run instead")
+        model.load_state_dict(st["model"]), opt.load_state_dict(st["opt"]), sched.load_state_dict(st["sched"])
+        scaler.load_state_dict(st["scaler"])
+        best, bad, step, log, wall_before = st["best"], st["bad"], st["step"], st["log"], st["wall_sec"]
+        random.setstate(st["rng_py"]), np.random.set_state(st["rng_np"]), torch.set_rng_state(st["rng_torch"].cpu())
+        if st.get("rng_cuda") is not None and device.type == "cuda":
+            torch.cuda.set_rng_state_all([r.cpu() for r in st["rng_cuda"]])
+        start_epoch, resumed = st["epoch"] + 1, st.get("resumed", []) + [st["epoch"] + 1]
+        print(f"resuming {run_id} at epoch {start_epoch} (best val rmse {best:.3f}, bad {bad})", flush=True)
+        if bad >= cfg.get("patience", 8):
+            start_epoch = epochs  # early stopping had already triggered; go straight to scoring
+    for epoch in range(start_epoch, epochs):
         model.train()
         t_ep = time.time()
         for b in dl_tr:
@@ -118,6 +141,13 @@ def main() -> None:
             torch.save(model.state_dict(), run_dir / "ckpt.pt")
         else:
             bad += 1
+        if not args.max_steps:
+            tmp = run_dir / "last.pt.tmp"
+            torch.save({"cfg": cfg, "epoch": epoch, "model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(),
+                        "scaler": scaler.state_dict(), "best": best, "bad": bad, "step": step, "log": log, "resumed": resumed,
+                        "wall_sec": wall_before + time.time() - t_start, "rng_py": random.getstate(), "rng_np": np.random.get_state(),
+                        "rng_torch": torch.get_rng_state(), "rng_cuda": torch.cuda.get_rng_state_all() if device.type == "cuda" else None}, tmp)
+            tmp.replace(run_dir / "last.pt")
         if bad >= cfg.get("patience", 8) or (args.max_steps and step >= args.max_steps):
             break
     model.load_state_dict(torch.load(run_dir / "ckpt.pt", map_location=device))
@@ -135,7 +165,8 @@ def main() -> None:
     city_of = dict(zip(node_ids, [str(c) for c in ds.node_city_slug.values]))
     m = ev.evaluate(df, split="val", model=cfg["name"], setting=cfg.get("setting", "S-A"), run_id=run_id, city_of=city_of)
     m["training"] = {"epochs_run": len(log), "best_val_rmse_ugm3": best, "n_params": n_params, "device": str(device),
-                     "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None, "wall_sec": round(time.time() - t_start, 1),
+                     "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
+                     "wall_sec": round(wall_before + time.time() - t_start, 1), "resumed_at_epochs": resumed,
                      "smoke_test": bool(args.max_steps), "log": log}
     if args.max_steps:
         m["status"] = "smoke"  # never a paper number: make_tables.py only reads status == measured
@@ -146,6 +177,7 @@ def main() -> None:
     if data.get("grid_stats") is not None:
         (run_dir / "grid_stats.json").write_text(json.dumps({"mean": data["grid_stats"][0].tolist(), "std": data["grid_stats"][1].tolist()}), encoding="utf-8")
     (run_dir / "env.txt").write_text(f"python {platform.python_version()}\ntorch {torch.__version__}\nplatform {platform.platform()}\n", encoding="utf-8")
+    (run_dir / "last.pt").unlink(missing_ok=True)
     print(f"done: {run_id} params={n_params:,} best_val_rmse={best:.2f}")
 
 
