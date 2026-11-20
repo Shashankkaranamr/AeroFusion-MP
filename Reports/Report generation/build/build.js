@@ -159,7 +159,7 @@ function runs(text, base = {}) {
   t = t.replace(/\{m:([a-z0-9_]+)\.(\d+)\.(\w+)\}/g, (_, n, L, k) => {
     const v = VAL[n] && VAL[n][`${L}.${k}`];
     if (v === undefined || v === null) throw new Error(`no metric ${n}.${L}.${k}`);
-    return (k === "r2" || k === "skill") ? v.toFixed(3) : v.toFixed(1);
+    return (k === "r2" || k === "skill" || k.startsWith("p")) ? v.toFixed(3) : (k === "stab") ? v.toFixed(2) : (k === "seeds" || k.startsWith("n")) ? String(v) : v.toFixed(1);
   });
   t = t.replace(/\[@([\w,\s]+)\]/g, (_, ks) => "[" + ks.split(",").map((k) => CITES.indexOf(k.trim()) + 1).join("], [") + "]");
   const out = [];

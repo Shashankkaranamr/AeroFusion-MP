@@ -21,6 +21,10 @@ NAMES = {
     "m5_convlstm": "M5 + ConvLSTM", "m6_mwafn": "M6 MW-AeroFusion-Net", "m6_mwafn_sb": "MW-AeroFusion-Net (S-B)",
     "m6_mwafn_sc": "MW-AeroFusion-Net (S-C, upper bound)",
 }
+ABL = {"abl_no_wavelet": "M6 without wavelet bands", "abl_no_graph": "M6 without graph", "abl_fixed_graph": "M6 with fixed graph only",
+       "abl_no_convlstm": "M6 without ConvLSTM", "abl_gru_temporal": "M6 with GRU instead of Transformer", "abl_no_gating": "M6 without gating"}
+SEEDS_JSON = [REPO / "docs" / "paper" / "tables" / "final_val_seeds.json", REPO / "ml" / "data" / "raw" / "logs" / "post" / "tables" / "final_val_seeds.json"]
+ATTR_JSON = [REPO / "docs" / "paper" / "tables" / "attribution_val.json", REPO / "ml" / "data" / "raw" / "logs" / "post" / "attr" / "attribution_val.json"]
 LEADS = ["1", "24", "48"]
 
 
@@ -85,7 +89,82 @@ def main():
         "36,14,14,16,16")
     runs_tbl = ["| Model | Setting | run_id |", "|---|---|---|"] + [f"| {NAMES[n]} | {vals[n]['setting']} | `{vals[n]['run_id']}` |" for n in NAMES]
     (OUT / "gen_runids.md").write_text("!table Run identifiers behind every number in Chapter 6 | runids | 40,12,48\n" + "\n".join(runs_tbl) + "\n", encoding="utf-8")
+    seeds_tables(vals)
+    (OUT / "valmetrics.json").write_text(json.dumps(vals, indent=1), encoding="utf-8")
     print("wrote", len(vals), "models")
+
+
+def _first(paths):
+    return next((p for p in paths if p.exists()), None)
+
+
+def seeds_tables(vals):
+    """Five-seed validation tables (from ml/scripts/make_final_tables.py) and attribution checks (run_explain.py)."""
+    import statistics as stt
+
+    src = _first(SEEDS_JSON)
+    if not src:
+        return
+    fs = json.loads(src.read_text(encoding="utf-8"))
+    rows = {r["model"]: r for r in fs["rows"]}
+    allnames = {**NAMES, **ABL}
+    for n, r in rows.items():
+        v = {"seeds": r["seeds"]}
+        for L in LEADS:
+            xs = r[f"rmse_{L}"]
+            v[f"{L}.rmse"], v[f"{L}.sd"] = stt.mean(xs), (stt.stdev(xs) if len(xs) > 1 else 0.0)
+            v[f"{L}.min"], v[f"{L}.max"] = min(xs), max(xs)
+            v[f"{L}.mae"] = stt.mean(r[f"mae_{L}"])
+            for ref, key in (("lgbm_mos_sb", "plgbm"), ("cams_bc", "pcams")):
+                d = fs["dm"].get(f"{n}|{ref}|{L}")
+                if d:
+                    v[f"{L}.{key}"] = d["p"]
+        vals[f"s_{n}"] = v
+    ms = lambda k: (lambda n, v: "--" if v.get(f"{k}.rmse") is None else (f"{v[f'{k}.rmse']:.1f} ± {v[f'{k}.sd']:.1f}" if v["seeds"] > 1 else f"{v[f'{k}.rmse']:.1f}"))
+
+    def dmcell(L, key):
+        def f(n, v):
+            p = v.get(f"{L}.{key}")
+            if p is None:
+                return "--"
+            better = vals[f"s_{n}"][f"{L}.rmse"] < vals[f"s_{'lgbm_mos_sb' if key == 'plgbm' else 'cams_bc'}"][f"{L}.rmse"]
+            return f"{p:.3f}" + ("" if p >= 0.05 else (" (better)" if better else " (worse)"))
+        return f
+
+    def tbl(fname, caption, label, models, cols, widths):
+        hdr = ["| " + " | ".join(h for h, _ in cols) + " |", "|" + "---|" * len(cols)]
+        body = ["| " + " | ".join(f(n, vals[f"s_{n}"]) for _, f in cols) + " |" for n in models if f"s_{n}" in vals]
+        (OUT / fname).write_text(f"!table {caption} | {label} | {widths}\n" + "\n".join(hdr + body) + "\n", encoding="utf-8")
+
+    nm = lambda n, v: allnames.get(n, n)
+    sd = lambda n, v: str(v["seeds"])
+    main = ["persistence", "climatology", "cams_bc", "lgbm_sa", "lgbm_mos_sb", "base_lstm", "base_cnn_lstm", "base_pm25gnn",
+            "base_graph_wavenet", "m6_mwafn", "m6_mwafn_sb"]
+    tbl("gen_seeds.md", "Validation RMSE over five seeds (2022, station level, µg/m³, mean ± sd) and Diebold-Mariano p-values against LightGBM MOS", "seeds", main,
+        [("Model", nm), ("Seeds", sd)] + [(f"RMSE +{L} h", ms(L)) for L in LEADS] + [(f"DM p +{L} h", dmcell(L, "plgbm")) for L in ("24", "48")],
+        "28,8,13,13,13,12,13")
+    abl = ["m6_mwafn"] + list(ABL)
+    def delta(L):
+        return lambda n, v: "--" if n == "m6_mwafn" else f"{v[f'{L}.rmse'] - vals['s_m6_mwafn'][f'{L}.rmse']:+.1f}"
+    tbl("gen_ablation.md", "Leave-one-out ablations of MW-AeroFusion-Net on validation (2022, S-A, five seeds, µg/m³); Δ is the change in mean RMSE against the full model (negative = the variant is better)", "ablation", abl,
+        [("Variant", nm), ("Seeds", sd)] + [(f"RMSE +{L} h", ms(L)) for L in LEADS] + [(f"Δ +{L} h", delta(L)) for L in ("1", "24")],
+        "30,8,13,13,13,11,12")
+    a = _first(ATTR_JSON)
+    if a:
+        at = json.loads(a.read_text(encoding="utf-8"))
+        rows_ = ["| Seed run | Faithfulness: error rise, top-2 gated / top-2 IG / random | Pass | Sanity ρ | Pass | Fire plausibility ρ (n) | Pass |", "|---|---|---|---|---|---|---|"]
+        for rid, r in at["runs"].items():
+            if "skipped" in r:
+                continue
+            f, s_, p = r["faithfulness"], r["sanity"], r["plausibility_fire"]
+            rows_.append(f"| `{rid}` | {f['delta_top_gate']:.3f} / {f['delta_top_ig']:.3f} / {f['delta_random_mean']:.3f} | {'yes' if f['pass'] else 'no'} | "
+                         f"{s_['final_spearman']:.2f} | {'yes' if s_['pass'] else 'no'} | " + (f"{p['spearman']:.2f} ({p['n']})" if 'spearman' in p else '--') + f" | {'yes' if p.get('pass') else 'no'} |")
+        (OUT / "gen_attr.md").write_text("!table Attribution checks of MW-AeroFusion-Net on validation 2022 (one row per seed) | attr | 26,26,7,10,7,16,8\n" + "\n".join(rows_) + "\n", encoding="utf-8")
+        st = at.get("stability", {})
+        vals["attr"] = {"0.stab": st.get("mean_spearman"), "0.seeds": len(at["runs"]),
+                        "0.nfaith": sum(r["faithfulness"]["pass"] for r in at["runs"].values() if "faithfulness" in r),
+                        "0.nsanity": sum(r["sanity"]["pass"] for r in at["runs"].values() if "sanity" in r),
+                        "0.nplaus": sum(bool(r["plausibility_fire"].get("pass")) for r in at["runs"].values() if "plausibility_fire" in r)}
 
 
 if __name__ == "__main__":
