@@ -4,7 +4,7 @@
 
 ### Status of the evaluation
 
-All results in this chapter are on the validation year 2022, from the development runs with seed 0. They were produced by the code at git commit e6b796e and read from each run's `metrics.json`. The table rows and the numbers in the text are filled in by the report's build script from those files, and Table {tab:runids} lists the run behind each row. The five-seed final runs and the ablations started on 20 November 2026 and are still training. The test years 2023 to 2024 have not been read. They will be scored once by `final_eval.py` after the team writes `MODEL_FREEZE.json`, and the test tables, significance tests, season and city breakdowns, episode scores and attribution checks will be added then. No test-set number appears in this report.
+All results in this chapter are on the validation year 2022. They were produced by the code at git commit e6b796e and read from the run files (`metrics.json`, `preds_val.parquet`). The table rows and the numbers in the text are filled in by the report's build script from those files, and Table {tab:runids} lists the run behind each development row. The first sections report the development runs with seed 0, which were used to build the model ladder. The five-seed final runs of MW-AeroFusion-Net, its six ablations and the four neural baselines finished on 21 November 2026; their results, with Diebold-Mariano tests and the attribution checks, follow in the sections on five seeds. The test years 2023 to 2024 have not been read. They will be scored once by `final_eval.py` after the team writes `MODEL_FREEZE.json`, and the test tables, season and city breakdowns and episode scores will be added then. No test-set number appears in this report.
 
 ### Live platform
 
@@ -52,23 +52,52 @@ Table {tab:region} splits the +24 hour error between the Indo-Gangetic Plain and
 
 !include gen_region.md
 
-### Discussion
+### Five seeds and significance tests
 
-Three points stand out from the validation results.
+Table {tab:seeds} repeats the comparison with five seeds for every neural model and gives Diebold-Mariano p-values against LightGBM MOS, the strongest single model at +24 and +48 hours. The test uses the mean squared station error of each issue time, with a Newey-West variance and the Harvey-Leybourne-Newbold correction; a p-value below 0.05 is marked better or worse.
 
-First, the components do not add up. Each of the graph, the wavelet bands and the ConvLSTM helps at one lead or another, but the gains are small and do not stack, and the full model is behind its parts. One explanation is optimisation: M6 is the largest model, it adds an entropy term to the loss, and the gate summarises each group with a window mean and the last value, which may down-weight the most recent PM2.5 history that matters most at +1 hour. The leave-one-out ablations, in particular the run without gating, test this directly. They are in progress and their results will be reported with the final tables, whatever they show.
+Over five seeds MW-AeroFusion-Net reaches {m:s_m6_mwafn.1.rmse} ± {m:s_m6_mwafn.1.sd} µg/m³ at +1 hour, {m:s_m6_mwafn.24.rmse} µg/m³ at +24 hours and {m:s_m6_mwafn.48.rmse} µg/m³ at +48 hours. It beats CAMS with bias correction at every lead (p = {m:s_m6_mwafn.24.pcams} at +24 hours). It does not beat LightGBM MOS: the difference is not significant at +1 hour (p = {m:s_m6_mwafn.1.plgbm}), and M6 is significantly worse at +24 hours (p = {m:s_m6_mwafn.24.plgbm}) and +48 hours (p = {m:s_m6_mwafn.48.plgbm}). The four neural baselines are within about 0.5 µg/m³ of each other at every lead and have small seed spreads; PM2.5-GNN has the lowest mean error of the neural models at +24 and +48 hours ({m:s_base_pm25gnn.24.rmse} and {m:s_base_pm25gnn.48.rmse} µg/m³), and M6 is behind all four on the mean. MW-AeroFusion-Net in S-B stays worse than in S-A at +1 and +24 hours over all five seeds, so the S-B result of the development run was not a single bad seed.
 
-Second, simple and well-tuned models are hard to beat at this scale. LightGBM, a GRU and an LSTM are within 1 to 2 µg/m³ of each other at +24 and +48 hours. This agrees with the motivation of the project: a fair comparison needs these baselines, and a complex model has to earn its complexity.
+The spread of M6 at +1 hour is large because its seeds fall into two groups. Three seeds reach between {m:s_m6_mwafn.1.min} and about 22 µg/m³, close to the best neural baselines, while two seeds stay near {m:s_m6_mwafn.1.max} µg/m³, worse than persistence. The same split appears in the ablations that keep the gating (Table {tab:ablation}). One seed of the variant without ConvLSTM did not train at all and has an error of about 42 µg/m³ at +1 and +24 hours. Following the protocol, no run was repeated or removed; these seeds are part of the means.
 
-Third, CAMS alone is far from the station observations in 2022, and a fixed bias correction does not fix it. Station-level learning gives a large gain over CAMS, and LightGBM shows that CAMS can still add value as an input at longer leads.
+!include gen_seeds.md
 
-These are development results on one seed and one year. The five-seed runs will give the spread between seeds, and the frozen test years will give the final comparison with significance tests.
+### Ablations
 
-!include gen_runids.md
+Table {tab:ablation} removes one component of M6 at a time, with five seeds each. Removing the source-group gating gives the largest change: the variant without gating has a lower mean error than the full model at every lead ({m:s_abl_no_gating.1.rmse}, {m:s_abl_no_gating.24.rmse} and {m:s_abl_no_gating.48.rmse} µg/m³) and the smallest seed spread of all M6 variants ({m:s_abl_no_gating.1.sd} µg/m³ at +1 hour), and every one of its seeds is in the good group. Removing the wavelet bands, removing the graph or replacing the Transformer by a GRU changes the mean error by about 1 µg/m³ or less at +24 and +48 hours, which is within the seed spread. Keeping only the fixed distance graph, without the learned adaptive matrix, is the only change that makes the model clearly worse on average ({m:s_abl_fixed_graph.24.rmse} µg/m³ at +24 hours), and three of its seeds stay above 28 µg/m³ at +1 hour.
+
+In other words, on validation the gating as built does not help accuracy and makes training unstable. This matches the explanation suggested by the development runs: the gate summarises each group with a window mean and the last value, and on some seeds it appears to down-weight the recent PM2.5 history that matters most at short leads.
+
+!include gen_ablation.md
 
 ### Attribution checks
 
-The four attribution checks (deletion faithfulness, randomisation sanity, stability across seeds and plausibility against upwind fires in October and November) are implemented in `explain.py` and tested. They run on the frozen model after the final evaluation, so no attribution results are reported yet. A failed check will be reported as failed.
+The four attribution checks (deletion faithfulness, randomisation sanity, stability across seeds and plausibility against upwind fires) were run on the five seeds of MW-AeroFusion-Net on validation 2022 (Table {tab:attr}); the test years were not used. The results are mixed, and the failed checks are reported as failed.
+
+- **Faithfulness.** Removing the two groups with the highest gate weight raises the error more than removing two random groups in {m:attr.0.nfaith} of {m:attr.0.seeds} seeds. The top-2 groups by gate and by Integrated Gradients are the same in three of the five seeds.
+- **Sanity.** After cascading randomisation of the weights, the gate weights no longer match the trained ones in {m:attr.0.nsanity} of {m:attr.0.seeds} seeds, so the gates depend on what the model has learned.
+- **Stability.** The mean gate weights of the five seeds do not agree: the mean pairwise Spearman correlation is {m:attr.0.stab}. This check fails. It is consistent with the two groups of seeds above: different seeds rely on different groups.
+- **Fire plausibility.** At IGP stations in October and November, the fire gate rises with the upwind fire count of the last 24 hours in only {m:attr.0.nplaus} of {m:attr.0.seeds} seeds; in the others the correlation is negative. This check fails.
+
+For comparison, the TreeSHAP values of LightGBM MOS put most weight on the PM2.5 history, then on the CAMS forecast and the calendar, with the fire group small. Because two of the four checks fail, the gate weights of MW-AeroFusion-Net cannot be read as source contributions, and the platform should not present them as such.
+
+!include gen_attr.md
+
+### Discussion
+
+Four points stand out from the validation results.
+
+First, the components do not add up, and the five-seed runs show why. Each of the graph, the wavelet bands and the ConvLSTM changes the error by about 1 µg/m³ or less, within the seed spread, while the source-group gating makes the model worse and unstable. Without the gating the model is close to the neural baselines; with it, two of five seeds fail at short leads. The gating was the component meant to provide explanations, and its attribution checks also fail on stability and plausibility, so on this evidence it costs accuracy without giving trustworthy explanations.
+
+Second, simple and well-tuned models are hard to beat at this scale. The LSTM, CNN-LSTM, PM2.5-GNN and Graph WaveNet are within about 0.5 µg/m³ of each other over five seeds, and LightGBM MOS is significantly better than every neural model at +48 hours. This agrees with the motivation of the project: a fair comparison needs these baselines, and a complex model has to earn its complexity. On validation, MW-AeroFusion-Net has not.
+
+Third, CAMS alone is far from the station observations in 2022, and a fixed bias correction does not fix it. Station-level learning gives a large and significant gain over CAMS, and LightGBM shows that CAMS can still add value as an input at longer leads, while the neural model in S-B does not yet use it well.
+
+Fourth, the results show why several seeds are needed. With seed 0 alone, the variant without ConvLSTM would look like a failure and M6 would look worse than it is on average; with five seeds the instability itself becomes the finding.
+
+These are validation results. The frozen test years will give the final comparison, scored once with the models listed in `MODEL_FREEZE.json`.
+
+!include gen_runids.md
 
 ## Deviations from the Proposal
 
@@ -93,10 +122,11 @@ The original proposal also listed experimental results that had not been produce
 
 ## Limitations of the Study
 
-- **Validation only.** The results are from one seed on one validation year. They can change with the five-seed runs, and the test years may rank the models differently.
-- **The full model underperforms.** On validation, MW-AeroFusion-Net is behind its simpler rungs and the strongest baselines. Until the ablations explain this, the project cannot claim that the combination of components helps.
+- **Validation only.** The results are from one validation year. The test years may rank the models differently.
+- **The full model underperforms.** On validation, MW-AeroFusion-Net is behind the neural baselines on average and significantly behind LightGBM MOS at +24 and +48 hours. The ablations point to the source-group gating, which makes training unstable across seeds. The project cannot claim that the combination of components helps.
 - **Station coverage.** Five of the 33 platform cities have no station in the panel, and some cities have a single station, so city-level conclusions there rest on one monitor.
 - **Inputs.** ERA5 is a reanalysis and slightly better than the weather a real forecaster has at issue time; the S-A setting uses only past ERA5 values to limit this. Traffic is a proxy, and emission inventories are not used.
-- **Attribution.** Gate weights describe what the model uses. Even if they pass the four checks, they are not source apportionment.
+- **Attribution.** Gate weights describe what the model uses, and even passing checks would not make them source apportionment. On validation they fail the stability and fire plausibility checks.
+- **No tuning after the ablations.** The gating problem was found after the final runs had started. Fixing it would need new runs at a new commit, which the schedule and the freeze protocol did not allow.
 - **Live platform.** The platform currently shows CAMS, not the trained model, and its what-if view uses hand-set coefficients from the literature as an illustrative heuristic.
 - **Time.** The Copernicus queue and a move to a new training machine took most of the schedule, which left little time for tuning before the deadline.
