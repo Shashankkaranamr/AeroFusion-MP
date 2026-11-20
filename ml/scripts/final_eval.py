@@ -3,8 +3,11 @@
     python ml/scripts/final_eval.py --freeze ml/MODEL_FREEZE.json
 
 Refuses to run unless:
-  1. ml/MODEL_FREEZE.json exists (written by the team at model freeze, end of week 12): {"git_commit": sha,
-     "run_ids": [neural runs], "baselines": {name: its val run_id}}; HEAD must be that commit; HEAD must equal that commit and the tree must be clean;
+  1. ml/MODEL_FREEZE.json exists and is committed (written by the team at model freeze): {"git_commit": sha,
+     "run_ids": [neural runs], "baselines": {name: its val run_id}}. git_commit is the ml/ commit the frozen runs were
+     trained at (the suffix of every run_id). The tree must be clean, and the model code, configs and frozen data files
+     (FROZEN_CODE) must be identical at git_commit and at HEAD. (Changed 2026-11-20: the old rule "HEAD == git_commit"
+     could never pass, because committing MODEL_FREEZE.json itself moves HEAD.)
   2. the test-split sha256 of x and y in the current dataset_v1 equals ml/data/SPLITS.lock (checked again afterwards).
 Each frozen run gets ml/runs/<run_id>/metrics_<split>.json (status measured, split test / extra_pm_only). No tuning,
 selection or early stopping may use these numbers (P4.3).
@@ -27,6 +30,7 @@ REPO = ML.parent
 sys.path.insert(0, str(ML))
 
 FROZEN_SPLITS = ("test", "extra_pm_only")
+FROZEN_CODE = ["ml/aerofusion_ml", "ml/configs", "ml/data/SPLITS.lock", "ml/data/stations_v1.csv", "ml/data/nodes_v1.csv"]  # what a frozen run depends on
 
 
 def sha(a: np.ndarray) -> str:
@@ -59,12 +63,28 @@ def check_freeze(freeze_path: Path) -> dict:
     if not freeze_path.exists():
         raise PermissionError(f"{freeze_path} not found: the test split opens only after model freeze (P3 exit, week 12)")
     fz = json.loads(freeze_path.read_text(encoding="utf-8"))
-    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True, text=True).stdout.strip()
-    dirty = subprocess.run(["git", "status", "--porcelain", "--", ".", ":(exclude)ml/runs"], cwd=REPO, capture_output=True, text=True).stdout.strip()
-    if not head.startswith(fz["git_commit"]) or dirty:
-        raise PermissionError("HEAD must be the frozen commit with a clean tree")
+    sha_ = fz.get("git_commit", "")
+    if len(sha_) < 7:
+        raise PermissionError("MODEL_FREEZE.json needs git_commit (the ml/ commit of the frozen runs, >= 7 hex digits)")
     if not fz.get("run_ids"):
         raise PermissionError("MODEL_FREEZE.json lists no run_ids")
+    git = lambda *a: subprocess.run(["git", *a], cwd=REPO, capture_output=True, text=True)
+    if git("cat-file", "-e", f"{sha_}^{{commit}}").returncode != 0:
+        raise PermissionError(f"git_commit {sha_} is not a commit in this repository")
+    dirty = git("status", "--porcelain", "--", ".", ":(exclude)ml/runs").stdout.strip()
+    if dirty:
+        raise PermissionError("the tree must be clean (commit MODEL_FREEZE.json first): " + dirty)
+    if git("ls-files", "--error-unmatch", str(freeze_path.resolve().relative_to(REPO.resolve())).replace("\\", "/")).returncode != 0:
+        raise PermissionError(f"{freeze_path.name} must be committed")
+    if git("diff", "--quiet", sha_, "HEAD", "--", *FROZEN_CODE).returncode != 0:
+        raise PermissionError(f"model code/configs/frozen data changed between {sha_} and HEAD: " + git("diff", "--stat", sha_, "HEAD", "--", *FROZEN_CODE).stdout)
+    short = sha_[:7]
+    bad = [r for r in list(fz["run_ids"]) + list(fz.get("baselines", {}).values()) if not r.endswith("-" + short)]
+    if bad:
+        raise PermissionError(f"run ids not trained at {short}: {bad}")
+    missing = [r for r in fz["run_ids"] if not (ML / "runs" / r / "ckpt.pt").exists()]
+    if missing:
+        raise PermissionError(f"frozen runs without ckpt.pt: {missing}")
     return fz
 
 
@@ -94,9 +114,12 @@ def score_frozen_runs(fz: dict, splits=FROZEN_SPLITS) -> None:
         for split in splits:
             data = tds.build_frozen(cfg, split, stats, gstats, _caller="final_eval")
             model = make_model(cfg, data.a)
+            dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # GPU when present (2026-11-20; same weights, float32)
             model.load_state_dict(torch.load(rd / "ckpt.pt", map_location="cpu"))
+            model.to(dev)
             dl = torch.utils.data.DataLoader(data, batch_size=cfg.get("batch", 32))
-            p, y, t0 = predict(model, dl, torch.device("cpu"), stats)
+            with torch.no_grad():
+                p, y, t0 = predict(model, dl, dev, stats)
             n = p.shape[-1]
             df = pd.DataFrame({"t0": np.repeat(pd.to_datetime(t0, utc=True), 48 * n), "lead": np.tile(np.repeat(np.arange(1, 49), n), len(t0)),
                                "node_id": np.tile(node_ids, len(t0) * 48), "pred": p.reshape(-1), "obs": y.reshape(-1)})
@@ -166,8 +189,14 @@ def score_baselines(fz: dict, splits=FROZEN_SPLITS) -> None:
             "cams_bc": lambda pos0, t0: bc.predict(cams.forecast(fc, t0)),
         }
         for name, val_run in names.items():
+            if name.startswith("lgbm"):
+                m, df = score_gbm(ML / "runs" / val_run, split, city_of)
+                (ML / "runs" / val_run / f"metrics_{split}.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
+                df.to_parquet(ML / "runs" / val_run / f"preds_{split}.parquet", index=False)
+                print(f"{name} ({val_run}) {split}: scored")
+                continue
             if name not in fns:
-                print(f"{name}: no frozen scorer (LightGBM: score with run_gbm.py's saved model in P4)")
+                print(f"{name}: no frozen scorer")
                 continue
             df = bl.frame(times, y, ids, t0s, fns[name])
             df["ref_persistence"] = pers
@@ -175,6 +204,46 @@ def score_baselines(fz: dict, splits=FROZEN_SPLITS) -> None:
             rd = ML / "runs" / val_run
             (rd / f"metrics_{split}.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
             print(f"{name} ({val_run}) {split}: scored")
+
+
+def score_gbm(run_dir: Path, split: str, city_of: dict) -> tuple[dict, pd.DataFrame]:
+    """LightGBM (S-A or S-B MOS): the booster saved by run_gbm.py (fitted on train only, chosen on val) predicts every
+    issue time of `split`, with the same features and CAMS latency rule as run_gbm.py. Added 2026-11-20 (P4.2).
+    `split` may be "val" to check that this path reproduces the val run's metrics.json."""
+    import lightgbm as lgb
+    import xarray as xr
+    import yaml
+
+    from aerofusion_ml import evaluate as ev
+    from aerofusion_ml.data import cams, loader, torch_dataset as tds
+    from aerofusion_ml.models import gbm
+
+    cfg = yaml.safe_load((run_dir / "config.yaml").read_text(encoding="utf-8"))
+    sp = yaml.safe_load((ML / "configs" / "splits_v1.yaml").read_text(encoding="utf-8"))
+    feats_cfg = yaml.safe_load((ML / "configs" / "features_v1.yaml").read_text(encoding="utf-8"))
+    s = sp["splits"][split]
+    lo = pd.Timestamp(s["start"]) - pd.Timedelta(hours=73)
+    hi = pd.Timestamp(s["end"]) + pd.Timedelta(hours=23)
+    a = loader.NodeArrays.from_zarr(ML / "data/processed/dataset_v1.zarr", feats_cfg, lo, hi)
+    ds = xr.open_zarr(ML / "data/processed/dataset_v1.zarr")
+    stations = np.where(ds.node_kind.values == "station")[0]
+    static = pd.DataFrame({"lat": ds.node_lat.values, "lon": ds.node_lon.values, "elev": ds.node_elevation.values, "region": ds.node_region.values})
+    fc = None
+    if cfg["setting"] == "S-B":
+        fc = xr.open_zarr(ML / "data/processed/cams_fc_v1.zarr").sel(point=[str(v) for v in ds.node.values])[["pm2p5"]].load()
+    model = lgb.Booster(model_file=str(run_dir / "model.txt"))
+    cols = cfg["features"]
+    leads = np.arange(1, 49)
+    t0s = tds.issue_times(a.times, s, sp["issue_hours_eval"], hi.tz_localize("UTC"))
+    rows = []
+    for t0 in t0s:
+        X = gbm.features(a, t0, leads, stations, static, cams.forecast(fc, t0) if fc is not None else None)
+        rows.append(pd.DataFrame({"t0": t0, "lead": X["lead_h"], "node_id": [str(v) for v in ds.node.values[X["node_idx"].to_numpy()]],
+                                  "pred": np.expm1(model.predict(X[cols])), "obs": gbm.target(a, t0, leads, stations)}))
+    df = pd.concat(rows, ignore_index=True)
+    kw = {} if split == "val" else {"allow_test": True}
+    m = ev.evaluate(df, split=split, model=cfg["model"], setting=cfg["setting"], run_id=run_dir.name, city_of=city_of, **kw)
+    return m, df
 
 
 def main() -> None:
