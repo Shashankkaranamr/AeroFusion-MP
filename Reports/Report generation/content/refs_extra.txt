@@ -1,0 +1,5 @@
+# key | IEEE-style entry (verified URL or DOI)
+Cusworth_2018 | D. H. Cusworth, L. J. Mickley, M. P. Sulprizio, T. Liu, M. E. Marlier, R. S. DeFries, S. K. Guttikunda, and P. Gupta, "Quantifying the influence of agricultural fires in northwest India on urban air pollution in Delhi, India," Environmental Research Letters, vol. 13, no. 4, p. 044018, 2018. [Online]. Available: http://dx.doi.org/10.1088/1748-9326/aab303
+xkdr | XKDR Forum, "India Air Quality Database (CPCB CAAQM and US Embassy monitors), released under CC BY 4.0." [Online]. Available: https://airquality.xkdr.org
+firms | NASA Earthdata, "Fire Information for Resource Management System (FIRMS): MODIS and VIIRS active fire data." [Online]. Available: https://www.earthdata.nasa.gov/data/tools/firms
+openaq | OpenAQ, "Terms of use and API documentation." [Online]. Available: https://docs.openaq.org/about/terms

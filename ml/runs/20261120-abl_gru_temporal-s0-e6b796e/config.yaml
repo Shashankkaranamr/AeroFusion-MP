@@ -1,0 +1,22 @@
+amp: true
+batch: 32
+device: auto
+epochs: 60
+grad_clip: 1.0
+hidden: 64
+log_target: true
+lr: 0.001
+name: abl_gru_temporal
+overrides:
+  temporal: gru
+patience: 8
+rung: M6
+seed: 0
+setting: S-A
+train_issue_hours: null
+use_grid: true
+wavelet_feats:
+- pm25
+- pm10
+weight_decay: 0.0001
+workers: 2

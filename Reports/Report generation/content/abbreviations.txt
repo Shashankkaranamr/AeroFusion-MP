@@ -1,0 +1,36 @@
+# abbreviation | expansion (sorted alphabetically by the build script; keep to one page)
+AOD | Aerosol Optical Depth
+API | Application Programming Interface
+AQI | Air Quality Index
+BLH | Boundary-Layer Height
+CAAQM | Continuous Ambient Air Quality Monitoring
+CAMS | Copernicus Atmosphere Monitoring Service
+CNN | Convolutional Neural Network
+ConvLSTM | Convolutional Long Short-Term Memory
+CPCB | Central Pollution Control Board
+CSI | Critical Success Index
+ERA5 | ECMWF Reanalysis, fifth generation
+FIRMS | Fire Information for Resource Management System
+FRP | Fire Radiative Power
+GNN | Graph Neural Network
+GPU | Graphics Processing Unit
+GRU | Gated Recurrent Unit
+IGP | Indo-Gangetic Plain
+LLM | Large Language Model
+LSTM | Long Short-Term Memory
+MAE | Mean Absolute Error
+ML | Machine Learning
+MOS | Model Output Statistics
+ONNX | Open Neural Network Exchange
+PM2.5 | Particulate Matter of diameter 2.5 µm or less
+PM10 | Particulate Matter of diameter 10 µm or less
+QC | Quality Control
+R² | Coefficient of Determination
+RMSE | Root Mean Square Error
+S-A, S-B, S-C | Input settings: past only, CAMS-informed, perfect prognosis
+SDG | Sustainable Development Goal
+SHAP | SHapley Additive exPlanations
+SWT | Stationary Wavelet Transform
+UTC | Coordinated Universal Time
+VIIRS | Visible Infrared Imaging Radiometer Suite
+VMD | Variational Mode Decomposition

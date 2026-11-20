@@ -1,0 +1,43 @@
+{
+  "title": "AeroFusion: Multi-Source PM2.5 Monitoring and Forecasting for Indian Cities with MW-AeroFusion-Net",
+  "title_lines": [
+    "AeroFusion: Multi-Source PM2.5 Monitoring",
+    "and Forecasting for Indian Cities",
+    "with MW-AeroFusion-Net"
+  ],
+  "file_name": "AeroFusion_Major_Project_Report_Group40",
+  "group": "40",
+  "year": "2026-2027",
+  "course_code": "23CS7PWPP2",
+  "students": [
+    {
+      "name": "Shashank Ravindra",
+      "usn": "1BM23CS312"
+    },
+    {
+      "name": "Sohan R",
+      "usn": "1BM23CS336"
+    },
+    {
+      "name": "Srinidhi B V",
+      "usn": "1BM23CS339"
+    },
+    {
+      "name": "Srujan K R",
+      "usn": "1BM23CS340"
+    }
+  ],
+  "guide": {
+    "name": "Pallavi C V",
+    "designation": "Assistant Professor, Department of CSE"
+  },
+  "hod": {
+    "name": "Dr. Shubha Rao V",
+    "designation": "Professor & HOD"
+  },
+  "principal": {
+    "name": "Dr. Bheemsha Arya",
+    "designation": "Principal"
+  },
+  "header_title": "AeroFusion: PM2.5 Monitoring and Forecasting with MW-AeroFusion-Net"
+}

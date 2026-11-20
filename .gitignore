@@ -62,3 +62,8 @@ docs/paper/*.bbl
 docs/paper/*.blg
 docs/paper/*.log
 docs/paper/*.out
+
+# Reports: third-party skills and other groups' sample reports stay local
+Reports/Image generation/Skills/
+Reports/Report generation/skill/
+Reports/sample report/

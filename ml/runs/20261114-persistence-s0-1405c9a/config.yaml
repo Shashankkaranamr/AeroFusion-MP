@@ -1,0 +1,8 @@
+fit: none
+issue_hours:
+- 0
+- 12
+model: persistence
+seed: 0
+setting: S-A
+split: val
