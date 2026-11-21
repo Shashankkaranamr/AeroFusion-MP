@@ -32,6 +32,8 @@ from pathlib import Path
 import httpx
 import numpy as np
 
+from ..live.sources import redact
+
 HERE = Path(__file__).resolve().parent
 SERVING = HERE / "serving"
 WINDOW, HORIZON, GRID_STEPS = 72, 48, 24
@@ -354,7 +356,7 @@ class LiveForecaster:
                     self.cache_dir.mkdir(parents=True, exist_ok=True)
                     (self.cache_dir / "model_forecast.json").write_text(json.dumps(self.result), encoding="utf-8")
             except Exception as e:  # noqa: BLE001
-                self.error = f"{type(e).__name__}: {e}"
+                self.error = redact(f"{type(e).__name__}: {e}")
         return self.result
 
     def _package(self, t0: datetime, pred: np.ndarray, have: dict) -> dict:

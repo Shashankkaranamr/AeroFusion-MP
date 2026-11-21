@@ -14,6 +14,7 @@ import csv
 import io
 import math
 import os
+import re
 import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -41,13 +42,30 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+# Secrets come from the host's env settings, where a pasted value can carry a trailing newline (an illegal
+# header value). Strip them once at import, before any client reads them.
+SECRET_ENV = ("XKDR_API_KEY", "AWS_BEARER_TOKEN_BEDROCK", "GROQ_API_KEY", "OLLAMA_API_KEY")
+for _name in SECRET_ENV:
+    if os.environ.get(_name) is not None:
+        os.environ[_name] = os.environ[_name].strip()
+
+
+def redact(msg: str) -> str:
+    """Remove secret values and bearer tokens from an error message before it is stored or served."""
+    for name in SECRET_ENV:
+        v = os.environ.get(name)
+        if v:
+            msg = msg.replace(v, "***")
+    return re.sub(r"(?i)(bearer\s+)[^\s'\"]+", r"\1***", msg)
+
+
 async def _timed(source_id: str, coro) -> SourceResult:
     t0 = time.perf_counter()
     try:
         data, n = await coro
         return SourceResult(source_id, True, n, int((time.perf_counter() - t0) * 1000), None, _now_iso(), data)
     except Exception as e:  # noqa: BLE001 — every source failure is reported, never fatal
-        return SourceResult(source_id, False, 0, int((time.perf_counter() - t0) * 1000), f"{type(e).__name__}: {e}"[:300], _now_iso(), None)
+        return SourceResult(source_id, False, 0, int((time.perf_counter() - t0) * 1000), redact(f"{type(e).__name__}: {e}")[:300], _now_iso(), None)
 
 
 def _latlon_params(cities: list[City]) -> dict[str, str]:

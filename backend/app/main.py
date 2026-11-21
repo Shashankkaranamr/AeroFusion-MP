@@ -230,7 +230,7 @@ class _AiState:
             try:
                 self.data = await AI.insights(snap, AI.resolve_chain(self.choice))
             except Exception as e:  # noqa: BLE001
-                self.error = str(e)
+                self.error = S.redact(str(e))
                 print(f"[ai] insights failed: {e}")
             finally:
                 self.generating = False
@@ -271,7 +271,7 @@ async def ai_insights(force: bool = False, provider: str = "auto"):
     try:
         AI.resolve_chain(provider)
     except ValueError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, S.redact(str(e))) from e
     if live.snapshot is None:
         await live.refresh()
     snap = live.snapshot
@@ -296,7 +296,7 @@ async def ai_chat_stream(body: dict):
     try:
         chain = AI.resolve_chain(body.get("provider"))
     except ValueError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, S.redact(str(e))) from e
     return StreamingResponse(AI.chat_stream(live.snapshot, body.get("messages", []), body.get("city"), chain), media_type="text/plain; charset=utf-8")
 
 
@@ -308,5 +308,5 @@ async def ai_chat(body: dict):
     try:
         answer = await AI.chat(live.snapshot, body.get("messages", []), body.get("city"))
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(502, str(e)) from e
+        raise HTTPException(502, S.redact(str(e))) from e
     return {"answer": answer, "updated_at": live.snapshot["updated_at"]}
