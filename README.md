@@ -3,9 +3,9 @@
 **Explainable PM2.5 air-quality monitoring and forecasting for 33 Indian cities.**
 A scroll-driven story about one particle of pollution, which hands over to a live dashboard. Behind both: a multi-source data-fusion backend (Copernicus CAMS, Open-Meteo, NASA FIRMS, NASA GIBS, CPCB archive) and an LLM analyst (Amazon Nova Micro on Bedrock, Groq fallback) that explains what is driving pollution right now. Status and remaining work: [PROGRESS.md](PROGRESS.md).
 
-**API:** https://aerofusion-api-fg1i.onrender.com ([health](https://aerofusion-api-fg1i.onrender.com/health))
+**Site:** https://aerofusion-mp.vercel.app · **API:** https://aerofusion-api-fg1i.onrender.com ([health](https://aerofusion-api-fg1i.onrender.com/health))
 
-> Forecasts shown are Copernicus CAMS; no custom-model accuracy is claimed.
+> The city forecast chart shows the Copernicus CAMS forecast and, beside it, MW-AeroFusion-Net (the frozen no-gating variant, mean of 5 seeds; marked experimental). Its accuracy figures come only from `ml/runs/<run_id>/metrics*.json`.
 
 ---
 
