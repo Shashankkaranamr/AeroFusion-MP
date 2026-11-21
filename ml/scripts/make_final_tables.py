@@ -143,7 +143,7 @@ def main() -> None:
                 cells.append("-" if not x else f"{x['p']:.3f} " + ("n.s." if not x["p"] < 0.05 else ("better" if x["mean_d"] < 0 else "worse")))
         md.append(f"| {r['model']} | {r['setting']} | {r['seeds']} | " + " | ".join(cells) + " |")
         name = r["model"].replace("_", r"\_")
-        tex.append(f"{name} & {r['setting']} & {r['seeds']} & " + " & ".join(c.replace("±", r"$\pm$") for c in cells[:len(LEADS)]) + r" \\ % runs: " + ",".join(r["run_ids"]))
+        tex.append(f"{name} & {r['setting']} & {r['seeds']} & " + " & ".join(c.replace("±", r"$\pm$") for c in cells[:len(LEADS)]) + r" \\ % " + " ".join(f"run_id: {x}" for x in r["run_ids"]))
     tex += [r"\bottomrule", r"\end{tabular}", ""]
     (OUT / f"{stem}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     (OUT / f"{stem}.tex").write_text("\n".join(tex), encoding="utf-8")
