@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceArea, ReferenceDot, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
-import { ModelForecastNote } from "@/components/model-status";
+import { ModelForecastNote, useModelForecast, type ModelForecast } from "@/components/model-status";
 import { ArrowUp, Droplets, Flame, Gauge, Layers, Thermometer, Umbrella, Wind } from "lucide-react";
 import { AqiBadge } from "@/components/aqi";
 import { axis, ChartContainer, ChartLegend, ChartTooltipContent } from "@/components/charts/chart";
@@ -25,6 +25,7 @@ export function CityView({ slug }: { slug: string }) {
   const c = snap?.cities.find((x) => x.slug === slug) ?? snap?.cities.find((x) => x.slug === "delhi");
   const now = useMemo(() => Date.now(), [snap?.updated_at]); // eslint-disable-line react-hooks/exhaustive-deps
   const pts = useMemo(() => (c ? span(citySeries(c, now), FROM, TO) : []), [c, now]);
+  const mf = useModelForecast(c?.slug ?? null);
   if (!snap || !c) return null;
 
   const meta = CITY_BY_SLUG[c.slug];
@@ -140,11 +141,12 @@ export function CityView({ slug }: { slug: string }) {
           }
         />
         <CardBody>
-          <ForecastChart c={c} pts={pts} best={win.best} worst={win.worst} />
+          <ForecastChart c={c} pts={pts} best={win.best} worst={win.worst} model={mf} now={now} />
           <ChartLegend
             className="mt-3"
             items={[
-              { label: "PM2.5 (model)", color: "var(--ember)" },
+              { label: "PM2.5 (CAMS)", color: "var(--ember)" },
+              ...(mf?.status === "available" ? [{ label: "MW-AeroFusion-Net (ours, experimental)", color: "var(--ink)" }] : []),
               ...(c.cpcb ? [{ label: `CPCB stations, ${fmtPeriod(c.cpcb.period)}`, color: "var(--moon)", dashed: true }] : []),
               { label: "Cleanest 3 h", color: "var(--good)" },
               { label: "Worst 3 h", color: "var(--bad)" },
@@ -155,7 +157,7 @@ export function CityView({ slug }: { slug: string }) {
             <WindowSpan label="Best time to be outside" w={win.best} tone="var(--good)" />
             <WindowSpan label="Keep windows shut" w={win.worst} tone="var(--bad)" />
           </div>
-          <ModelForecastNote city={c.slug} />
+          <ModelForecastNote f={mf} />
         </CardBody>
       </Card>
 
@@ -270,12 +272,16 @@ function WindowSpan({ label, w, tone }: { label: string; w: Win; tone: string })
   );
 }
 
-function ForecastChart({ c, pts, best, worst }: { c: LiveCity; pts: SeriesPoint[]; best: Win; worst: Win }) {
-  const data = pts.map((p) => ({ lead: p.lead, ms: p.ms, pm25: p.pm25 }));
-  const top = Math.max(120, ...data.map((d) => d.pm25 ?? 0)) * 1.1;
+function ForecastChart({ c, pts, best, worst, model, now }: { c: LiveCity; pts: SeriesPoint[]; best: Win; worst: Win; model: ModelForecast | null; now: number }) {
+  const ours = new Map<number, number>();
+  if (model?.status === "available" && model.valid_times && model.pm25) {
+    model.valid_times.forEach((t, i) => ours.set(Math.round((Date.parse(t) - now) / 3_600_000), model.pm25![i]));
+  }
+  const data = pts.map((p) => ({ lead: p.lead, ms: p.ms, pm25: p.pm25, ours: ours.get(Math.round(p.lead)) ?? null }));
+  const top = Math.max(120, ...data.map((d) => Math.max(d.pm25 ?? 0, d.ours ?? 0))) * 1.1;
   const pk = peak(span(pts, 1, 24));
   return (
-    <ChartContainer label={`PM2.5 forecast for ${c.name}, from 24 hours ago to 96 hours ahead, with AQI bands`} className="h-[300px]" config={{ pm25: { label: "PM2.5", color: "var(--ember)", unit: "µg/m³" } }}>
+    <ChartContainer label={`PM2.5 forecast for ${c.name}, from 24 hours ago to 96 hours ahead, with AQI bands`} className="h-[300px]" config={{ pm25: { label: "CAMS", color: "var(--ember)", unit: "µg/m³" }, ours: { label: "Ours", color: "var(--ink)", unit: "µg/m³" } }}>
       <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -12 }}>
         {AQI_CATEGORIES.map((cat) => (
           <ReferenceArea key={cat.key} y1={cat.pm[0]} y2={Math.min(cat.pm[1], top)} fill={cat.color} fillOpacity={0.07} stroke="none" ifOverflow="hidden" />
@@ -296,6 +302,7 @@ function ForecastChart({ c, pts, best, worst }: { c: LiveCity; pts: SeriesPoint[
           </linearGradient>
         </defs>
         <Area type="monotone" dataKey="pm25" stroke="var(--ember)" strokeWidth={1.5} fill="url(#fc)" connectNulls isAnimationActive={false} />
+        {ours.size > 0 && <Line type="monotone" dataKey="ours" name="MW-AeroFusion-Net" stroke="var(--ink)" strokeWidth={1.5} dot={false} connectNulls isAnimationActive={false} />}
         {pk?.pm25 != null && <ReferenceDot x={pk.lead} y={pk.pm25} r={3.5} fill="var(--ember)" stroke="var(--surface)" strokeWidth={2} label={{ value: `peak ${Math.round(pk.pm25)}`, position: "top", fill: "var(--ink)", fontSize: 11, fontFamily: "var(--font-mono)" }} />}
       </ComposedChart>
     </ChartContainer>

@@ -116,8 +116,8 @@ def main() -> None:
                 continue
             ref_loss = {L: t0_loss(found[ref], a.split, L) for L in LEADS}
             for model, rds in found.items():
-                if model == ref:
-                    continue
+                if model == ref or not all((rd / f"preds_{a.split}.parquet").exists() for rd in rds):
+                    continue  # final_eval keeps scores, not forecasts, for the simple baselines on frozen splits
                 for L in LEADS:
                     lm = t0_loss(rds, a.split, L)
                     j = pd.concat([lm, ref_loss[L]], axis=1, join="inner").dropna()

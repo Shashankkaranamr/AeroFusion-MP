@@ -85,7 +85,7 @@ def health():
     return {"status": "ok", "last_refresh": live.snapshot["updated_at"] if live.snapshot else None}
 
 
-model = ModelService()
+model = ModelService(cache_dir=live.data_dir)
 
 
 @app.get("/api/model/status")
@@ -100,10 +100,11 @@ def model_metrics():
 
 
 @app.get("/api/model/forecast")
-def model_forecast(city: str):
+async def model_forecast(city: str):
+    """Live forecast of the frozen serving model for one city (built once per 00/12 UTC issue time, then cached)."""
     if city not in CITY_BY_SLUG:
         raise HTTPException(404, f"unknown city {city!r}")
-    return model.forecast(city)
+    return await model.forecast(city, S._om_get)
 
 
 @app.get("/api/live/status")

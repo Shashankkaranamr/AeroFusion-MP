@@ -70,3 +70,4 @@ Reports/sample report/
 
 # Office lock files
 ~$*
+!ml/runs/*/metrics_*.json

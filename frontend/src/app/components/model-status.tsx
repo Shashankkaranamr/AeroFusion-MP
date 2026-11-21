@@ -20,6 +20,8 @@ interface ModelMetrics {
   split?: string;
   setting?: string;
   leads?: Record<string, { city: Block; station: Block }>;
+  model?: string;
+  live_replay?: { note: string; rmse: Record<string, number> };
 }
 
 /** The forecast model's ladder (PROGRESS P3). Each rung adds one part; all are reported, helpful or not. */
@@ -43,7 +45,7 @@ export function ModelStatus() {
     <Card className="mt-4">
       <CardHeader eyebrow="MW-AeroFusion-Net" title="Our forecast model">
         {measured
-          ? `Scored on held-out ${m.data!.split} data in setting ${m.data!.setting}. Skill is the error reduction against simply repeating the last reading, and against CAMS.`
+          ? `${m.data!.model ?? "Frozen model"}, scored once on ${m.data!.split} data it never saw. Skill is the error reduction against simply repeating the last reading, and against bias-corrected CAMS.`
           : "Being trained and evaluated. No accuracy is shown until a frozen model has been scored on data it never saw."}
       </CardHeader>
       <CardBody>
@@ -71,7 +73,15 @@ export function ModelStatus() {
                 ))}
               </tbody>
             </table>
-            <SourceNote className="mt-3">City averages of station forecasts. Run {m.data!.run_id}.</SourceNote>
+            <SourceNote className="mt-3">
+              City averages of station forecasts, with measured station data up to an hour before each forecast. Runs {m.data!.run_id}.
+              {m.data!.live_replay && (
+                <>
+                  {" "}On this site the model runs without live station data; replayed that way on 2022, its error was{" "}
+                  {Object.entries(m.data!.live_replay.rmse).map(([l, v]) => `${Math.round(v)} µg/m³ at +${l} h`).join(", ")} (station level).
+                </>
+              )}
+            </SourceNote>
           </>
         ) : (
           <ol className="grid gap-2 text-[13px]">
@@ -92,30 +102,48 @@ export function ModelStatus() {
   );
 }
 
-interface ModelForecast {
-  status: "pending" | "available";
+export interface ModelForecast {
+  status: "pending" | "available" | "no_station";
   message?: string;
+  issued_at?: string;
+  valid_times?: string[];
+  pm25?: number[];
+  stations?: number;
+  notes?: string[];
+  run_ids?: string[];
 }
 
-/** City view: where our model's forecast will sit next to CAMS. Says plainly that it is not there yet. */
-export function ModelForecastNote({ city }: { city: string }) {
-  const f = useApi<ModelForecast>(`/api/model/forecast?city=${encodeURIComponent(city)}`);
-  if (f.data?.status === "available") return null; // the forecast chart renders it once wired (P5.2)
+export function useModelForecast(city: string | null): ModelForecast | null {
+  const f = useApi<ModelForecast>(city ? `/api/model/forecast?city=${encodeURIComponent(city)}` : null);
+  return f.data;
+}
+
+/** City view: our model's live forecast is drawn on the chart; this note says what it is and how far to trust it. */
+export function ModelForecastNote({ f }: { f: ModelForecast | null }) {
+  if (!f) return null;
+  if (f.status === "no_station")
+    return <SourceNote className="mt-4">Our model, MW-AeroFusion-Net, makes no forecast for this city: it has no measuring station in the model's panel.</SourceNote>;
+  if (f.status !== "available")
+    return <SourceNote className="mt-4">Our own model, MW-AeroFusion-Net, is not available right now, so this chart is CAMS only.</SourceNote>;
   return (
     <SourceNote className="mt-4">
-      Our own model, MW-AeroFusion-Net, will appear here next to CAMS once it has been trained and scored on data it never saw. Until then, this chart is CAMS only.
+      The dark line is our model, MW-AeroFusion-Net (the version without gating, averaged over five trained copies), issued{" "}
+      {new Date(f.issued_at!).toUTCString().slice(5, 22)} UTC for the {f.stations} station{f.stations === 1 ? "" : "s"} in this city. It is
+      experimental: {f.notes?.[0]} In a replay of 2022 under the same conditions, it was about as accurate as CAMS (better at one to two days
+      ahead, worse in the next few hours), not as accurate as its tested score below.
     </SourceNote>
   );
 }
 
-/** Why view: the model's learned attribution (gate weights) is shown only after it passes its validation checks. */
+/** Why view: the gate weights failed two of their four checks, so no model attribution is shown. */
 export function AttributionNote() {
   return (
     <Card className="mt-4">
-      <CardHeader eyebrow="Learned attribution · not yet available" title="What our model leans on">
-        When our forecast model is ready, this card will show how much weight it gives each group of inputs at each city: fires,
-        weather, dust, a traffic proxy, CAMS and recent history. That is learned attribution, not a measured share of where the
-        pollution comes from. It will only be shown once it passes its checks for faithfulness, sanity and plausibility.
+      <CardHeader eyebrow="Learned attribution · not shown" title="What our model leans on">
+        Our full model gives each group of inputs (fires, weather, dust, a traffic proxy, CAMS and recent history) a weight. We tested those
+        weights for faithfulness, sanity, stability and plausibility. They passed the first two and failed the last two: different training
+        runs lean on different groups, and the fire weight does not follow real fires. So we do not show them as an explanation, and the
+        forecast on this site uses the version of the model without these weights, which was also the most accurate.
       </CardHeader>
     </Card>
   );
