@@ -32,7 +32,7 @@ jobs:
 
       - name: Fetch snapshot
         env:
-          AEROFUSION_API: ${{ vars.AEROFUSION_API || 'https://aerofusion-api.onrender.com' }}
+          AEROFUSION_API: ${{ vars.AEROFUSION_API || 'https://aerofusion-api-fg1i.onrender.com' }}
         run: python code/scripts/archive_snapshot.py --out archive/snapshots
 
       - name: Commit

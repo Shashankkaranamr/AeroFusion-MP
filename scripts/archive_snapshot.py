@@ -36,7 +36,7 @@ def fetch(api: str, attempts: int = 4) -> bytes:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--api", default=os.getenv("AEROFUSION_API", "https://aerofusion-api.onrender.com"))
+    ap.add_argument("--api", default=os.getenv("AEROFUSION_API", "https://aerofusion-api-fg1i.onrender.com"))
     ap.add_argument("--out", default="backend/data/archive/snapshots")
     args = ap.parse_args()
 

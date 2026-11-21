@@ -254,7 +254,7 @@ ml/
 - Frontend `frontend/` (Vite): a scroll story in vanilla JS (Three.js, GSAP, Lenis) + a React 19 dashboard
   (Tailwind v4, Motion, Recharts, MapLibre). Seven views: Now, Map, City, Why, What-if, History, Behind the data.
   Deployed at https://aerofusion.vercel.app. `legacy-dashboard/` holds the old Next.js version, kept for reference only.
-- Backend `backend/` FastAPI on Render (`render.yaml`), https://aerofusion-api.onrender.com.
+- Backend `backend/` FastAPI on Render (`render.yaml`), https://aerofusion-api-fg1i.onrender.com (redeployed 2026-11-21 from AeroFusion-MP; the old service was on another account).
   Sources: CAMS via Open-Meteo, Open-Meteo weather (MET Norway fallback), FIRMS 24 h, GIBS, XKDR. Fusion → `(T≤72, 33, 20)`
   tensor every 12 h. LLM layer (`app/live/ai.py`): Bedrock Nova Micro → Groq fallback, grounded insights + streamed chat.
   Rate limits on `/api/ai/*` and `/api/live/refresh` are in place.

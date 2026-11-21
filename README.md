@@ -3,7 +3,7 @@
 **Explainable PM2.5 air-quality monitoring and forecasting for 33 Indian cities.**
 A scroll-driven story about one particle of pollution, which hands over to a live dashboard. Behind both: a multi-source data-fusion backend (Copernicus CAMS, Open-Meteo, NASA FIRMS, NASA GIBS, CPCB archive) and an LLM analyst (Amazon Nova Micro on Bedrock, Groq fallback) that explains what is driving pollution right now. Status and remaining work: [PROGRESS.md](PROGRESS.md).
 
-**API:** https://aerofusion-api.onrender.com ([health](https://aerofusion-api.onrender.com/health))
+**API:** https://aerofusion-api-fg1i.onrender.com ([health](https://aerofusion-api-fg1i.onrender.com/health))
 
 > Forecasts shown are Copernicus CAMS; no custom-model accuracy is claimed.
 
@@ -73,7 +73,7 @@ legacy-dashboard/   the previous Next.js dashboard, kept for reference only
 ## Deployment
 | Part | Host | Notes |
 |---|---|---|
-| Frontend | Any static host (Vercel, Netlify, Pages): root `frontend/`, build `npm run build`, output `dist/` | set `VITE_API_URL=https://aerofusion-api.onrender.com` at build time, and add the site's origin to the API's `AEROFUSION_CORS` (or `AEROFUSION_CORS_REGEX`) |
+| Frontend | Any static host (Vercel, Netlify, Pages): root `frontend/`, build `npm run build`, output `dist/` | set `VITE_API_URL=https://aerofusion-api-fg1i.onrender.com` at build time, and add the site's origin to the API's `AEROFUSION_CORS` (or `AEROFUSION_CORS_REGEX`) |
 | Backend | **Render** free web service via [`render.yaml`](render.yaml), auto-deploys on push | secrets `XKDR_API_KEY`, `AWS_BEARER_TOKEN_BEDROCK`, `GROQ_API_KEY` set in Render; refresh every 12 h |
 
 Render's free plan sleeps after ~15 min idle; the first visit wakes it (~1 min, the UI shows a "connecting" card and retries automatically).

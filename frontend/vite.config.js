@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // The live API. In dev it is proxied, so the browser sees one origin and CORS never comes up.
-  const api = env.AEROFUSION_API || 'https://aerofusion-api.onrender.com';
+  const api = env.AEROFUSION_API || 'https://aerofusion-api-fg1i.onrender.com';
   const proxy = { target: api, changeOrigin: true, secure: true };
 
   return {
