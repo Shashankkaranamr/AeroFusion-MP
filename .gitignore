@@ -67,3 +67,6 @@ docs/paper/*.out
 Reports/Image generation/Skills/
 Reports/Report generation/skill/
 Reports/sample report/
+
+# Office lock files
+~$*
