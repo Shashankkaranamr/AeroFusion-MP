@@ -7,7 +7,7 @@ import { ConfirmIcon } from "@/components/ui/confirm-icon";
 import { PulsatingLoader } from "@/components/ui/loader";
 import { Select } from "@/components/ui/select";
 import { Tip } from "@/components/ui/tooltip";
-import { useLive, type LiveSnapshot } from "@/lib/api";
+import { useCountdown, useLive, type LiveSnapshot } from "@/lib/api";
 import { categoryForPm } from "@/lib/aqi";
 import { CITIES } from "@/lib/cities";
 import { fmtAgo, fmtCountdown } from "@/lib/format";
@@ -25,7 +25,8 @@ export function isStale(snap: LiveSnapshot | null) {
 
 /** Live status: last updated and the next refresh, in words; a coloured dot only doubles them. */
 function StatusPill() {
-  const { snap, phase, countdown } = useLive();
+  const { snap, phase } = useLive();
+  const countdown = useCountdown();
   const [, tick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => tick((t) => t + 1), 30_000);

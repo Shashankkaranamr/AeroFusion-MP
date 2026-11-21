@@ -115,7 +115,8 @@ interface LiveState {
   phase: Phase;
   error: string | null;
   refreshing: boolean;
-  countdown: number | null;
+  /** When the server's next refresh is due (epoch ms). Read it through useCountdown(), which ticks locally. */
+  nextRefreshAt: number | null;
   /** When the data was last received by this page (ms). */
   receivedAt: number | null;
   refresh: () => Promise<void>;
@@ -129,7 +130,7 @@ function useLiveState(): LiveState {
   const [phase, setPhase] = useState<Phase>("connecting");
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
+  const [nextRefreshAt, setNextRefreshAt] = useState<number | null>(null);
   const [receivedAt, setReceivedAt] = useState<number | null>(null);
   const lastUpdated = useRef<string | null>(null);
   const hasData = useRef(false);
@@ -138,7 +139,7 @@ function useLiveState(): LiveState {
     lastUpdated.current = s.updated_at;
     hasData.current = true;
     setSnap(s);
-    setCountdown(s.next_refresh_in);
+    setNextRefreshAt(Date.now() + s.next_refresh_in * 1000);
     setReceivedAt(Date.now());
     setError(null);
     setPhase("live");
@@ -182,7 +183,7 @@ function useLiveState(): LiveState {
         const r = await fetch(`${API_URL}/api/live/status`, { cache: "no-store" });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const s = (await r.json()) as { updated_at: string | null; next_refresh_in: number };
-        setCountdown(s.next_refresh_in);
+        setNextRefreshAt(Date.now() + s.next_refresh_in * 1000);
         setPhase("live");
         if (s.updated_at && s.updated_at !== lastUpdated.current) await load();
       } catch {
@@ -195,18 +196,27 @@ function useLiveState(): LiveState {
     };
   }, [load]);
 
-  useEffect(() => {
-    const id = setInterval(() => setCountdown((c) => (c === null ? c : Math.max(0, c - 1))), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  return { snap, phase, error, refreshing, countdown, receivedAt, refresh, reload: load };
+  // No per-second state here: a 1 s tick in this context re-rendered every useLive() consumer, including the
+  // dashboard preloaded under the story, and showed up as a ~80 ms hitch each second while scrolling it.
+  return { snap, phase, error, refreshing, nextRefreshAt, receivedAt, refresh, reload: load };
 }
 
 /** One shared connection to the AeroFusion API for the whole app. */
 export function LiveProvider({ children }: { children: ReactNode }) {
   const state = useLiveState();
   return createElement(LiveCtx.Provider, { value: state }, children);
+}
+
+/** Seconds until the server's next refresh, ticking once a second in the calling component only. */
+export function useCountdown(): number | null {
+  const { nextRefreshAt } = useLive();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (nextRefreshAt === null) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [nextRefreshAt]);
+  return nextRefreshAt === null ? null : Math.max(0, Math.round((nextRefreshAt - now) / 1000));
 }
 
 export function useLive(): LiveState {
