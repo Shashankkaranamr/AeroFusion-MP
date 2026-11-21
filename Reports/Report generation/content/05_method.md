@@ -90,37 +90,57 @@ with a_0 = x. The transform runs inside each 72-hour window with left padding, s
 
 ### Source-group attribution gating
 
-The 29 features are divided into seven groups: pollutant history, traffic proxy (NO2, CO, weekday, holiday), meteorology, fire, CAMS, dust and calendar. For node n, a summary s_(n,k) of group k (window mean and last value) passes through a small network φ_k. The gate weights are
+The 29 features are divided into seven groups: pollutant history, traffic proxy (NO2, CO, weekday, holiday), meteorology, fire, CAMS, dust and calendar. Each feature is accompanied by its availability mask, and the wavelet bands of a pollutant belong to that pollutant's group, so a group G_k is a set of input channels. For node n, the input window is first summarised per group by its window mean and its last value,
+
+$$ s_(n,k) = [ mean_t z_(t,n,G_k) ; z_(T,n,G_k) ] | summary
+
+where z_(t,n,c) is channel c of the input at hour t and T is the last hour of the window. Each summary passes through its own small network φ_k, two linear layers with an ELU activation between them, which maps every group to a vector of the same size H = 64. A linear scoring layer W reads all the group vectors together and a softmax over the groups gives the gate weights:
 
 $$ g_n = softmax( W [φ_1(s_(n,1)); … ; φ_G(s_(n,G))] ) | gate
 
-and the input at each step is the gated sum of per-group projections,
+The weights are positive and sum to one over the G = 7 groups, and they are computed once per node and window. The input to the temporal encoder at each hour is then the gated sum of per-group linear projections P_k,
 
 $$ h_(t,n) = Σ_k g_(n,k) · P_k( x_(t,n,G_k) ) | gatesum
 
-This follows the variable selection of the Temporal Fusion Transformer [@Lim_2021]. To encourage the model to rely on a few groups, the loss includes the mean entropy of the gate weights with weight λ = 0.01:
+so a group with a small weight contributes little to every hour of the window. This follows the variable selection of the Temporal Fusion Transformer [@Lim_2021]. To encourage the model to rely on a few groups, the loss includes the mean entropy of the gate weights with weight λ = 0.01:
 
 $$ L_gate = λ · E[ −Σ_k g_(n,k) · log g_(n,k) ] | entropy
 
-The proposal planned an L1 penalty, but softmax weights always sum to one, so an L1 penalty would be constant. The weights g_n are called learned attribution. They show which inputs the model relies on for a node, not how much each source contributes to the pollution.
+The entropy is largest, log G, when all groups receive the same weight, and zero when one group receives all of it, so the penalty pushes the gate toward a few groups without forcing a single one. The proposal planned an L1 penalty, but softmax weights always sum to one, so an L1 penalty would be constant and have no effect. The weights g_n are called learned attribution. They show which inputs the model relies on for a node, not how much each source contributes to the pollution.
 
 ### Transformer temporal encoder
 
-A two-layer Transformer encoder [@vaswani2017attention] with four heads, hidden size 64 and a causal mask runs over the 72 steps of each node. With queries Q, keys K and values V from the gated inputs, each head computes
+A two-layer Transformer encoder [@vaswani2017attention] with four heads, hidden size 64 and a causal mask runs over the 72 steps of each node. The gated inputs are first projected to the hidden size and a fixed sinusoidal position code is added, so that the encoder knows the order of the hours:
+
+$$ PE(t, 2i) = sin( t / 10000^(2i/H) ),   PE(t, 2i+1) = cos( t / 10000^(2i/H) ) | posenc
+
+With queries Q, keys K and values V obtained from the encoded inputs by learned linear maps, each head computes
 
 $$ Attention(Q, K, V) = softmax( Q K^⊤ / √d + M ) V | attn
 
-where the mask M is −∞ above the diagonal, so step t cannot see later steps. The last state gives the node embedding e_n. Rungs M0 to M2 use a GRU in its place.
+where d = H/4 is the size of one head and the mask M is −∞ above the diagonal, so step t cannot see later steps. The four heads are computed in parallel and joined,
+
+$$ MultiHead(Z) = [ head_1 ; … ; head_4 ] W^O,   head_i = Attention( Z W_i^Q, Z W_i^K, Z W_i^V ) | mha
+
+and each layer adds a two-layer feed-forward network, with residual connections and layer normalisation around both parts. The causal mask makes the encoder consistent with the latency rules: no hidden state depends on an hour later than the one it describes. The state of the last step, which has seen the whole window, gives the node embedding e_n. Rungs M0 to M2 use a single-layer GRU of the same width in its place.
 
 ### ConvLSTM grid context
 
-A ConvLSTM [@shi2015convolutional] runs over the past gridded fields (wind, BLH, temperature, FRP and CAMS aerosol fields). Its gates are convolutions over the grid:
+A ConvLSTM [@shi2015convolutional] runs over the past gridded fields (wind, BLH, temperature, FRP and CAMS aerosol fields) on the 0.75° India grid. It is an LSTM in which every matrix product is replaced by a convolution, so the hidden state is itself a map and keeps the spatial layout of the fields. Its input, forget and output gates are
 
 $$ i_t = σ(W_xi ∗ X_t + W_hi ∗ H_(t−1) + b_i),   f_t = σ(W_xf ∗ X_t + W_hf ∗ H_(t−1) + b_f) | convlstm1
 
+$$ o_t = σ(W_xo ∗ X_t + W_ho ∗ H_(t−1) + b_o) | convlstm3
+
+and the cell and hidden maps are updated as
+
 $$ C_t = f_t ⊙ C_(t−1) + i_t ⊙ tanh(W_xc ∗ X_t + W_hc ∗ H_(t−1) + b_c),   H_t = o_t ⊙ tanh(C_t) | convlstm2
 
-The last hidden map H_T is sampled bilinearly at each node's location and joined to e_n. FRP on the grid is hidden for the most recent hours to respect the detection delay. The grid branch exists because PM2.5 targets are points, while wind, boundary layer and fire fields are continuous over the region.
+where ∗ is a 3 × 3 convolution, σ the logistic function and ⊙ the element-wise product. The cell has 16 hidden channels. The last hidden map H_T is sampled bilinearly at each node's location and joined to e_n. A node at longitude λ_n and latitude ϕ_n is placed on the grid by the normalised coordinates
+
+$$ u_n = 2 (λ_n − λ_min) / (λ_max − λ_min) − 1,   v_n = 2 (ϕ_n − ϕ_min) / (ϕ_max − ϕ_min) − 1 | gridxy
+
+so every station, city and upwind region reads the grid context at its own position. FRP on the grid is hidden for the most recent hours to respect the detection delay. The grid branch exists because PM2.5 targets are points, while wind, boundary layer and fire fields are continuous over the region.
 
 ### Wind-aware adaptive diffusion graph
 
@@ -132,25 +152,43 @@ where d_ij is the great-circle distance and σ the median neighbour distance. At
 
 $$ Ã_ij(t0) = A_ij · max( 0, cos(θ_j − β_(j→i)) ) | wind
 
-where θ_j is the direction toward which the mean wind of the last six hours at node j blows and β_(j→i) is the bearing from j to i. Two residual diffusion-convolution layers [@li2017diffusion] use the forward and backward random-walk matrices of Ã and an adaptive matrix softmax(ReLU(E_1 E_2^⊤)) learned from node embeddings [@Wu_2019], each with diffusion order K = 2:
+where θ_j is the direction toward which the mean wind of the last six hours at node j blows and β_(j→i) is the bearing from j to i. An edge therefore carries full weight when the wind at the sender blows straight at the receiver, and no weight when it blows away from it. The direction is computed from the mean wind components as θ_j = atan2(u_j, v_j), using only hours before the issue time. The weighted adjacency is turned into forward and backward random-walk matrices by normalising its rows,
+
+$$ P_f = D^(−1) Ã,   P_b = D_b^(−1) Ã^⊤,   P_a = softmax( ReLU( E_1 E_2^⊤ ) ) | randomwalk
+
+where D and D_b are the diagonal matrices of row sums of Ã and Ã^⊤. The third matrix P_a is learned from two node-embedding tables E_1 and E_2 [@Wu_2019] and can connect nodes that are not neighbours in the static graph. Two residual diffusion-convolution layers [@li2017diffusion] combine powers of the three matrices up to diffusion order K = 2:
 
 $$ H' = H + ReLU( [ H ; {P^k H} for P ∈ 𝒫, k = 1..K ] W ) | diffusion
 
-!fig fig5_6_station_graph.png | Station graph: eight nearest neighbours within 600 km | graph
+with 𝒫 = {P_f, P_b, P_a}. Each layer lets information travel two hops along the wind, against it, and along the learned links, and the residual connection keeps the node's own state. Rung M1 uses only the static graph, and rung M2 adds the adaptive matrix.
+
+!fig fig4_7_station_graph_real.png | Station graph over NASA Blue Marble imagery: eight nearest neighbours within 600 km | graph
 
 ### Decoder and loss
 
-A two-layer MLP maps each node state to all 48 leads at once, so there is one model instead of one per lead. The target is the standardised log(1 + PM2.5). In setting S-B, the latest published CAMS forecast for each lead is added through a per-lead input. Training minimises a masked Huber loss over observed targets only, plus the gate penalty:
+A two-layer MLP maps each node state to all 48 leads at once, so there is one model instead of one per lead:
+
+$$ ŷ_n = W_2 · ELU( W_1 e_n + b_1 ) + b_2,   ŷ_n ∈ ℝ^48 | decoder
+
+The target is the standardised logarithm of PM2.5. With μ and s the mean and standard deviation of log(1 + PM2.5) over the training years, the model learns
+
+$$ y_(l,n) = ( log(1 + PM_(l,n)) − μ ) / s,   PM_(l,n) = exp( s · ŷ_(l,n) + μ ) − 1 | target
+
+and forecasts are converted back to µg/m³ with the second expression before scoring. The logarithm reduces the weight of a few extreme winter hours in the loss. In setting S-B, the latest published CAMS forecast for each lead is added through a per-lead input that is projected and added to the node state before the decoder. Training minimises a masked Huber loss over observed targets only, plus the gate penalty:
 
 $$ L = Σ_(l,n) m_(l,n) · Huber_δ( ŷ_(l,n) − y_(l,n) ) / Σ_(l,n) m_(l,n) + L_gate | loss
 
-with δ = 1 and m_(l,n) = 1 where the target exists. Figure {fig:mwafn} shows the full architecture with tensor shapes.
+with m_(l,n) = 1 where the target exists and 0 otherwise. The Huber function is quadratic for small errors and linear for large ones,
+
+$$ Huber_δ(r) = r²/2 if |r| ≤ δ,   δ ( |r| − δ/2 ) otherwise | huber
+
+with δ = 1 in standardised units. It behaves like the squared error for ordinary hours and like the absolute error for the rare hours with very large errors, which keeps a few spikes from dominating training. Figure {fig:mwafn} shows the full architecture with tensor shapes.
 
 !fig fig4_2_mwafn_architecture.png | MW-AeroFusion-Net architecture with tensor shapes | mwafn
 
 ### Model size and cost
 
-The model is small. At hidden size 64, the full M6 has 242,663 parameters in setting S-A, and the rungs range from 43,248 (M0) upward (Table {tab:ladder} in Chapter 6). The cost per step grows linearly with the number of nodes N and the window length T for the graph and recurrent parts, quadratically with T for the attention, and with the grid size and window for the ConvLSTM, which is the most expensive branch. Training runs with automatic mixed precision and gradient clipping, and every epoch writes an atomic checkpoint so that a power cut costs at most one epoch (Algorithm 2).
+The model is small. At hidden size 64, the full M6 has 242,663 parameters in setting S-A, and the rungs range from 43,248 (M0) upward (Table {tab:ladder} in Chapter 6). The cost per step grows linearly with the number of nodes N and the window length T for the graph and recurrent parts, quadratically with T for the attention, and with the grid size and window for the ConvLSTM, which is the most expensive branch. Training runs with automatic mixed precision and gradient clipping, and every epoch writes an atomic checkpoint so that an interrupted run loses at most one epoch (Algorithm 2).
 
 !fig alg2_restart_safe_training.png | Algorithm 2: restart-safe training with early stopping | alg2
 

@@ -8,7 +8,31 @@ All results in this chapter are on the validation year 2022. They were produced 
 
 ### Live platform
 
-The AeroFusion platform is deployed and refreshes every 12 hours. At the time of writing it shows all 33 cities, with six of the six data sources reporting. Appendix A shows the main views. The platform presents CAMS forecasts, labelled as model output, and the measured CPCB history; it does not yet serve MW-AeroFusion-Net.
+The AeroFusion platform is deployed and refreshes every 12 hours. At the time of writing it shows all 33 cities, with six of the six data sources reporting. The platform presents CAMS forecasts, labelled as model output, and the measured CPCB history; it does not yet serve MW-AeroFusion-Net. The figures in this section were captured from the running dashboard on 20 November 2026, and Appendix A shows every view.
+
+Figure {fig:web-pipeline} shows the pipeline as the dashboard explains it to a visitor: six sources are fetched, fused into one block of numbers and explained. Every panel of the site reads from that block, so the map, the city pages and the language-model analyst always agree with each other.
+
+!fig ../../Report generation/snapshots/dark/web_pipeline.png | The data pipeline as shown on the dashboard: sources, fusion, tensor and explanation | web-pipeline
+
+The map view (Figure {fig:web-map}) places the 33 cities on the map of India with their current PM2.5 class, together with the NASA FIRMS fire detections of the last 24 hours. Selecting a city lists the cities and regions from which today's wind carries air towards it. On the day of the capture most fire detections were in Uttar Pradesh and Punjab, close to the cities with the highest values.
+
+!fig ../../Report generation/snapshots/dark/web_map.png | Live map view: city PM2.5 classes, NASA FIRMS fire detections and the incoming sources for Delhi | web-map
+
+Figure {fig:web-orbit} shows four of the satellite layers that the platform takes from NASA GIBS for the previous day: thermal anomalies from VIIRS, aerosol optical depth and true-colour reflectance from MODIS, and land surface temperature. The aerosol layer shows the haze over the Indo-Gangetic Plain that the station data also records, and the true-colour image shows the same haze as a grey veil over the north of the country.
+
+!fig ../../Report generation/snapshots/dark/web_orbit4.png | India from orbit on the previous day (NASA GIBS): thermal anomalies, aerosol optical depth, true colour and land surface temperature | web-orbit
+
+The fused data is a tensor of time by city by feature. Figure {fig:web-tensor} shows the slice for the latest hour: one row per city and one column per feature, with each cell scaled against the other cities. The northern cities stand out in the pollutant columns, and the fire columns are brightest for the cities near the burning areas. Empty cells mark gaps left by a source; they are shown, not filled.
+
+!fig ../../Report generation/snapshots/dark/web_tensor.png | The unified live tensor: 33 cities by 20 features for the latest hour, with the feature list | web-tensor
+
+Each city page combines these inputs into a four-day outlook (Figure {fig:web-city}). The chart shows the CAMS forecast for the next 96 hours, marks the cleanest and the worst three-hour windows, and compares the forecast with the CPCB measurements of November 2024. The note under the chart states that the curve is CAMS and that MW-AeroFusion-Net will appear next to it only after it has been evaluated on data it has never seen.
+
+!fig ../../Report generation/snapshots/dark/web_city_forecast.png | City view for Delhi: the four-day CAMS outlook with the cleanest and worst windows | web-city
+
+Figure {fig:web-wind} shows the station archive that the history view is built on and the wind links of the day: for each city, the neighbouring city towards which the wind at that city is blowing.
+
+!fig ../../Report generation/snapshots/dark/web_archive_wind.png | The CPCB station archive behind the history view, and the day's wind links between cities | web-wind
 
 ### Baselines in the past-only setting
 
@@ -38,6 +62,36 @@ Table {tab:skill} gives skill against persistence, where a positive value means 
 
 !include gen_skill.md
 
+### Errors by season
+
+PM2.5 in India follows a strong annual cycle, and so do the forecast errors. Figure {fig:season} splits the +24 hour error by season. The monsoon months are the easiest for every model: M0 has an RMSE of {r:m0_gru|24|by_season.monsoon_JJAS.rmse} µg/m³ from June to September, against {r:m0_gru|24|by_season.winter_DJF.rmse} µg/m³ in winter and {r:m0_gru|24|by_season.postmonsoon_ON.rmse} µg/m³ in October and November. The post-monsoon months, when crop-residue fires and a shallow boundary layer combine, are the hardest. Persistence suffers most in these months ({r:persistence|24|by_season.postmonsoon_ON.rmse} µg/m³), because concentrations change fastest then. The learned models stay within a few µg/m³ of each other in every season, and M6 is behind M0 and M4 in all four.
+
+!fig fig5_3_season_rmse.png | Station RMSE at +24 hours by season, validation 2022 (seed 0) | season
+
+### Errors by city
+
+Figure {fig:city} shows the +24 hour error for each of the 28 cities with stations. The error follows the pollution level: the coastal and southern cities have the lowest errors, with Kochi at {r:m0_gru|24|by_city.kochi.rmse} µg/m³ for M0, while Delhi, Ghaziabad and Noida have the highest, with Delhi at {r:m0_gru|24|by_city.delhi.rmse} µg/m³. M0 has a lower error than LightGBM in {c:m0_vs_lgbm} of the 28 cities. M0 is below persistence in {c:m0_vs_pers} of the 28 cities, and LightGBM in {c:lgbm_vs_pers}.
+
+!fig fig5_4_city_rmse.png | Station RMSE at +24 hours by city: persistence, LightGBM and M0 (validation 2022, seed 0) | city
+
+### Variation between seeds
+
+A neural network trained twice with different random seeds gives different results, and the ladder above uses one seed. Figure {fig:seeds} shows the full model trained with five seeds in settings S-A and S-B. In S-A the +1 hour error ranges from {s:m6_mwafn.1.min} to {s:m6_mwafn.1.max} µg/m³ (mean {s:m6_mwafn.1.mean}), and seed 0, the run in the ladder table, is at the high end of that range. At +24 hours the range is {s:m6_mwafn.24.min} to {s:m6_mwafn.24.max} µg/m³ (mean {s:m6_mwafn.24.mean}), and at +48 hours {s:m6_mwafn.48.min} to {s:m6_mwafn.48.max} µg/m³. Setting S-B is behind S-A at +1 and +24 hours for every seed. The spread at +1 hour is large enough that a single-seed comparison at that lead is not reliable, which is why the final comparison uses the seed mean and significance tests. The other rungs have one seed so far, so the figure compares M6 with the seed-0 runs of M0 and LightGBM only as reference lines.
+
+!fig fig5_5_seed_spread.png | Full model trained with five seeds: station RMSE at +1, +24 and +48 hours in settings S-A and S-B (validation 2022) | seeds
+
+### High-pollution episodes and AQI classes
+
+For public warnings, the hours above 250 µg/m³ matter more than the average error. Figure {fig:episodes} shows how well each model forecasts these episodes 24 hours ahead. The models detect only a minority of the episode hours. Persistence has the highest hit rate ({r:persistence|24|episodes.pod}) but also the highest false-alarm rate ({r:persistence|24|episodes.far}), since it repeats yesterday's peak. The learned models are more cautious: M0 has a hit rate of {r:m0_gru|24|episodes.pod} with a false-alarm rate of {r:m0_gru|24|episodes.far}. M6 detects more episodes than M0 ({r:m6_mwafn|24|episodes.pod}) at the cost of more false alarms. The AQI class of the +24 hour forecast is correct for {r:m0_gru|24|aqi.accuracy|pct} of station-hours with M0 and {r:lgbm_mos_sb|24|aqi.accuracy|pct} with LightGBM MOS in setting S-B.
+
+!fig fig5_6_episodes.png | Episode scores above 250 µg/m³ at +24 hours: hit rate, false-alarm rate and critical success index (validation 2022) | episodes
+
+### Explained variance across leads
+
+Figure {fig:r2} summarises every model by its R² at the three leads. All learned models explain most of the variance at +1 hour and lose roughly a third of it by +48 hours. Climatology and raw CAMS have nearly the same R² at every lead, because neither uses the recent station history. The learned models are grouped closely at every lead, which agrees with the small differences in RMSE.
+
+!fig fig5_7_r2_by_lead.png | R² at the station level for each model at +1, +24 and +48 hours (validation 2022, seed 0) | r2
+
 ### CAMS and the CAMS-informed setting
 
 Table {tab:val-sb} gives the results with CAMS. Raw CAMS has an RMSE of about 45 µg/m³ at every lead ({m:cams_raw.24.rmse} µg/m³ at +24 hours), which is similar to climatology and worse than every learned model in S-A. The per-station linear bias correction, fitted on the training years, does not help on 2022 and is slightly worse than raw CAMS ({m:cams_bc.24.rmse} µg/m³). A likely reason is that the bias of CAMS against the stations changed between the training years and 2022, so a correction fitted on 2018 to 2021 does not carry over. This will be checked on the test years.
@@ -51,6 +105,8 @@ LightGBM used as MOS on CAMS gives the best +48 hour result of all models ({m:lg
 Table {tab:region} splits the +24 hour error between the Indo-Gangetic Plain and the rest of the panel. The IGP error is about twice the error elsewhere for every model, because concentrations and their swings are much larger there in winter. The ranking of models is the same in both regions. Raw CAMS has the largest IGP error, and the learned models reduce it by roughly a quarter. Most models have a small negative bias at +24 hours, meaning they under-forecast on average, while MW-AeroFusion-Net in S-B has a positive bias.
 
 !include gen_region.md
+
+!fig fig5_8_region_rmse.png | RMSE at +24 hours in the Indo-Gangetic Plain and in the rest of the panel (validation 2022) | region-fig
 
 ### Five seeds and significance tests
 

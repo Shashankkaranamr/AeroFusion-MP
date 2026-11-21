@@ -8,6 +8,8 @@ For the forecaster, the project built a leakage-safe benchmark for 116 CPCB stat
 
 The validation results are mixed, and they are reported as measured. Station-level learning improves greatly on CAMS, whose error on the 2022 validation year is close to climatology. LightGBM and simple recurrent models are strong baselines. The full MW-AeroFusion-Net does not yet beat its simpler rungs or these baselines on validation. The five-seed runs and ablations now training will show which component causes the gap, and the final evaluation on 2023 to 2024 will give the test results. If the full model is still behind after the ablations, that is a useful finding for the field: on Indian station data at this scale, a well-built simple model with good inputs may be the better forecaster.
 
+@pagebreak
+
 ## Future Work
 
 - Complete the five-seed final runs and ablations, freeze the model as a team decision, and run the one-time test evaluation with significance tests, season and city breakdowns and episode scores.

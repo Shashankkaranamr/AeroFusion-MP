@@ -10,9 +10,7 @@ Forecasts come mainly from chemistry-transport models. The SAFAR system runs cit
 
 ## Research Motivation
 
-Three observations motivated the project.
-
-First, people need forecasts at the place where they live, for the next one or two days. A 40 km grid cell averages a whole city together with its rural surroundings. A station-level forecast for +1 to +48 hours can feed alerts, school and hospital planning, and personal decisions such as when to exercise outdoors.
+Three observations motivated the project. First, people need forecasts at the place where they live, for the next one or two days. A 40 km grid cell averages a whole city together with its rural surroundings. A station-level forecast for +1 to +48 hours can feed alerts, school and hospital planning, and personal decisions such as when to exercise outdoors.
 
 Second, many published deep-learning results for PM2.5 are hard to compare and some are optimistic. Decomposition methods applied to the whole series before the train and test split let future values leak into the inputs [@Quilty_2018]. Studies often feed reanalysis weather for the future hours, which a real forecaster never has [@Wang_2020]. Of the seven related papers we read in full text (Chapter 2), none compared against CAMS or another operational forecast. A model that only beats an LSTM tells a reader little about whether it is useful.
 
@@ -38,7 +36,7 @@ The model forecasts hourly PM2.5 at leads from +1 to +48 hours and is scored at 
 
 The project does not perform source apportionment. The gate weights describe what the model relies on, and the report calls them learned attribution. Traffic data is not available, so a traffic proxy (NO2, CO, weekday and holiday flags) is used in its place.
 
-!fig fig1_1_station_map.png | CPCB stations used in the panel (116), upwind source regions (17) and platform cities without a station | station-map
+!fig fig1_1_station_map_real.png | CPCB stations used in the panel (116), upwind source regions (17) and platform cities without a station, over NASA Blue Marble imagery | station-map
 
 ## SDG Justification
 
@@ -72,6 +70,8 @@ The common gap is that no open system combines station-level forecasts for many 
 The proposed system has two parts that share data sources and the city list (Figure {fig:overview}).
 
 **AeroFusion live platform.** A FastAPI backend fetches CAMS forecasts and weather from Open-Meteo, active fires from NASA FIRMS, satellite layers from NASA GIBS and measured history from the XKDR CPCB archive. Every 12 hours it fuses these into a tensor of up to 72 hours by 33 cities by 20 features and serves it through a REST API. A React 19 dashboard shows the national picture, a map with fires and wind, city detail, driver analysis, a what-if view, history and the data pipeline. An LLM analyst, Amazon Nova Micro on Bedrock with Groq as fallback, writes short insight cards and answers questions about the current data. A scroll-driven story page introduces the topic and hands the visitor to the dashboard.
+
+!fig ../../Report generation/snapshots/dark/web_map.png | The AeroFusion live map: 33 cities coloured by PM2.5 class and the NASA FIRMS fires of the last 24 hours | web-map-intro
 
 **MW-AeroFusion-Net.** The forecaster is trained offline on the GPU workstation from the leakage-safe dataset. It takes 72 hours of station inputs and gridded fields and predicts PM2.5 for each of the next 48 hours at every station. The model is built up in seven rungs, M0 to M6, so that the value of each component is measured. After the team freezes the model, it is evaluated once on the locked test years and exported to ONNX for the live backend.
 

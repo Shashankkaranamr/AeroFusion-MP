@@ -2,22 +2,22 @@
 
 @appendix A | Snapshots
 
-The snapshots below were taken on 20 November 2026 from the current dashboard build connected to the deployed API. The PM2.5 values on the platform are CAMS model output, not measurements.
+The snapshots below were taken on 20 November 2026 from the current dashboard build connected to the deployed API, in the dark theme. The PM2.5 values on the platform are CAMS model output, not measurements.
 
 
-!fig ../../Report generation/snapshots/app_now.png | Now view: national average, cities above the limit, people exposed and fires seen today | snap-now
+!fig ../../Report generation/snapshots/dark/app_now.png | Now view: national average, cities above the limit, people exposed and fires seen today | snap-now
 
-!fig ../../Report generation/snapshots/app_map.png | Map view: city PM2.5, NASA FIRMS fires, transport arrows with shares and the time scrubber | snap-map
+!fig ../../Report generation/snapshots/dark/app_map.png | Map view: city PM2.5, NASA FIRMS fires, transport arrows with shares and the time scrubber | snap-map
 
-!fig ../../Report generation/snapshots/app_city_delhi.png | City view for Delhi: PM2.5, AQI, advice and the four-day outlook | snap-city
+!fig ../../Report generation/snapshots/dark/app_city_delhi.png | City view for Delhi: PM2.5, AQI, advice and the four-day outlook | snap-city
 
-!fig ../../Report generation/snapshots/app_why.png | Why view: AI insight cards and the drivers across cities | snap-why
+!fig ../../Report generation/snapshots/dark/app_why.png | Why view: AI insight cards and the drivers across cities | snap-why
 
-!fig ../../Report generation/snapshots/app_what-if.png | What-if view, an illustrative heuristic on the CAMS forecast (not a model result) | snap-whatif
+!fig ../../Report generation/snapshots/dark/app_what-if.png | What-if view, an illustrative heuristic on the CAMS forecast (not a model result) | snap-whatif
 
-!fig ../../Report generation/snapshots/app_history.png | History view: monthly CPCB history and the calendar heatmap | snap-history
+!fig ../../Report generation/snapshots/dark/app_history.png | History view: monthly CPCB history and the calendar heatmap | snap-history
 
-!fig ../../Report generation/snapshots/app_data.png | Behind-the-data view: the pipeline, source health and the live tensor | snap-data
+!fig ../../Report generation/snapshots/dark/app_data.png | Behind-the-data view: the pipeline, source health and the live tensor | snap-data
 
 @appendix B | Details of List of Publications
 
