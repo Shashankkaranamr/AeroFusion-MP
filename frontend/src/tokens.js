@@ -8,6 +8,41 @@
  * not its brightness. Everything bright in the world is either pollution or people.
  */
 
+/**
+ * The particle's look — an experiment switch. 'cream': a pale dust grain crusted with soot (black
+ * pores, seams and patches), which reads as pollution and stands out on the dark. 'ember': the
+ * International Orange ball. Everything drawn as "the particle" follows this: the story's ember,
+ * the gathered blob, the hero's ball, the logo's blob and the cursor.
+ */
+export const PARTICLE_LOOK = 'cream';
+
+const PARTICLE_LOOKS = {
+  ember: {
+    shadow: '#4a1402', // matte shadow side of the ball
+    base: '#ff4d00', // = color.accent, International Orange
+    lit: '#ff7f3a',
+    rim: '#ffc09a', // light catching the fuzz on the lit edge
+    speck: '#ffd9a0', // warm-yellow dots in the loose cluster / burst
+    soot: '#140d0a', // black accents (unused: sootMix 0)
+    sootMix: 0,
+    glow: '#ff4d00', // the haze behind the ball
+    hot: '#ffa252', // burning: the ember edge of the ignited ball (= the video's spark glow)
+    white: '#fff4e0', // burning: the white-hot centre
+  },
+  cream: {
+    shadow: '#61574c', // warm grey shadow side: still separates from the black
+    base: '#d8cab0', // sand cream
+    lit: '#eee4d1',
+    rim: '#fffaf0',
+    speck: '#f4e6c8', // pale dots in the loose cluster / burst
+    soot: '#14110f', // the black accents: pores, seams, soot patches and flecks
+    sootMix: 1,
+    glow: '#e8d9bf',
+    hot: '#ffa252', // it still burns like the ember (the video's spark)
+    white: '#fff4e0',
+  },
+};
+
 export const tokens = {
   color: {
     /** Background per time of day. Scroll interpolates between these. */
@@ -141,19 +176,8 @@ export const tokens = {
   },
 
   particle: {
-    /**
-     * Flat-vector tones (light from the top-left). All on the ember family — the particle is
-     * pollution, so it may use ember.
-     */
-    tones: {
-      shadow: '#4a1402', // matte shadow side of the ball
-      base: '#ff4d00', // = color.accent, International Orange
-      lit: '#ff7f3a',
-      rim: '#ffc09a', // light catching the fuzz on the lit edge
-      speck: '#ffd9a0', // warm-yellow dots in the loose cluster / burst
-      hot: '#ffa252', // burning: the ember edge of the ignited ball (= the video's spark glow)
-      white: '#fff4e0', // burning: the white-hot centre
-    },
+    /** Tones (light from the top-left), from the look chosen by PARTICLE_LOOK above. */
+    tones: PARTICLE_LOOKS[PARTICLE_LOOK],
     /** Flat dots used by the loose cluster and the burst (the body is one drawn shape). */
     count: 900,
     countMobile: 700,

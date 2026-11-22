@@ -30,9 +30,9 @@ void main() { vUv = aQuad; gl_Position = vec4(aQuad, 0.0, 1.0); }`;
 const BODY_FRAG = /* glsl */ `
 precision highp float;
 varying vec2 vUv;
-uniform float uTime, uRadius, uWobble, uBreath, uAlpha, uAA, uHeat, uDetail;
+uniform float uTime, uRadius, uWobble, uBreath, uAlpha, uAA, uHeat, uDetail, uSootMix;
 uniform vec2 uLight;
-uniform vec3 uShadow, uBase, uLit, uRim, uSpeck, uHot, uWhite;
+uniform vec3 uShadow, uBase, uLit, uRim, uSpeck, uHot, uWhite, uSoot;
 
 float hash(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
@@ -148,7 +148,14 @@ void main() {
   vec3 s = cells(m * 15.0);
   float fleck = step(0.84, s.z) * (1.0 - smoothstep(0.05, 0.15, s.x));
   float twinkle = 0.5 + 0.5 * sin(t * 1.2 + s.z * 47.0);
-  col = mix(col, uSpeck, fleck * twinkle * det * smoothstep(0.15, 0.6, diff) * 0.9);
+  col = mix(col, uSpeck, fleck * twinkle * det * smoothstep(0.15, 0.6, diff) * 0.9 * (1.0 - uSootMix));
+
+  // Soot (the cream look): black crusted into a pale grain. Broad patches clinging to the surface
+  // show at every size; pores, seams and flecks go black where the ball is big enough to show them.
+  float sootK = uSootMix * (1.0 - uHeat);
+  float patch = smoothstep(0.56, 0.74, fbm(w * 2.4 + 3.7));
+  float soot = patch * (0.55 + 0.3 * det) + det * (0.9 * pore + 0.6 * seam + 0.95 * fleck);
+  col = mix(col, uSoot, clamp(soot, 0.0, 0.92) * sootK);
 
   // Ignition: lit from inside. The surface texture fades, the centre goes white-hot and the
   // fuzz burns ember, so it reads as the same ball catching fire rather than a new object.
@@ -297,6 +304,8 @@ export function createParticle({ count, diameter: fixed } = {}) {
   const T = P.tones;
   const root = el('div', 'particle', { 'aria-hidden': 'true' });
   const glow = el('div', 'particle__glow');
+  // The haze takes the look's colour (CSS: --glow-rgb).
+  glow.style.setProperty('--glow-rgb', hexToRgb01(T.glow).map((v) => Math.round(v * 255)).join(' '));
   const canvas = el('canvas', 'particle__canvas');
   root.append(glow, canvas);
 
@@ -325,6 +334,8 @@ export function createParticle({ count, diameter: fixed } = {}) {
     }
     gl.useProgram(body.prog);
     gl.uniform3fv(body.u.uWhite, hexToRgb01(T.white));
+    gl.uniform3fv(body.u.uSoot, hexToRgb01(T.soot));
+    gl.uniform1f(body.u.uSootMix, T.sootMix);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied "over": flat paint, not light

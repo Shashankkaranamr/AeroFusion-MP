@@ -70,7 +70,22 @@ function startStory() {
       ScrollTrigger.getAll().forEach((t) => t.disable(false));
       gsap.ticker.sleep();
     },
-    /** The story again, from the top; the blob will fly to the corner again at the end. */
+    /**
+     * Back into the story at its end, at scroll position `y` (the closing hero, with the
+     * dashboard just under it): the reader scrolled up out of the dashboard.
+     */
+    resumeAt(y) {
+      gsap.ticker.wake();
+      brand.reset();
+      ScrollTrigger.getAll().forEach((t) => t.enable(false));
+      sound.setMuted(false);
+      ScrollTrigger.refresh();
+      window.scrollTo(0, y);
+      scroller.start();
+      scroller.lenis?.scrollTo(y, { immediate: true, force: true });
+      ScrollTrigger.update();
+    },
+    /** The story again, from the top. */
     resume() {
       gsap.ticker.wake();
       brand.reset();

@@ -185,8 +185,8 @@ h3 {
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgb(var(--c-accent-rgb) / 0.42) 0%,
-    rgb(var(--c-accent-rgb) / 0.14) 32%,
+    rgb(var(--glow-rgb, var(--c-accent-rgb)) / 0.42) 0%,
+    rgb(var(--glow-rgb, var(--c-accent-rgb)) / 0.14) 32%,
     transparent 68%
   );
   mix-blend-mode: screen;

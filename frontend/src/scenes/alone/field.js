@@ -1,3 +1,5 @@
+import { tokens } from '../../tokens.js';
+import { hexToRgb } from '../../core/color.js';
 /**
  * THE FIELD — one dot per tenth of a µg/m³, on black.
  *
@@ -29,7 +31,8 @@ const DRAG = 0.03;
 const SPRING = 2.2; // our addition: offsets ease home, so the field keeps its shape
 
 const TONES = [[150, 154, 162], [172, 170, 168], [196, 190, 180]];
-const EMBER = [255, 138, 61];
+// The dots warm toward the particle's own colour as they gather into it (tokens.PARTICLE_LOOK).
+const EMBER = hexToRgb(tokens.particle.tones.base);
 
 function createDotLayer(glCanvas, max) {
   const gl = glCanvas.getContext('webgl', { alpha: false, antialias: false, premultipliedAlpha: true, powerPreference: 'high-performance' });

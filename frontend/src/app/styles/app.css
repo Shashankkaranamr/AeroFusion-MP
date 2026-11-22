@@ -478,7 +478,7 @@ button {
   width: calc(var(--d) * 2.8);
   height: calc(var(--d) * 2.8);
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(var(--c-ember-rgb) / 0.42) 0%, rgb(var(--c-ember-rgb) / 0.14) 32%, transparent 68%);
+  background: radial-gradient(circle, rgb(var(--glow-rgb, var(--c-ember-rgb)) / 0.42) 0%, rgb(var(--glow-rgb, var(--c-ember-rgb)) / 0.14) 32%, transparent 68%);
   mix-blend-mode: screen;
 }
 .particle--fallback .particle__canvas {
