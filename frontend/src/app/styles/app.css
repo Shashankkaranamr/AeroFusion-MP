@@ -7,8 +7,10 @@
  * and 1 px rules doing the work that shadows and rounded corners used to. Hierarchy comes from
  * type weight (ultra-thin against heavy), never from colour.
  *
- *   Colour is reserved for data. Ember means particles (pollution values, fires, the brand mark);
- *   the CPCB category colours mean AQI. Everything interactive is white on black.
+ *   Palette (new frontend proposal/color_theme.txt): 60 % matte charcoal (#121212, cards #1A1A1A,
+ *   1 px #2A2A2A lines), 30 % putty cream (#F2EFE9 ink, #9A968E secondary), 10 % International Orange
+ *   (#FF4D00): the one primary action, live dots, active toggles, key numbers and the brand mark.
+ *   Never on large fills, glows or paragraphs. The CPCB category colours still mean AQI.
  *
  * Type: Inter for everything you read (100–300 for display, 400–500 for UI), JetBrains Mono for
  * the annotation layer (eyebrows, readings, units, times), uppercase and widely tracked.
@@ -19,22 +21,25 @@
 
 :root {
   color-scheme: dark;
-  --bg: #000000;
-  --surface: #060606;
-  --surface-2: #0d0d0d;
-  --surface-3: #171717;
-  --ink: #ffffff;
-  --ink-rgb: 255 255 255;
-  /* Quieter inks: white at fixed strengths (on #060606: ink-2 ≈ 9:1, ink-3 ≈ 4.6:1). */
-  --ink-2: rgb(255 255 255 / 0.66);
-  --ink-3: rgb(255 255 255 / 0.45);
-  --line: rgb(255 255 255 / 0.1);
-  --line-2: rgb(255 255 255 / 0.2);
-  --grid: rgb(255 255 255 / 0.035);
-  --ember: #ff8a3d;
-  --ember-rgb: 255 138 61;
-  --ember-hot: #ffc27a;
-  --ember-ink: #ff9a55;
+  --bg: #121212; /* matte charcoal */
+  --surface: #1a1a1a; /* deep graphite */
+  --surface-2: #1f1f1f;
+  --surface-3: #2a2a2a;
+  --ink: #f2efe9; /* putty cream */
+  --ink-rgb: 242 239 233;
+  /* Quieter inks (on #1A1A1A: ink-2 ≈ 5.9:1, ink-3 ≈ 4.6:1). */
+  --ink-2: #9a968e; /* warm stone */
+  --ink-3: #85817a;
+  --line: #2a2a2a; /* ash line */
+  --line-2: #3a3936;
+  --grid: rgb(242 239 233 / 0.03);
+  --accent: #ff4d00; /* International Orange */
+  --accent-hover: #e04300;
+  --accent-muted: rgb(255 77 0 / 0.12);
+  --ember: #ff4d00;
+  --ember-rgb: 255 77 0;
+  --ember-hot: #ff8a4a;
+  --ember-ink: #ff5a14;
   --haze: #8b4a83;
   --moon: #c9d2e3;
   --lamp: #f3d39b;
@@ -44,17 +49,17 @@
   --warn: #e8b931;
   --bad: #e5484d;
   --shadow-rgb: 0 0 0;
-  --glass: rgb(0 0 0 / 0.8);
-  --glass-edge: rgb(255 255 255 / 0.08);
-  --press: rgb(255 255 255 / 0.04);
-  --press-2: rgb(255 255 255 / 0.08);
+  --glass: rgb(18 18 18 / 0.82);
+  --glass-edge: rgb(242 239 233 / 0.08);
+  --press: rgb(242 239 233 / 0.04);
+  --press-2: rgb(242 239 233 / 0.08);
 
   /* Hairline figures sit on the card colour (their plates are filled). */
   --hairline-plate: var(--surface);
   --hairline-hi: var(--ink);
-  --hairline-edge: rgb(255 255 255 / 0.7);
-  --hairline-mid: rgb(255 255 255 / 0.32);
-  --hairline-lo: rgb(255 255 255 / 0.14);
+  --hairline-edge: rgb(242 239 233 / 0.7);
+  --hairline-mid: rgb(242 239 233 / 0.32);
+  --hairline-lo: rgb(242 239 233 / 0.14);
   --hairline-stroke: 0.9;
 
   --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -72,25 +77,25 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dusk"]) {
     color-scheme: light;
-    --bg: #f4f3ee;
-    --surface: #f9f8f4;
-    --surface-2: #ffffff;
-    --surface-3: #ebeae4;
-    --ink: #141414;
-    --ink-rgb: 20 20 20;
-    --ink-2: rgb(20 20 20 / 0.7);
-    --ink-3: rgb(20 20 20 / 0.52);
-    --line: rgb(20 20 20 / 0.12);
-    --line-2: rgb(20 20 20 / 0.24);
-    --grid: rgb(20 20 20 / 0.045);
-    --ember-ink: #b8531a;
+    --bg: #f2efe9;
+    --surface: #f7f5f0;
+    --surface-2: #fbfaf7;
+    --surface-3: #e6e2da;
+    --ink: #121212;
+    --ink-rgb: 18 18 18;
+    --ink-2: rgb(18 18 18 / 0.7);
+    --ink-3: rgb(18 18 18 / 0.56);
+    --line: rgb(18 18 18 / 0.12);
+    --line-2: rgb(18 18 18 / 0.24);
+    --grid: rgb(18 18 18 / 0.045);
+    --ember-ink: #c23a00;
     --haze: #7a3b72;
     --moon: #5a6b8c;
     --lamp: #9a6b1c;
     --distance: #5b6190;
     --clinical: #a5546a;
     --shadow-rgb: 40 36 30;
-    --glass: rgb(244 243 238 / 0.85);
+    --glass: rgb(242 239 233 / 0.85);
     --glass-edge: rgb(20 20 20 / 0.1);
     --press: rgb(20 20 20 / 0.04);
     --press-2: rgb(20 20 20 / 0.08);
@@ -113,6 +118,9 @@
   --color-ember: var(--ember);
   --color-ember-hot: var(--ember-hot);
   --color-ember-ink: var(--ember-ink);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
   --color-haze: var(--haze);
   --color-moon: var(--moon);
   --color-lamp: var(--lamp);
@@ -440,7 +448,7 @@ button {
 /* ------------------------------------------------- the ember (particle.js) -- */
 /* The same component as the story's particle: used for the logo's blob and the cursor. */
 :root {
-  --c-ember-rgb: 255 138 61;
+  --c-ember-rgb: 255 77 0;
 }
 .particle {
   position: absolute;
@@ -472,7 +480,7 @@ button {
   height: var(--d);
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ffb37a, #ff8a3d 55%, #5a200c);
+  background: radial-gradient(circle at 35% 35%, #ff7f3a, #ff4d00 55%, #4a1402);
 }
 
 /* ---------------------------------------------------------------- motion -- */

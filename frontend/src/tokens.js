@@ -18,7 +18,20 @@ export const tokens = {
       night: '#0a0820',
       /** A smog morning: warm, dark grey (Scene 5). */
       dawn: '#232129',
+      /** The opening (the hero) and the dashboard's field: matte charcoal (the 60 % base). */
+      canvas: '#121212',
     },
+
+    /*
+     * The site palette (new frontend proposal/color_theme.txt): 60 % matte charcoal, 30 % putty
+     * cream, 10 % International Orange. Orange is the one call to action, live dots and the brand
+     * ball — never large fills, glows or paragraph text.
+     */
+    surface: '#1A1A1A',
+    border: '#2A2A2A',
+    stone: '#9A968E',
+    accent: '#FF4D00',
+    accentHover: '#E04300',
 
     /** RESERVED: the particle, fire and pollution. Nothing else may use it. */
     ember: '#ff8a3d',
@@ -40,7 +53,7 @@ export const tokens = {
      * Text: a warm cream. Its quieter tones are mixed INTO the current sky (CSS color-mix with
      * --sky), not faded toward grey, so secondary text takes on each scene's light.
      */
-    ink: '#ffffff',
+    ink: '#F2EFE9', // putty cream
     inkDim: 62, // % of ink in the mix with the sky
     inkFaint: 36,
     /** Scene 5's clinical accent (the airway's rim). */
@@ -131,11 +144,11 @@ export const tokens = {
      * pollution, so it may use ember.
      */
     tones: {
-      shadow: '#5a200c', // matte shadow side of the ball
-      base: '#ff8a3d', // = color.ember
-      lit: '#ffb37a',
-      rim: '#ffd3a3', // light catching the fuzz on the lit edge
-      speck: '#ffe2a6', // warm-yellow dots in the loose cluster / burst
+      shadow: '#4a1402', // matte shadow side of the ball
+      base: '#ff4d00', // = color.accent, International Orange
+      lit: '#ff7f3a',
+      rim: '#ffc09a', // light catching the fuzz on the lit edge
+      speck: '#ffd9a0', // warm-yellow dots in the loose cluster / burst
       hot: '#ffa252', // burning: the ember edge of the ignited ball (= the video's spark glow)
       white: '#fff4e0', // burning: the white-hot centre
     },
@@ -198,6 +211,14 @@ export function applyTokens(root = document.documentElement) {
     '--c-ceiling': c.ceiling,
     '--c-ceiling-rgb': hexToRgbTriplet(c.ceiling),
     '--c-ink': c.ink,
+    '--c-ink-rgb': hexToRgbTriplet(c.ink),
+    '--c-canvas': c.sky.canvas,
+    '--c-surface': c.surface,
+    '--c-border': c.border,
+    '--c-stone': c.stone,
+    '--c-accent': c.accent,
+    '--c-accent-rgb': hexToRgbTriplet(c.accent),
+    '--c-accent-hover': c.accentHover,
     '--c-ink-dim': `color-mix(in srgb, ${c.ink} ${c.inkDim}%, var(--sky))`,
     '--c-ink-faint': `color-mix(in srgb, ${c.ink} ${c.inkFaint}%, var(--sky))`,
     '--c-clinical': c.clinical,

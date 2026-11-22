@@ -11,8 +11,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        /** Solid ink: the one prominent action. */
-        primary: "bg-ink text-canvas hover:bg-[color-mix(in_oklab,var(--ink)_84%,var(--bg))]",
+        /** Solid International Orange: the one prominent action (charcoal text on orange). */
+        primary: "bg-accent font-semibold text-[#121212] hover:bg-accent-hover",
         /** Outlined, for secondary actions. */
         tinted: "text-ink shadow-[inset_0_0_0_1px_var(--line-2)] hover:bg-press-2 hover:shadow-[inset_0_0_0_1px_rgb(var(--ink-rgb)/0.4)]",
         /** Text only. */

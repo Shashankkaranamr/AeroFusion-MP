@@ -30,7 +30,7 @@ void main() { vUv = aQuad; gl_Position = vec4(aQuad, 0.0, 1.0); }`;
 const BODY_FRAG = /* glsl */ `
 precision highp float;
 varying vec2 vUv;
-uniform float uTime, uRadius, uWobble, uBreath, uAlpha, uAA, uHeat;
+uniform float uTime, uRadius, uWobble, uBreath, uAlpha, uAA, uHeat, uDetail;
 uniform vec2 uLight;
 uniform vec3 uShadow, uBase, uLit, uRim, uSpeck, uHot, uWhite;
 
@@ -53,6 +53,28 @@ float fbm(vec3 p) {
   for (int i = 0; i < 5; i++) { s += a * noise(p); p = p * 2.03 + 11.7; a *= 0.5; }
   return s;
 }
+vec3 hash33(vec3 p) {
+  p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+  p += dot(p, p.yxz + 33.33);
+  return fract((p.xxy + p.yxx) * p.zyx);
+}
+// Cells on the ball's surface: distance to the nearest and second-nearest seed, and the nearest
+// seed's id. Pores, the seams of the crust and the glinting specks are all drawn from these.
+vec3 cells(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  float d1 = 8.0, d2 = 8.0, id = 0.0;
+  for (int z = -1; z <= 1; z++)
+  for (int y = -1; y <= 1; y++)
+  for (int x = -1; x <= 1; x++) {
+    vec3 o = vec3(float(x), float(y), float(z));
+    vec3 h = hash33(i + o);
+    vec3 r = o + h - f;
+    float d = dot(r, r);
+    if (d < d1) { d2 = d1; d1 = d; id = h.x; } else if (d < d2) { d2 = d; }
+  }
+  return vec3(sqrt(d1), sqrt(d2), id);
+}
 mat3 rotY(float a) { float c = cos(a), s = sin(a); return mat3(c, 0, -s, 0, 1, 0, s, 0, c); }
 mat3 rotX(float a) { float c = cos(a), s = sin(a); return mat3(1, 0, 0, 0, c, s, 0, -s, c); }
 
@@ -62,14 +84,21 @@ void main() {
   float t = uTime;
   if (r > 1.6) { gl_FragColor = vec4(0.0); return; }
 
+  // Character (pores, smoke bands, specks) shows only where the ball is big enough to read it,
+  // and burns away as it ignites.
+  float det = uDetail * (1.0 - uHeat);
+
   // Fuzzy outline: the edge radius wanders with noise around the rim, then falls off softly.
+  // Real PM2.5 is a clumped aggregate, so a few broad lobes slowly change the silhouette too.
   vec2 dir = p / (r + 1e-5);
   float edgeN = fbm(vec3(dir * 3.0, t * 0.12));
-  float edge = 1.0 + uBreath + (edgeN - 0.5) * (0.08 + uWobble * 2.0);
-  float core = 1.0 - smoothstep(edge - 0.16, edge + 0.03, r);
+  float lobes = fbm(vec3(dir * 1.25, 4.0 + t * 0.045)) - 0.5;
+  float edge = 1.0 + uBreath + (edgeN - 0.5) * (0.08 + uWobble * 2.0) + lobes * 0.13;
+  // The falloff is in radius units, so a big ball needs a narrower one to stay as soft as a small one.
+  float core = 1.0 - smoothstep(edge - mix(0.16, 0.06, uDetail), edge + 0.03, r);
   // Wisps: fine fibres that reach past the edge.
   float fibre = smoothstep(0.45, 0.78, fbm(vec3(dir * 8.0, r * 6.0 - t * 0.2)));
-  float wisp = (1.0 - smoothstep(edge - 0.08, edge + 0.22, r)) * fibre * 0.4;
+  float wisp = (1.0 - smoothstep(edge - 0.08, edge + mix(0.22, 0.08, uDetail), r)) * fibre * mix(0.4, 0.3, uDetail);
   float alpha = max(core, wisp);
   if (alpha < 0.002) { gl_FragColor = vec4(0.0); return; }
 
@@ -81,15 +110,45 @@ void main() {
 
   // Dusty surface that slowly turns with the ball.
   vec3 m = rotX(0.35) * rotY(t * 0.18) * n;
-  float tex = fbm(m * 4.5);
+  // Smoke currents folding through the crust: the first particle's swirling interior, painted
+  // on the surface as slow bands that bend around each other.
+  vec3 w = m + 0.45 * vec3(fbm(m * 1.7 + vec3(0.0, t * 0.05, 0.0)),
+                           fbm(m * 1.7 + vec3(5.2, 1.3, -t * 0.04)),
+                           fbm(m * 1.7 + 9.1));
+  float band = smoothstep(-0.25, 0.9, sin(w.y * 9.0 + fbm(w * 2.6) * 6.0 + t * 0.25));
+  float tex = fbm(mix(m, w, det) * 4.5);
   float grain = noise(m * 38.0);
   float shade = (0.06 + 0.94 * diff) * (0.7 + 0.6 * tex) * (0.86 + 0.28 * grain);
+  shade *= mix(1.0, 0.8 + 0.34 * band, det);
+
+  // Pores and the seams between the crust's plates; a pore's far lip catches the light.
+  // Few, uneven pores (a fifth of the cells, of mixed sizes), soft-edged, and only faint seams:
+  // weathered crust, not a pattern.
+  vec3 c = cells(m * 5.0 + 0.3 * w);
+  float isPore = step(0.8, c.z);
+  float poreR = 0.08 + 0.5 * (c.z - 0.8);
+  float pore = isPore * (1.0 - smoothstep(poreR * 0.3, poreR, c.x));
+  float lip = isPore * smoothstep(poreR * 0.8, poreR * 1.1, c.x) * (1.0 - smoothstep(poreR * 1.1, poreR * 1.7, c.x));
+  float seam = (1.0 - smoothstep(0.0, 0.07, c.y - c.x)) * smoothstep(0.35, 0.75, fbm(m * 3.0 + 7.0));
+  shade *= 1.0 - det * (0.42 * pore + 0.1 * seam);
+  shade += det * 0.16 * lip * diff;
 
   vec3 col = mix(uShadow, uBase, smoothstep(0.08, 0.7, shade));
   col = mix(col, uLit, smoothstep(0.7, 1.15, shade));
   // Light catching the fuzz on the lit limb.
   float limb = pow(1.0 - n.z, 2.0) * smoothstep(-0.2, 0.8, dot(dir, uLight));
   col = mix(col, uRim, limb * 0.55);
+  // Bounce light on the shadowed limb, and a warm band along the terminator: it reads as a
+  // solid with volume rather than a lit disc.
+  float back = pow(1.0 - n.z, 3.0) * smoothstep(0.1, -0.9, dot(dir, uLight));
+  col = mix(col, uBase * 0.9, back * 0.4 * det);
+  float term = smoothstep(0.02, 0.18, diff) * (1.0 - smoothstep(0.18, 0.45, diff));
+  col += uBase * term * 0.14 * det;
+  // Warm specks caught in the crust, glinting slowly on the lit side.
+  vec3 s = cells(m * 15.0);
+  float fleck = step(0.84, s.z) * (1.0 - smoothstep(0.05, 0.15, s.x));
+  float twinkle = 0.5 + 0.5 * sin(t * 1.2 + s.z * 47.0);
+  col = mix(col, uSpeck, fleck * twinkle * det * smoothstep(0.15, 0.6, diff) * 0.9);
 
   // Ignition: lit from inside. The surface texture fades, the centre goes white-hot and the
   // fuzz burns ember, so it reads as the same ball catching fire rather than a new object.
@@ -331,6 +390,9 @@ export function createParticle({ count, diameter: fixed } = {}) {
       gl.uniform1f(body.u.uBreath, Math.sin(clock * 0.8) * P.breathe);
       gl.uniform1f(body.u.uAlpha, bodyAlpha);
       gl.uniform1f(body.u.uHeat, state.heat);
+      // How much surface character to draw, from the ball's size on screen (CSS px): none on the
+      // 24 px logo, a little at story size, all of it on the hero.
+      gl.uniform1f(body.u.uDetail, smooth(18, 220, diameter * state.scale));
       gl.uniform1f(body.u.uAA, 1 / (r * canvas.width * 0.5)); // one device pixel, in radius units
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }

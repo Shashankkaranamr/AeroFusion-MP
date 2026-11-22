@@ -185,8 +185,8 @@ h3 {
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgb(var(--c-ember-rgb) / 0.42) 0%,
-    rgb(var(--c-ember-rgb) / 0.14) 32%,
+    rgb(var(--c-accent-rgb) / 0.42) 0%,
+    rgb(var(--c-accent-rgb) / 0.14) 32%,
     transparent 68%
   );
   mix-blend-mode: screen;
@@ -314,7 +314,7 @@ h3 {
   padding: 6px 12px;
   border-radius: 0;
   background: color-mix(in srgb, color-mix(in srgb, var(--sky), #000000 55%) 72%, transparent);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(var(--c-ink-rgb) / 0.16);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   text-shadow: none;
@@ -418,6 +418,175 @@ h3 {
   }
   .caption--upper {
     top: 14%;
+  }
+}
+
+/* ------------------------------------------------------------------ hero -- */
+
+/* The opening frame (components/hero.js): the wordmark across the page, the particle over it,
+   and four small pieces of furniture in the corners. Under the particle in the DOM, so the ball
+   covers the letters. Same 1320 px column as the bar. */
+.hero {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: calc(120px + env(safe-area-inset-top)) var(--gutter) max(32px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: var(--space-l);
+  color: var(--c-ink);
+  pointer-events: none;
+}
+#story .hero__word {
+  grid-column: 1 / -1;
+  width: max-content; /* so fit() measures the letters, not the column */
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 100px; /* replaced by fit() */
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
+  white-space: nowrap;
+  color: var(--c-ink);
+  /* The last letter's side bearing would push the stop off the column. */
+  padding-right: 0.02em;
+}
+.hero__stop {
+  color: var(--c-accent);
+}
+.hero__stat {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: start;
+  gap: 4px 12px;
+  margin-top: clamp(20px, 3.4vh, 36px);
+}
+.hero__live {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  justify-self: center;
+}
+.hero__live::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--c-accent);
+  animation: hero-live 2.4s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+}
+@keyframes hero-live {
+  from { transform: scale(1); opacity: 0.7; }
+  to { transform: scale(3.4); opacity: 0; }
+}
+.hero__num {
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1;
+}
+.hero__unit {
+  grid-column: 2;
+  color: var(--c-stone);
+}
+#story .hero__list {
+  grid-row: 2;
+  grid-column: 2;
+  justify-self: end;
+  display: grid;
+  gap: 6px;
+  margin: clamp(20px, 3.4vh, 36px) 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: right;
+  color: var(--c-stone);
+}
+.hero__idx {
+  color: color-mix(in srgb, var(--c-stone) 60%, var(--c-canvas));
+}
+#story .hero__lede {
+  grid-row: 4;
+  align-self: end;
+  max-width: 17ch;
+  padding-bottom: 14px;
+  color: var(--c-ink);
+  /* The proposal's dotted rule under the line. */
+  background: radial-gradient(circle, var(--c-stone) 1px, transparent 1.4px) left bottom / 7px 3px repeat-x;
+}
+.hero__begin {
+  grid-row: 4;
+  grid-column: 2;
+  justify-self: end;
+  align-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: clamp(96px, 9vw, 132px);
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  color: var(--c-canvas);
+  background: var(--c-accent);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.18s ease, transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.hero__begin:hover {
+  background: var(--c-accent-hover);
+  transform: scale(1.04);
+}
+.hero__begin:active {
+  transform: scale(0.98);
+}
+.hero__begin:focus-visible {
+  outline: 1px solid var(--c-ink);
+  outline-offset: 4px;
+}
+.hero__play {
+  width: 0;
+  height: 0;
+  border-left: 8px solid currentColor;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+/* Phones: the wordmark on top, the ball under it, the furniture along the bottom. */
+@media (max-width: 639px) {
+  .hero {
+    padding-top: calc(108px + env(safe-area-inset-top));
+  }
+  #story .hero__list {
+    display: none;
+  }
+  .hero__stat {
+    grid-row: 4;
+    grid-column: 1 / -1;
+    margin: 0 0 18px;
+  }
+  .hero {
+    grid-template-rows: auto 1fr auto auto;
+  }
+  #story .hero__lede {
+    grid-row: 4;
+  }
+  .hero__stat {
+    grid-row: 3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__live::after {
+    animation: none;
   }
 }
 
@@ -915,7 +1084,7 @@ h3 {
   top: 50%;
   transform: translateY(-50%);
   left: 0;
-  color: rgb(255 255 255 / 0.66);
+  color: rgb(var(--c-ink-rgb) / 0.66);
   white-space: nowrap;
 }
 @media (max-width: 639px) {
@@ -924,7 +1093,7 @@ h3 {
   }
 }
 .story-bar__title b {
-  color: #fff;
+  color: var(--c-ink);
   font-weight: 500;
 }
 /* At the end of the story everything but the logo fades (hud.finale). */
@@ -939,7 +1108,7 @@ h3 {
   visibility: hidden;
 }
 .story-bar__rail {
-  border-top: 1px solid rgb(255 255 255 / 0.1);
+  border-top: 1px solid rgb(var(--c-ink-rgb) / 0.1);
   pointer-events: auto;
   overflow-x: auto;
   scrollbar-width: none;
@@ -966,7 +1135,7 @@ h3 {
   padding: 0;
   border: 0;
   background: none;
-  color: rgb(255 255 255 / 0.45);
+  color: rgb(var(--c-ink-rgb) / 0.45);
   font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 500;
@@ -978,15 +1147,15 @@ h3 {
 }
 .rail__item:hover,
 .rail__item[aria-current='step'] {
-  color: #fff;
+  color: var(--c-ink);
 }
 .rail__num {
-  color: rgb(255 255 255 / 0.32);
+  color: rgb(var(--c-ink-rgb) / 0.32);
   transition: color 0.2s ease;
 }
 .rail__item:hover .rail__num,
 .rail__item[aria-current='step'] .rail__num {
-  color: rgb(255 255 255 / 0.66);
+  color: rgb(var(--c-ink-rgb) / 0.66);
 }
 .rail__item::after {
   content: '';
@@ -995,7 +1164,7 @@ h3 {
   right: 0;
   bottom: 0;
   height: 1px;
-  background: #fff;
+  background: var(--c-ink);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
@@ -1004,7 +1173,7 @@ h3 {
   transform: scaleX(1);
 }
 .rail__item:focus-visible {
-  outline: 1px solid #fff;
+  outline: 1px solid var(--c-ink);
   outline-offset: 3px;
 }
 /* Phones: numbers only, and the current scene's name. */
@@ -1034,7 +1203,7 @@ h3 {
   gap: 12px;
   height: 40px;
   padding-right: 8px;
-  color: #fff;
+  color: var(--c-ink);
   text-decoration: none;
   pointer-events: none;
 }
@@ -1070,7 +1239,7 @@ h3 {
   line-height: 1;
   letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 0.45);
+  color: rgb(var(--c-ink-rgb) / 0.45);
   opacity: 0;
 }
 @media (max-width: 639px) {
@@ -1079,7 +1248,7 @@ h3 {
   }
 }
 .brand:focus-visible {
-  outline: 1px solid #fff;
+  outline: 1px solid var(--c-ink);
   outline-offset: 6px;
 }
 
@@ -1098,7 +1267,7 @@ h3 {
   padding: 0 16px 0 14px;
   border: 0;
   border-radius: 0;
-  color: #fff;
+  color: var(--c-ink);
   font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 500;
@@ -1107,25 +1276,25 @@ h3 {
   white-space: nowrap;
   cursor: pointer;
   background: rgb(0 0 0 / 0.35);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
+  box-shadow: inset 0 0 0 1px rgb(var(--c-ink-rgb) / 0.2);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, opacity 0.4s ease, transform 0.16s cubic-bezier(0.19, 1, 0.22, 1);
 }
 .control:hover {
-  background: rgb(255 255 255 / 0.08);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4);
+  background: rgb(var(--c-ink-rgb) / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--c-ink-rgb) / 0.4);
 }
 .control:active {
   transform: translateY(1px);
 }
 .control:focus-visible {
-  outline: 1px solid #fff;
+  outline: 1px solid var(--c-ink);
   outline-offset: 3px;
 }
 .control[aria-pressed='true'] {
-  color: #000;
-  background: #fff;
+  color: var(--c-canvas);
+  background: var(--c-ink);
   box-shadow: none;
 }
 .control__icon {
@@ -1141,8 +1310,8 @@ h3 {
 .control--skip {
   gap: 14px;
   padding: 0 18px 0 20px;
-  color: #000;
-  background: #fff;
+  color: var(--c-canvas);
+  background: var(--c-ink);
   box-shadow: none;
   font-family: var(--font-body);
   font-size: 13.5px;
@@ -1151,7 +1320,7 @@ h3 {
   text-transform: none;
 }
 .control--skip:hover {
-  background: #d9d9d9;
+  background: color-mix(in srgb, var(--c-ink) 84%, var(--c-canvas));
   box-shadow: none;
 }
 .control--skip .control__icon {
@@ -1194,7 +1363,7 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: calc(var(--z-hud) - 1);
-  background: #000;
+  background: var(--c-canvas);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -1226,7 +1395,7 @@ h3 {
   font-size: clamp(1.4rem, 3.4vw, 2.6rem);
   letter-spacing: -0.035em;
   line-height: 1.1;
-  color: #fff;
+  color: var(--c-ink);
 }
 
 /* ------------------------------------------- the bridge: story → dashboard -- */
@@ -1238,9 +1407,9 @@ h3 {
   inset: 0;
   z-index: 3;
   background:
-    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    #000;
+    linear-gradient(rgb(var(--c-ink-rgb) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--c-ink-rgb) / 0.035) 1px, transparent 1px),
+    var(--c-canvas);
   background-size: 96px 96px, 96px 96px, auto;
   opacity: 0;
   visibility: hidden;
@@ -1261,7 +1430,7 @@ h3 {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: rgb(255 255 255 / 0.45);
+  color: rgb(var(--c-ink-rgb) / 0.45);
   transform: translateX(-50%);
   white-space: nowrap;
 }
@@ -1269,7 +1438,7 @@ h3 {
   content: '';
   width: 1px;
   height: 36px;
-  background: linear-gradient(rgb(255 255 255 / 0.5), transparent);
+  background: linear-gradient(rgb(var(--c-ink-rgb) / 0.5), transparent);
   transform-origin: top;
   animation: cue 2.2s cubic-bezier(0.19, 1, 0.22, 1) infinite;
 }
@@ -1290,9 +1459,9 @@ h3 {
 }
 html:not(.mode-dash) #app {
   background:
-    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    var(--bg, #000);
+    linear-gradient(rgb(var(--c-ink-rgb) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--c-ink-rgb) / 0.035) 1px, transparent 1px),
+    var(--bg, var(--c-canvas));
   background-size: 96px 96px, 96px 96px, auto;
 }
 /* Until it locks, the dashboard's logo place is held by the story's, which flies there. */
@@ -1302,7 +1471,7 @@ html:not(.mode-dash) #app [data-logo] {
 
 /* Locked into the dashboard: the story steps out of the page entirely. */
 html.mode-dash {
-  background: #000;
+  background: var(--c-canvas);
 }
 .mode-dash :is(#story, #bridge, .hud, .vignette, .grain, .veil, .ember-cursor, .bridge-field) {
   display: none !important;
@@ -1313,7 +1482,7 @@ html.mode-dash {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: #000;
+  background: var(--c-canvas);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
