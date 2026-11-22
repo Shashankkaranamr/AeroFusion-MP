@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Check, Circle } from "lucide-react";
+import { Circle } from "lucide-react";
 import { Figure, type FigureName } from "@/components/figure";
 import { WindGraph } from "@/components/map/wind-graph";
 import { ModelStatus } from "@/components/model-status";
@@ -219,52 +219,6 @@ export function DataView() {
           </CardHeader>
           <CardBody>
             <WindGraph snap={snap} className="mx-auto max-w-[460px]" />
-          </CardBody>
-        </Card>
-      </div>
-
-      <div className="stagger mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.3fr]">
-        <Card i={0}>
-          <CardHeader eyebrow="Roadmap" title="Ready, and not yet" />
-          <CardBody>
-            <ul className="grid gap-2.5 text-[13.5px]">
-              {[
-                [true, "Six live sources, refreshed every 12 hours"],
-                [true, "Fusion into one tensor for 33 cities"],
-                [true, "AI insights and chat, with a fallback model"],
-                [true, "CPCB station archive (196 million readings)"],
-                [false, "Our own forecast model, trained on the tensor"],
-                [false, "Measured accuracy against stations, published"],
-                [false, "More cities, and hourly refresh"],
-              ].map(([done, text]) => (
-                <li key={String(text)} className="flex items-start gap-2.5">
-                  <span className={cn("mt-0.5 grid size-4 shrink-0 place-items-center", done ? "bg-ink text-canvas" : "shadow-[inset_0_0_0_1px_var(--line-2)]")}>{done && <Check className="size-3" strokeWidth={3} />}</span>
-                  <span className={done ? "text-ink" : "text-ink-2"}>{text}</span>
-                </li>
-              ))}
-            </ul>
-          </CardBody>
-        </Card>
-        <Card i={1}>
-          <CardHeader eyebrow="Honesty notes" title="What this can't tell you" />
-          <CardBody>
-            <ul className="grid gap-3 text-[13.5px] leading-relaxed text-ink-2">
-              <li>
-                <strong className="font-semibold text-ink">PM2.5 is modelled.</strong> Live values are Copernicus CAMS estimates on a ~40 km grid, not station readings. They smooth out local hotspots.
-              </li>
-              <li>
-                <strong className="font-semibold text-ink">Source shares are estimates.</strong> The fire share comes from a simple rule on upwind fire counts; the rest uses published averages for Indian cities.
-              </li>
-              <li>
-                <strong className="font-semibold text-ink">AI text can be wrong.</strong> It is written from today's numbers but can misread them. The charts are the record.
-              </li>
-              <li>
-                <strong className="font-semibold text-ink">Projections is a sensitivity model.</strong> It compares options; it doesn't predict.
-              </li>
-              <li>
-                <strong className="font-semibold text-ink">No accuracy is claimed.</strong> We haven't trained or validated a forecast model of our own yet.
-              </li>
-            </ul>
           </CardBody>
         </Card>
       </div>
