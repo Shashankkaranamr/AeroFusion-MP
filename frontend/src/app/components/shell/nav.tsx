@@ -58,7 +58,9 @@ export function Nav({ current, city, inline }: { current: ViewId; city: string; 
               </a>
               {active && (
                 <motion.span
-                  layoutId="nav-underline"
+                  // One id per copy (the top row and the row under it are both rendered): a shared id makes
+                  // the line hand itself over to the hidden copy and fade out.
+                  layoutId={inline ? "nav-underline-top" : "nav-underline"}
                   // The current view: a cream line just under its name (in the top row, under the
                   // word itself rather than at the header's edge).
                   className={cn("absolute inset-x-0 bg-cream", inline ? "bottom-[19px] h-[1.5px]" : "-bottom-px h-px")}
