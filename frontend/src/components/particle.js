@@ -130,7 +130,8 @@ void main() {
   float pore = isPore * (1.0 - smoothstep(poreR * 0.3, poreR, c.x));
   float lip = isPore * smoothstep(poreR * 0.8, poreR * 1.1, c.x) * (1.0 - smoothstep(poreR * 1.1, poreR * 1.7, c.x));
   float seam = (1.0 - smoothstep(0.0, 0.07, c.y - c.x)) * smoothstep(0.35, 0.75, fbm(m * 3.0 + 7.0));
-  shade *= 1.0 - det * (0.42 * pore + 0.1 * seam);
+  // (No seams under soot: they read as cracked earth.)
+  shade *= 1.0 - det * (0.42 * pore + 0.1 * seam * (1.0 - uSootMix));
   shade += det * 0.16 * lip * diff;
 
   vec3 col = mix(uShadow, uBase, smoothstep(0.08, 0.7, shade));
@@ -150,12 +151,19 @@ void main() {
   float twinkle = 0.5 + 0.5 * sin(t * 1.2 + s.z * 47.0);
   col = mix(col, uSpeck, fleck * twinkle * det * smoothstep(0.15, 0.6, diff) * 0.9 * (1.0 - uSootMix));
 
-  // Soot (the cream look): black crusted into a pale grain. Broad patches clinging to the surface
-  // show at every size; pores, seams and flecks go black where the ball is big enough to show them.
+  // Soot (the cream look): a pale grain coated in black sludge. Broad, soft-edged smears cover
+  // much of it, the coat thickening on the shadow side; between them the cream shows through,
+  // dusted with fine grime. The coat keeps a faint sheen and catches the rim, so it is still a ball.
   float sootK = uSootMix * (1.0 - uHeat);
-  float patch = smoothstep(0.56, 0.74, fbm(w * 2.4 + 3.7));
-  float soot = patch * (0.55 + 0.3 * det) + det * (0.9 * pore + 0.6 * seam + 0.95 * fleck);
-  col = mix(col, uSoot, clamp(soot, 0.0, 0.92) * sootK);
+  float coat = fbm(w * 1.6 + 3.7) + 0.12 * (1.0 - diff) - 0.05;
+  float smear = smoothstep(0.38, 0.54, coat);
+  float grime = smoothstep(0.5, 0.8, fbm(m * 11.0 + 1.3)) * 0.45;
+  float soot = max(smear, grime * (0.4 + 0.6 * det)) + det * (0.7 * pore + 0.9 * fleck);
+  // A dusty cream fringe all round the edge, so the silhouette holds against a black page.
+  float fringe = smoothstep(0.55, 0.95, 1.0 - n.z);
+  soot = clamp(soot, 0.0, 0.94) * sootK * (1.0 - 0.7 * fringe);
+  vec3 sludge = uSoot + uLit * (0.02 + 0.05 * diff) + uRim * limb * 0.1;
+  col = mix(col, sludge, soot);
 
   // Ignition: lit from inside. The surface texture fades, the centre goes white-hot and the
   // fuzz burns ember, so it reads as the same ball catching fire rather than a new object.
