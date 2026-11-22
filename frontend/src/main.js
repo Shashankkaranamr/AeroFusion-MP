@@ -114,6 +114,7 @@ function startStory() {
         brand.reset();
         hud.finale(0);
         hud.toSite(0);
+        hud.pastHero(0);
         bridge.set(0);
       };
       clear();

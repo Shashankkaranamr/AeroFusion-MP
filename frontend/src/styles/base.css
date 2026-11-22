@@ -244,7 +244,8 @@ h3 {
   inset: 0;
   z-index: var(--z-vignette);
   pointer-events: none;
-  opacity: var(--vignette);
+  /* Gone over the closing hero: it sits on the dashboard's own field. */
+  opacity: calc(var(--vignette) * (1 - var(--to-site, 0)));
   /* Shadow = the sky pushed toward black, so it keeps the sky's hue. Never grey. */
   background: radial-gradient(
     ellipse 115% 95% at 50% 45%,
@@ -258,7 +259,7 @@ h3 {
   inset: -50%;
   z-index: var(--z-grain);
   pointer-events: none;
-  opacity: var(--grain-opacity);
+  opacity: calc(var(--grain-opacity) * (1 - var(--to-site, 0)));
   background-repeat: repeat;
   animation: grain 0.8s steps(1) infinite;
 }
@@ -1093,9 +1094,12 @@ h3 {
   height: 64px;
 }
 /* At the end of the story everything but the logo fades (hud.finale). */
-.story-bar::before,
 .story-bar .controls {
   opacity: var(--chrome, 1);
+}
+/* The bar's shade goes as the site's header takes over the top. */
+.story-bar::before {
+  opacity: calc(var(--chrome, 1) * (1 - var(--to-site, 0)));
 }
 .story-bar.is-finale .controls {
   pointer-events: none;
@@ -1382,6 +1386,71 @@ h3 {
   60% { transform: scaleY(1); opacity: 1; }
   100% { transform: scaleY(1); opacity: 0; }
 }
+/* ------------------------------------------- the site's header over the hero -- */
+
+/* The closing hero sits on the dashboard's own field (body, src/app/styles/app.css). */
+.site-field {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 0, rgb(var(--c-ink-rgb) / 0.045), transparent 60%),
+    linear-gradient(rgb(var(--c-ink-rgb) / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--c-ink-rgb) / 0.03) 1px, transparent 1px),
+    var(--bg, var(--c-canvas));
+  background-size: 100% 100%, 96px 96px, 96px 96px, auto;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+}
+
+/*
+ * Under the story, the dashboard's header (components/shell/header.tsx) is fixed at the top and
+ * takes over the story's bar in parts: the views with the dots gathering (--to-site), Ask the data
+ * once the story's button has turned into it (to-site-done), and the logo, the other buttons and
+ * the glass as the hero scrolls away (--past-hero). The page keeps the header's room, so nothing
+ * moves when it locks and the header becomes the ordinary sticky one.
+ */
+/* (Padding, not a margin on <main>: that would collapse through #app and push #app down instead.) */
+html:not(.mode-dash) #app {
+  padding-top: var(--app-header-h, 108px);
+}
+html:not(.mode-dash) #app > header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: rgb(18 18 18 / calc(0.82 * var(--past-hero, 0)));
+  -webkit-backdrop-filter: blur(calc(16px * var(--past-hero, 0)));
+  backdrop-filter: blur(calc(16px * var(--past-hero, 0)));
+  box-shadow: inset 0 -1px 0 rgb(42 42 42 / var(--past-hero, 0));
+}
+html.to-site-on:not(.mode-dash) #app > header {
+  visibility: visible;
+}
+html:not(.mode-dash) #app > header [data-fade='nav'] {
+  opacity: var(--to-site, 0);
+}
+html:not(.mode-dash) #app > header [data-fade='nav'].border-t {
+  border-color: rgb(42 42 42 / var(--to-site, 0));
+}
+html:not(.mode-dash) #app > header [data-fade='late'] {
+  opacity: var(--past-hero, 0);
+}
+html:not(.mode-dash) #app > header [data-fade='ask'] {
+  opacity: 0;
+}
+html.to-site-done:not(.mode-dash) #app > header :is([data-fade='nav'], [data-fade='ask']),
+html.past-hero:not(.mode-dash) #app > header [data-fade='late'] {
+  pointer-events: auto;
+}
+html.to-site-done:not(.mode-dash) #app > header [data-fade='ask'] {
+  opacity: 1;
+}
+/* …and the story's own button, which turned into it, steps aside for it. */
+html.to-site-done:has(#app > header) .story-bar .control--skip {
+  visibility: hidden;
+}
+
 /* No screen between them any more: the dashboard follows the closing hero directly. */
 #bridge {
   position: relative;

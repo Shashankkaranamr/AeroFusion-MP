@@ -3,14 +3,15 @@ import { href, type ViewId } from "@/lib/router";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
-export const NAV: { id: ViewId; label: string }[] = [
+/** `short`: the label in the header's top row, where the room is tight. */
+export const NAV: { id: ViewId; label: string; short?: string }[] = [
   { id: "now", label: "Now" },
   { id: "map", label: "Map" },
   { id: "city", label: "City" },
   { id: "why", label: "Why" },
   { id: "what-if", label: "What if" },
   { id: "history", label: "History" },
-  { id: "data", label: "Behind the data" },
+  { id: "data", label: "Behind the data", short: "Data" },
 ];
 
 /** The view's place in the rail, as the two-digit index the view headers repeat. */
@@ -22,11 +23,11 @@ export const navIndex = (id: ViewId) => String(NAV.findIndex((n) => n.id === id)
  * navigate), so the current one is aria-current. On a phone the rail scrolls sideways and keeps the
  * current item in view.
  */
-export function Nav({ current, city }: { current: ViewId; city: string }) {
+export function Nav({ current, city, inline }: { current: ViewId; city: string; inline?: boolean }) {
   return (
-    <nav aria-label="Dashboard" className="no-scrollbar -mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)]">
-      <ul className="flex min-w-max items-stretch gap-x-7 sm:gap-x-9">
-        {NAV.map(({ id, label }, i) => {
+    <nav aria-label="Dashboard" className={cn("no-scrollbar overflow-x-auto", !inline && "-mx-[var(--gutter)] px-[var(--gutter)]")}>
+      <ul className={cn("flex min-w-max items-stretch", inline ? "gap-x-6" : "gap-x-7 sm:gap-x-9")}>
+        {NAV.map(({ id, label, short }, i) => {
           const active = id === current;
           return (
             <li key={id} className="relative">
@@ -44,12 +45,13 @@ export function Nav({ current, city }: { current: ViewId; city: string }) {
                   rail.scrollTo({ left: Math.max(0, x) });
                 }}
                 className={cn(
-                  "group flex h-11 items-center gap-2.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] transition-colors duration-200",
+                  "group flex items-center gap-2.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] transition-colors duration-200",
+                  inline ? "h-16" : "h-11",
                   active ? "text-ink" : "text-ink-3 hover:text-ink",
                 )}
               >
                 <span className={cn("transition-colors", active ? "text-cream-ink" : "text-ink-3/70 group-hover:text-ink-2")}>{String(i + 1).padStart(2, "0")}</span>
-                {label}
+                {inline && short ? short : label}
               </a>
               {active && (
                 <motion.span

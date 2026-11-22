@@ -1,19 +1,17 @@
-import { useEffect, useState } from "react";
-import { RefreshCw, Undo2, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { RefreshCw, Volume2, VolumeX } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Nav } from "./nav";
 import { ArrowUpRightMark, Button } from "@/components/ui/button";
 import { ConfirmIcon } from "@/components/ui/confirm-icon";
-import { PulsatingLoader } from "@/components/ui/loader";
 import { Select } from "@/components/ui/select";
 import { Tip } from "@/components/ui/tooltip";
-import { useCountdown, useLive, type LiveSnapshot } from "@/lib/api";
+import { useLive, type LiveSnapshot } from "@/lib/api";
 import { categoryForPm } from "@/lib/aqi";
 import { CITIES } from "@/lib/cities";
-import { fmtAgo, fmtCountdown } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
 import { href, type ViewId } from "@/lib/router";
-import { toStory } from "@/lib/site";
+import { isDash } from "@/lib/site";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
@@ -21,44 +19,6 @@ import { cn } from "@/lib/utils";
 export function isStale(snap: LiveSnapshot | null) {
   if (!snap) return false;
   return Date.now() - Date.parse(snap.updated_at) > (snap.interval_s + 3600) * 1000;
-}
-
-/** Live status: last updated and the next refresh, in words; a coloured dot only doubles them. */
-function StatusPill() {
-  const { snap, phase } = useLive();
-  const countdown = useCountdown();
-  const [, tick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => tick((t) => t + 1), 30_000);
-    return () => clearInterval(id);
-  }, []);
-  if (phase === "connecting" || phase === "waking") return <PulsatingLoader size={8} label={phase === "waking" ? "Waking the server" : "Connecting"} className="chip" />;
-  const updated = snap ? Date.parse(snap.updated_at) : null;
-  const stale = isStale(snap);
-  const tone = phase === "offline" ? "var(--bad)" : stale ? "var(--warn)" : "var(--good)";
-  const text = phase === "offline" ? "Offline" : stale ? "Stale" : "Live";
-  return (
-    <Tip
-      content={
-        <div className="grid gap-1">
-          <span>{phase === "offline" ? "Can't reach the AeroFusion API. Showing the last data received." : "All six sources are fused into one snapshot."}</span>
-          {updated && <span className="mono text-ink-2">Updated {new Date(updated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</span>}
-          {countdown !== null && phase !== "offline" && <span className="mono text-ink-2">Next refresh in {fmtCountdown(countdown)}</span>}
-        </div>
-      }
-    >
-      <span className="chip cursor-default" tabIndex={0}>
-        <span
-          aria-hidden
-          className={cn("size-1.5 rounded-full", phase === "live" && !stale && "[--ring:59_178_122] motion-safe:animate-[live-ring_1.6s_var(--ease-out)_infinite]")}
-          style={{ background: tone }}
-        />
-        <span className="text-ink">{text}</span>
-        {updated && <span className="hidden sm:inline">· {fmtAgo(updated)}</span>}
-        {countdown !== null && phase === "live" && <span className="hidden xl:inline">· next in {fmtCountdown(countdown)}</span>}
-      </span>
-    </Tip>
-  );
 }
 
 /** The six sources as six dots: green when the last fetch worked. Opens Behind the data. */
@@ -86,7 +46,7 @@ function SourceHealth() {
             <span key={s.id} className="h-2.5 w-[3px]" style={{ background: s.ok ? "var(--good)" : "var(--bad)" }} />
           ))}
         </span>
-        <span className="hidden md:inline">
+        <span className="hidden 2xl:inline">
           {ok}/{snap.sources.length} sources
         </span>
       </a>
@@ -128,27 +88,6 @@ function SoundToggle() {
   );
 }
 
-/** Back to the story's animation, from the top (the story sits above the dashboard on one page). */
-function StoryButton() {
-  return (
-    <Tip content="Back to the story, from the beginning">
-      <Button
-        variant="tinted"
-        size="md"
-        onClick={() => {
-          sound.tick();
-          toStory();
-        }}
-        aria-label="Back to the story"
-        className="gap-2.5 px-3.5 font-mono text-[10.5px] uppercase tracking-[0.18em] max-xl:size-10 max-xl:px-0 [&_svg]:size-3.5"
-      >
-        <Undo2 />
-        <span className="max-xl:hidden">The story</span>
-      </Button>
-    </Tip>
-  );
-}
-
 /** "Where do you breathe?" — the city every view opens on, remembered on this device. */
 export function CityPicker({ className }: { className?: string }) {
   const { city, setCity } = usePrefs();
@@ -175,41 +114,57 @@ export function CityPicker({ className }: { className?: string }) {
   );
 }
 
+/**
+ * The header: the logo, the views (in the top row from xl up, under it below that), the source
+ * health, refresh, sound and Ask the data.
+ *
+ * It is also the end of the story's bar: under the story (html:not(.mode-dash)) it is fixed over
+ * the closing hero and comes in in parts (src/styles/base.css, "the site's header over the hero"):
+ * data-fade="nav" with the dots gathering, "ask" exactly where the story's button turned into it,
+ * "late" (logo, health, refresh, sound and the glass) as the hero scrolls away. When the dashboard
+ * locks it is simply the header, in the same place.
+ */
 export function Header({ view, onAsk }: { view: ViewId; onAsk: () => void }) {
   const { city } = usePrefs();
+  const ref = useRef<HTMLElement>(null);
+  // Under the story the header is fixed (out of the flow); the page keeps its room (--app-header-h).
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty("--app-header-h", `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Under the story, Ask glides into the dashboard first and opens there (src/main.js).
+  const ask = () => (isDash() ? onAsk() : window.dispatchEvent(new CustomEvent("aerofusion:ask-from-story")));
   return (
-    <header className="glass no-print sticky top-0 z-50 shadow-[inset_0_-1px_0_var(--line)]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <header ref={ref} className="glass no-print sticky top-0 z-50 shadow-[inset_0_-1px_0_var(--line)]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="mx-auto w-full max-w-[1320px] px-[var(--gutter)]">
         <div className="flex h-16 items-center gap-3">
-          <Logo />
-          <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
-            <div className="hidden sm:block">
-              <StoryButton />
-            </div>
-            <div className="hidden sm:block">
-              <CityPicker />
-            </div>
-            <StatusPill />
-            <div className="hidden md:block">
-              <SourceHealth />
-            </div>
-            <RefreshButton />
-            <div className="hidden sm:block">
+          <div data-fade="late" className="shrink-0">
+            <Logo />
+          </div>
+          <div data-fade="nav" className="hidden min-w-0 flex-1 xl:block xl:pl-4">
+            <Nav current={view} city={city} inline />
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <div data-fade="late" className="flex items-center gap-1.5 sm:gap-2">
+              <div className="hidden md:block">
+                <SourceHealth />
+              </div>
+              <RefreshButton />
               <SoundToggle />
             </div>
-            <Button variant="primary" size="md" onClick={onAsk} aria-label="Ask the data" className="group gap-3 px-5 max-sm:gap-2 max-sm:px-3 sm:ml-1">
-              <span className="sm:hidden">Ask</span>
-              <span className="max-sm:hidden">Ask the data</span>
-              <ArrowUpRightMark />
-            </Button>
+            <div data-fade="ask">
+              <Button variant="primary" size="md" onClick={ask} aria-label="Ask the data" className="group gap-3 px-5 max-sm:gap-2 max-sm:px-3 sm:ml-1">
+                <span className="sm:hidden">Ask</span>
+                <span className="max-sm:hidden">Ask the data</span>
+                <ArrowUpRightMark />
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="mb-2 flex items-center gap-2 sm:hidden">
-          <CityPicker className="min-w-[14rem]" />
-          <SoundToggle />
-          <StoryButton />
-        </div>
-        <div className="border-t border-line">
+        <div data-fade="nav" className="border-t border-line xl:hidden">
           <Nav current={view} city={city} />
         </div>
       </div>

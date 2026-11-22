@@ -52,7 +52,7 @@ export default {
   clock: { from: '12:00 AM', visible: 0 },
   atmosphere: { bg: '#050507', horizon: 0, followClock: 0 },
 
-  build({ viewport: v, tl, atmo, motion, hud, onTick, whenNear }) {
+  build({ viewport: v, section, tl, atmo, motion, hud, onTick, whenNear }) {
     const P = motion.parallax;
     const worst = story.worstDay;
     const timesWho = Math.round(worst.pm25 / LIMITS.who);
@@ -67,7 +67,10 @@ export default {
     const ring = el('div', 'alone-ring', { 'aria-hidden': 'true' });
     // The closing hero sits under the particle, so the gathered ball covers its wordmark.
     const hero = createHero();
-    v.append(canvas, hero.el, particle.el, ring);
+    // The dashboard's own field (charcoal, its grid, its light from above) under the hero, so the
+    // hero and the page below it are one surface. Over the dots' canvas, which paints its own black.
+    const siteField = el('div', 'site-field', { 'aria-hidden': 'true' });
+    v.append(canvas, siteField, hero.el, particle.el, ring);
     Object.assign(particle.state, { x: 0.5, y: 0.5, float: 0 });
     /** The hero's ball (as large as the proposal's, over the wordmark), re-read on every refresh. */
     const heroBall = () => {
@@ -108,7 +111,7 @@ export default {
     /* -------------------------------------------------------------- timeline -- */
     const { lineIn, linesOut } = createReveal(tl, motion, { inDur: 0.018, outDur: 0.015, stagger: 0.004 });
     const all = [...w51.lines, ...w52.lines, ...w53.lines, ...w54.lines, ...w54b.lines, ...w55.lines, ...w55b.lines];
-    gsap.set([...all, ...hero.parts, meter, legend, ring], { autoAlpha: 0 });
+    gsap.set([...all, ...hero.parts, meter, legend, ring, siteField], { autoAlpha: 0 });
 
     const state = { p: 0, value: 0, drift: 1, gather: 0, warm: 0, fade: 0, ember: 0, site: 0 };
     tl.fromTo(state, { p: 0 }, { p: 1, duration: 1, ease: 'none' }, 0);
@@ -130,6 +133,8 @@ export default {
     // The hero (5.6): the blob grows and settles over the wordmark as the black lifts to charcoal;
     // the wordmark rises in behind it, then the furniture; then it holds.
     tl.to(atmo, { bg: tokens.color.sky.canvas, duration: 0.04, ease: 'sine.inOut' }, 0.905);
+    // Once the dots are gone (fade ends 0.93): the dashboard's field comes up under the hero.
+    tl.fromTo(siteField, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.03, ease: 'sine.inOut', immediateRender: false }, 0.925);
     tl.to(particle.state, { y: () => heroBall().y, scale: () => heroBall().scale, duration: 0.045, ease: 'power2.inOut' }, 0.91);
     tl.fromTo(hero.word, { autoAlpha: 0, y: 60 * P }, { autoAlpha: 1, y: 0, duration: 0.03, ease: 'power2.out', immediateRender: false }, 0.925);
     hero.parts.slice(1).forEach((part, i) => {
@@ -193,6 +198,9 @@ export default {
       // The bar becomes the site's; it stays through the hero, and the dashboard's header rises
       // under it into the same place (its Ask the data exactly under ours) and takes over on lock.
       hud.toSite(state.site);
+      // Scrolling on past the hero (the dashboard rising): the header's logo and the rest come in.
+      const below = section.getBoundingClientRect().bottom;
+      hud.pastHero(clamp01((1 - below / window.innerHeight) / 0.45));
       particle.render(t);
       if (!field) return;
       // The blob's radius: where the ember will be, a little larger (so the ember forms inside it).

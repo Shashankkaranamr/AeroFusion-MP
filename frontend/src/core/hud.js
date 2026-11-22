@@ -27,6 +27,8 @@ export function createHud(parent = document.body) {
 
   let shownFinale = -1;
   let shownSite = -1;
+  let shownPast = -1;
+  const html = document.documentElement;
 
   return {
     root,
@@ -41,13 +43,24 @@ export function createHud(parent = document.body) {
       const r = Math.round(Math.min(1, Math.max(0, v)) * 100) / 100;
       if (r === shownSite) return;
       shownSite = r;
-      bar.style.setProperty('--to-site', String(r));
+      // On <html>: the dashboard's header (fixed over the hero) and the vignette read it too.
+      html.style.setProperty('--to-site', String(r));
+      html.classList.toggle('to-site-on', r > 0);
+      html.classList.toggle('to-site-done', r >= 0.99);
       const on = r > 0.5;
       if (bar.classList.contains('is-site') !== on) {
         bar.classList.toggle('is-site', on);
         bar.querySelector('.control--skip')?.setAttribute('aria-label', on ? 'Ask the data' : 'Live dashboard');
       }
       bar.classList.toggle('is-site-done', r >= 0.99);
+    },
+    /** 0 = on the hero; 1 = scrolled a good way past it: the header's logo and the rest come in. */
+    pastHero(v) {
+      const r = Math.round(Math.min(1, Math.max(0, v)) * 100) / 100;
+      if (r === shownPast) return;
+      shownPast = r;
+      html.style.setProperty('--past-hero', String(r));
+      html.classList.toggle('past-hero', r > 0.3);
     },
     /** 0 = the full bar; 1 = only the logo is left (the end of the story). */
     finale(v) {

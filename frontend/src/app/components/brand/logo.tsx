@@ -1,5 +1,5 @@
 import { Ember } from "./ember";
-import { toStory } from "@/lib/site";
+import { isDash, toStory } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,7 +15,9 @@ export function Logo({ className }: { className?: string }) {
       aria-label="AeroFusion — back to the story"
       onClick={(e) => {
         e.preventDefault();
-        toStory();
+        // In the dashboard: back to the story. Over the story's closing hero: to its beginning.
+        if (isDash()) toStory();
+        else window.dispatchEvent(new CustomEvent("aerofusion:home"));
       }}
       className={cn("press group inline-flex h-10 items-center gap-3 text-ink sm:pr-2 no-underline", className)}
     >
