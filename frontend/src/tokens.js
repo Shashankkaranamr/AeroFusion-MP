@@ -9,7 +9,7 @@
  */
 
 /**
- * The particle's look — a switch. 'ember': the International Orange ball coated in black soot.
+ * The particle's look — a switch. 'ember': the International Orange ball (soot coat off).
  * 'cream': a pale sand grain under the same soot. Everything drawn as "the particle" follows this:
  * the story's ember, the gathered blob, the hero's ball, the logo's blob and the cursor.
  * (sootMix 0 on either look gives the clean ball with no soot.)
@@ -23,8 +23,8 @@ const PARTICLE_LOOKS = {
     lit: '#ff7f3a',
     rim: '#ffc09a', // light catching the fuzz on the lit edge
     speck: '#ffd9a0', // warm-yellow dots in the loose cluster / burst
-    soot: '#120c09', // the black sludge coat
-    sootMix: 1,
+    soot: '#120c09', // the black sludge coat (off: sootMix 0)
+    sootMix: 0,
     glow: '#ff4d00', // the haze behind the ball
     hot: '#ffa252', // burning: the ember edge of the ignited ball (= the video's spark glow)
     white: '#fff4e0', // burning: the white-hot centre

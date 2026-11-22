@@ -131,7 +131,8 @@ void main() {
   float lip = isPore * smoothstep(poreR * 0.8, poreR * 1.1, c.x) * (1.0 - smoothstep(poreR * 1.1, poreR * 1.7, c.x));
   float seam = (1.0 - smoothstep(0.0, 0.07, c.y - c.x)) * smoothstep(0.35, 0.75, fbm(m * 3.0 + 7.0));
   // (No seams under soot: they read as cracked earth.)
-  shade *= 1.0 - det * (0.42 * pore + 0.1 * seam * (1.0 - uSootMix));
+  // Shallow: a pore is a darker orange, never a black hole.
+  shade *= 1.0 - det * (0.2 * pore + 0.1 * seam * (1.0 - uSootMix));
   shade += det * 0.16 * lip * diff;
 
   vec3 col = mix(uShadow, uBase, smoothstep(0.08, 0.7, shade));
