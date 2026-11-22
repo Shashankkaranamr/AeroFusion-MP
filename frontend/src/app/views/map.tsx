@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, Map as MlMap, MapLayerMouseEvent, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// MapLibre 6 looks for its worker next to its own module, which the bundler moves. Ship the worker as a
+// fingerprinted asset instead and point MapLibre at it, so no manual copy is needed after an upgrade.
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import type { FeatureCollection, Point } from "geojson";
 import { Layers, Pause, Play, X } from "lucide-react";
 import { AqiBadge } from "@/components/aqi";
@@ -112,6 +115,7 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
   /* ----------------------------------------------------------- map setup -- */
   useEffect(() => {
     if (!box.current || !snap) return;
+    maplibregl.setWorkerUrl(maplibreWorkerUrl);
     const map = new maplibregl.Map({
       container: box.current,
       style: baseStyle(),
@@ -131,12 +135,19 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
     // Zoom buttons on wide screens; phones pinch.
     if (window.innerWidth >= 640) map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
+    // A GIBS image that fails (GIBS sometimes answers a burst of WMS requests with an error body) is retried once.
+    const satRetried = new Set<string>();
+    map.on("error", (e) => {
+      const id = (e as { sourceId?: string }).sourceId;
+      const l = id?.startsWith("sat-") ? snap.gibs?.layers?.find((x) => `sat-${x.id}` === id) : undefined;
+      const src = id ? (map.getSource(id) as maplibregl.ImageSource | undefined) : undefined;
+      if (!l || !src || satRetried.has(id!)) return;
+      satRetried.add(id!);
+      setTimeout(() => src.updateImage({ url: `${l.url}&retry=1` }), 1500);
+    });
+
     map.on("load", () => {
-      // satellite (one at a time, under the data)
-      for (const l of snap.gibs?.layers ?? []) {
-        map.addSource(`sat-${l.id}`, { type: "image", url: l.url, coordinates: GIBS_CORNERS });
-        map.addLayer({ id: `sat-${l.id}`, type: "raster", source: `sat-${l.id}`, layout: { visibility: "none" }, paint: { "raster-opacity": l.transparent ? 0.85 : 0.92, "raster-fade-duration": 200 } }, "states");
-      }
+      // Satellite images are added on first selection (see the toggles effect), not all at once here.
       map.addSource("cities", { type: "geojson", data: citiesAt(snap, 0, now) });
       map.addLayer({
         id: "heat",
@@ -242,8 +253,14 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
     vis("heat", on.heat);
     vis("fires", on.fires);
     wind.current?.setVisible(on.wind);
+    // Satellite: one at a time, under the data. Fetch a layer's image only when it is first chosen.
+    const l = snap?.gibs?.layers?.find((x) => x.id === sat);
+    if (l && !map.getSource(`sat-${l.id}`)) {
+      map.addSource(`sat-${l.id}`, { type: "image", url: l.url, coordinates: GIBS_CORNERS });
+      map.addLayer({ id: `sat-${l.id}`, type: "raster", source: `sat-${l.id}`, layout: { visibility: "none" }, paint: { "raster-opacity": l.transparent ? 0.85 : 0.92, "raster-fade-duration": 200 } }, "states");
+    }
     for (const s of SATS) if (s.id !== "none") vis(`sat-${s.id}`, sat === s.id);
-  }, [on, sat, ready]);
+  }, [on, sat, ready, snap]);
 
   /* -------------------------------------------- fires upwind of selected -- */
   useEffect(() => {

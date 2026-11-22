@@ -681,7 +681,7 @@ the data loader streams from zarr).
 
 ## 8. Known issues / notes (carried over)
 - Live PM2.5 on the platform is the **CAMS model** (~40 km), not ground truth. XKDR PM2.5 ends Mar 2026.
-- If `maplibre-gl` is upgraded, re-copy `node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs` → `frontend/public/maplibre/`.
+- MapLibre worker: bundled by Vite (`maplibre-gl/dist/maplibre-gl-worker.mjs?url` + `setWorkerUrl`, 2026-11-22); no manual copy after upgrades.
 - CARTO tiles need a key, so the platform uses Esri tiles. Backend runs without `--reload`, so restart it after edits.
 - Browsers block autoplay audio until the first click. In-app screenshots stall on animated pages; use `?static=1`.
 - Font licences (Christmas Mallow, Papernotes) are unverified; clear them before public release.

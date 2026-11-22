@@ -83,7 +83,7 @@ The shell is Windows (PowerShell primary, Git Bash available). Use forward slash
 - **Large data** goes under `ml/data/raw/` with `MANIFEST.json` (sha256) and is never committed. Download scripts
   must be resumable and idempotent. Prefer XKDR bulk Parquet (`/v1/files`) over many API queries.
 - **Frontend:** the live platform labels CAMS values as "CAMS model", never as measurements. Keep the honesty notes.
-  `maplibre-gl` upgrades require re-copying the worker to `frontend/public/maplibre/`.
+  The MapLibre worker is bundled via `?url` and set with `setWorkerUrl` in `views/map.tsx`; no manual copy.
 - Before pinning any third-party API detail (archive ranges, latencies, timestamp conventions), verify it
   against the live API and record the result in PROGRESS §9.
 
