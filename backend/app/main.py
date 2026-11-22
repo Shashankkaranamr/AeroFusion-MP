@@ -105,6 +105,14 @@ async def model_forecast_all():
     return await model.forecast_all(S._om_get)
 
 
+@app.get("/api/model/sensitivity")
+async def model_sensitivity(city: str):
+    """Model sensitivity for one city: change in its next-24 h forecast when an input group or an upwind place is missing."""
+    if city not in CITY_BY_SLUG:
+        raise HTTPException(404, f"unknown city {city!r}")
+    return await model.sensitivity(city, S._om_get)
+
+
 @app.get("/api/model/forecast")
 async def model_forecast(city: str):
     """Live forecast of the frozen serving model for one city (built once per 00/12 UTC issue time, then cached)."""

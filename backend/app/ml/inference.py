@@ -329,6 +329,9 @@ class LiveForecaster:
         self.result: dict | None = None
         self.lock = asyncio.Lock()
         self.error: str | None = None
+        self.raw: tuple[str, dict] | None = None   # (issued_at, inputs) of the current issue, for sensitivity runs
+        self.base: np.ndarray | None = None
+        self.sens: dict = {}
         if cache_dir and (cache_dir / "model_forecast.json").exists():
             try:
                 self.result = json.loads((cache_dir / "model_forecast.json").read_text(encoding="utf-8"))
@@ -350,6 +353,7 @@ class LiveForecaster:
                 async with httpx.AsyncClient(timeout=90) as client:
                     raw, have = await build_inputs(t0, om_get, client)
                 pred = await asyncio.to_thread(self.ens.predict, raw)  # [48, N]
+                self.raw, self.base, self.sens = (t0.isoformat(), raw), pred, {}
                 self.result = self._package(t0, pred, have)
                 self.error = None
                 if self.cache_dir:
@@ -358,6 +362,54 @@ class LiveForecaster:
             except Exception as e:  # noqa: BLE001
                 self.error = redact(f"{type(e).__name__}: {e}")
         return self.result
+
+    async def sensitivity(self, city: str, om_get) -> dict | None:
+        """Model sensitivity for one city (input groups + upwind places), cached per issue. None if no forecast."""
+        r = await self.ensure(om_get)
+        if not r:
+            return None
+        if city in self.sens:
+            return self.sens[city]
+        async with self.lock:
+            if not self.raw or self.raw[0] != r["issued_at"] or self.base is None:
+                # after a restart the forecast comes from disk; rebuild the same issue's inputs once
+                t0 = datetime.fromisoformat(r["issued_at"])
+                async with httpx.AsyncClient(timeout=90) as client:
+                    raw, _ = await build_inputs(t0, om_get, client)
+                self.base = await asyncio.to_thread(self.ens.predict, raw)
+                self.raw, self.sens = (r["issued_at"], raw), {}
+            if city in self.sens:
+                return self.sens[city]
+            self.sens[city] = await asyncio.to_thread(self._sensitivity, city)
+        return self.sens[city]
+
+    def _sensitivity(self, city: str) -> dict:
+        c = _contract()
+        nd, feats, fg, ch = c["nodes"], c["feats"], c["groups"], c["grid"]["channels"]
+        raw, base = self.raw[1], self.base
+        idx = [i for i, (k, cs) in enumerate(zip(nd["kind"], nd["city_slug"])) if k == "station" and cs == city]
+        if not idx:
+            return {"status": "no_station", "city": city}
+        gmean = np.asarray(self.ens.members[0]["grid"]["mean"], np.float32)
+        b = float(np.nanmean(base[:SENS_HOURS, idx]))
+        live = np.isfinite(raw["x_node"][-24:])  # inputs actually present in the last day of the window
+
+        def delta(occ: dict) -> float:
+            return round(b - float(np.nanmean(self.ens.predict(occ)[:SENS_HOURS, idx])), 1)
+
+        groups = []
+        for g in SENS_GROUPS:
+            fi = [i for i, x in enumerate(fg) if x == g]
+            present = bool(live[:, :, fi].any()) or any(GRID_GROUP.get(x) == g for x in ch)
+            groups.append({"group": g, "features": [feats[i] for i in fi], "available": present,
+                           "delta": delta(_occlude(raw, [g], fg, ch, gmean)) if present else None})
+        places = []
+        for p in _upwind_candidates(nd, idx, raw["wind_uv"]):
+            occ = _occlude(raw, list(set(fg)), fg, ch, gmean, nodes=p["nodes"])  # every input of that place missing
+            places.append({k: p[k] for k in ("kind", "lat", "lon", "km")} | {"id": p["id"].removeprefix("region_"),
+                          "name": _place_names().get(p["id"].removeprefix("region_"), p["id"]), "delta": delta(occ)})
+        return {"status": "available", "city": city, "issued_at": self.raw[0], "hours": SENS_HOURS, "base": round(b, 1),
+                "groups": groups, "places": places, "notes": SENS_NOTES}
 
     def _package(self, t0: datetime, pred: np.ndarray, have: dict) -> dict:
         nd = _contract()["nodes"]
@@ -372,3 +424,73 @@ class LiveForecaster:
                 "model": "MW-AeroFusion-Net without source-group gating, mean of 5 seeds", "run_ids": [m["run_id"] for m in self.ens.members],
                 "inputs": have, "notes": NOTES, "cities": out,
                 "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+
+
+# ───────────────────────── model sensitivity (occlusion) ─────────────────────────
+# How the frozen model's forecast for a city responds when one input group, or one upwind node, is marked as missing
+# (the model was trained with missing-data masks, so "missing" stays within what it has seen). Not a source share and
+# not causal: it says what this model leans on, nothing about where particles physically come from.
+GRID_GROUP = {"u10": "met", "v10": "met", "blh": "met", "t2m": "met", "frp": "fire", "cams_pm25": "cams",
+              "cams_aod550": "dust", "cams_dust_aod": "dust"}
+SENS_GROUPS = ["history", "met", "fire", "cams", "dust", "traffic_proxy"]  # calendar is never missing in training: not varied
+SENS_HOURS = 24
+SENS_NOTES = [
+    "Each bar is how much this model's average forecast for the first 24 hours of the issue changes when that input group "
+    "(or that upwind place) is treated as missing data. Positive: the input raises the forecast.",
+    "This shows what the model leans on. It is not a measured source contribution and not a cause.",
+    "Calendar inputs (hour, season, festivals) are not varied: the model never saw them missing in training.",
+]
+
+
+def _place_names() -> dict[str, str]:
+    d = json.loads((HERE.parent / "data" / "cities.json").read_text(encoding="utf-8"))
+    return {c["slug"]: c["name"] for c in d["cities"]} | {r["id"]: r["name"] for r in d["source_regions"]}
+
+
+def _occlude(raw: dict, groups: list[str], feat_groups: list[str], channels: list[str], grid_mean: np.ndarray,
+             nodes: list[int] | None = None) -> dict:
+    """Copy of raw with the given groups marked missing (all nodes, or only `nodes`; grid channels only when all nodes)."""
+    fi = [i for i, g in enumerate(feat_groups) if g in groups]
+    x = raw["x_node"].copy()
+    if nodes is None:
+        x[..., fi] = np.nan
+    else:
+        for n in nodes:
+            x[:, n, fi] = np.nan
+    out = {**raw, "x_node": x}
+    if nodes is None:
+        ci = [i for i, c in enumerate(channels) if GRID_GROUP.get(c) in groups]
+        if ci:
+            g = raw["x_grid"].copy()
+            g[:, ci] = grid_mean[ci][None, :, None, None]
+            out["x_grid"] = g
+    return out
+
+
+def _upwind_candidates(nd: dict, city_idx: list[int], wind_uv: np.ndarray, k: int = 6, max_km: float = 900.0) -> list[dict]:
+    """Up to k other places (cities with stations, source regions) lying upwind of the city, nearest-and-most-aligned first."""
+    lat = float(np.mean([nd["lat"][i] for i in city_idx])); lon = float(np.mean([nd["lon"][i] for i in city_idx]))
+    u, v = np.nanmean(wind_uv[city_idx], axis=0)
+    if not np.isfinite(u) or np.hypot(u, v) < 0.3:
+        return []
+    to_deg = (np.degrees(np.arctan2(u, v)) + 360) % 360  # direction the air moves towards
+    groups: dict[str, dict] = {}
+    for i, (kind, cs) in enumerate(zip(nd["kind"], nd["city_slug"])):
+        if i in city_idx:
+            continue
+        key = f"region:{nd['node_id'][i]}" if kind == "region" else (f"city:{cs}" if cs else None)
+        if not key:
+            continue
+        groups.setdefault(key, {"kind": "region" if kind == "region" else "city", "id": key.split(":", 1)[1], "nodes": []})["nodes"].append(i)
+    out = []
+    for gr in groups.values():
+        glat = float(np.mean([nd["lat"][i] for i in gr["nodes"]])); glon = float(np.mean([nd["lon"][i] for i in gr["nodes"]]))
+        km, brg = _dist_bearing(glat, glon, lat, lon)  # bearing from the place to the city
+        if km > max_km or km < 5:
+            continue
+        align = float(np.cos(np.radians(brg - to_deg)))
+        if align < 0.5:
+            continue
+        out.append({**gr, "lat": round(glat, 3), "lon": round(glon, 3), "km": round(float(km)), "score": align / (1 + km / 300)})
+    out.sort(key=lambda d: -d["score"])
+    return out[:k]

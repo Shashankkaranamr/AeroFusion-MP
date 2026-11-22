@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ..live.sources import redact
 from .inference import LiveForecaster
 
 HERE = Path(__file__).resolve().parent
@@ -52,6 +53,16 @@ class ModelService:
         return {"status": "available", "issued_at": r["issued_at"], "valid_times": r["valid_times"],
                 "cities": {slug: {"pm25": c["pm25"], "stations": c["stations"]} for slug, c in r["cities"].items()},
                 "model": r["model"], "run_ids": r["run_ids"], "notes": r["notes"], "generated_at": r["generated_at"]}
+
+    async def sensitivity(self, city: str, om_get) -> dict:
+        """How the model's forecast for a city responds to each input group and to upwind places (occlusion)."""
+        if self.status()["forecasts"] != "available":
+            return {"status": "pending", "city": city, "message": PENDING}
+        try:
+            s = await self.live.sensitivity(city, om_get)
+        except Exception as e:  # noqa: BLE001
+            return {"status": "pending", "city": city, "message": "the sensitivity could not be computed just now", "error": redact(f"{type(e).__name__}: {e}")}
+        return s or {"status": "pending", "city": city, "message": "the live forecast could not be built just now; try again later"}
 
     async def forecast(self, city: str, om_get) -> dict:
         if self.status()["forecasts"] != "available":

@@ -14,6 +14,8 @@ import { Slider } from "@/components/ui/slider";
 import { AnimatedLink } from "@/components/ui/animated-link";
 import { useLive, type LiveSnapshot } from "@/lib/api";
 import { modelPmAt, useModelForecastAll, type ModelForecastAll } from "@/components/model-status";
+import { SensitivityPanel, SourcesMap } from "@/components/map/sources-map";
+import { SectionLabel } from "@/components/view-header";
 import { AQI_CATEGORIES, categoryForPm } from "@/lib/aqi";
 import { INDIA_OUTLINE, INDIA_STATES } from "@/lib/geo/india";
 import { fmtDay, fmtHour, fmtLead } from "@/lib/format";
@@ -22,6 +24,9 @@ import { usePrefs } from "@/lib/prefs";
 import { href } from "@/lib/router";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+
+// Set once at module load: both maps on this view need it before either is created.
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 const BOUNDS: [[number, number], [number, number]] = [
   [67.5, 6],
@@ -54,7 +59,7 @@ const TOGGLES: { id: Toggle; label: string }[] = [
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const rgb = (name: string, a = 1) => `rgba(${css(name).split(/\s+/).join(",")},${a})`;
 
-function baseStyle(): StyleSpecification {
+export function baseStyle(): StyleSpecification {
   return {
     version: 8,
     sources: {
@@ -128,7 +133,6 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
   /* ----------------------------------------------------------- map setup -- */
   useEffect(() => {
     if (!box.current || !snap) return;
-    maplibregl.setWorkerUrl(maplibreWorkerUrl);
     const map = new maplibregl.Map({
       container: box.current,
       style: baseStyle(),
@@ -391,7 +395,7 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
 
         {/* Selected city panel */}
         {panel ? (
-          <aside className="glass absolute right-3 top-3 z-10 w-[min(320px,calc(100%-24px))] p-5 max-sm:bottom-[148px] max-sm:top-auto sm:right-4 sm:top-4" aria-label={`${sel.name} details`}>
+          <aside className="glass absolute right-3 top-3 z-10 w-[min(320px,calc(100%-24px))] overflow-y-auto p-5 max-sm:bottom-[148px] max-sm:top-auto sm:right-4 sm:top-4 sm:max-h-[calc(100%-168px)]" aria-label={`${sel.name} details`}>
             <div className="flex items-start gap-2">
               <div className="min-w-0">
                 <div className="tag">{lead === 0 ? "Now" : `${srcLabel} · ${fmtDay(leadMs)} · ${fmtHour(leadMs)}`}</div>
@@ -432,6 +436,7 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
             <p className="mt-3 text-[12.5px] text-ink-2">
               <span className="text-ember-ink">{upCount}</span> fires upwind, lit brighter on the map.
             </p>
+            <SensitivityPanel city={sel.slug} />
             <AnimatedLink href={href("city", sel.slug)} className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.16em]">
               Open {sel.name}
             </AnimatedLink>
@@ -520,6 +525,12 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Second map: what our model links to the selected city */}
+      <div className="mx-[var(--gutter)]">
+        <SectionLabel>Where {sel.name}&rsquo;s forecast comes from · our model</SectionLabel>
+        <SourcesMap snap={snap} sel={sel} baseStyle={baseStyle} />
       </div>
     </div>
   );
