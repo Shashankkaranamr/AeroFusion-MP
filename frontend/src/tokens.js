@@ -9,12 +9,12 @@
  */
 
 /**
- * The particle's look — an experiment switch. 'cream': a pale dust grain crusted with soot (black
- * pores, seams and patches), which reads as pollution and stands out on the dark. 'ember': the
- * International Orange ball. Everything drawn as "the particle" follows this: the story's ember,
- * the gathered blob, the hero's ball, the logo's blob and the cursor.
+ * The particle's look — a switch. 'ember': the International Orange ball coated in black soot.
+ * 'cream': a pale sand grain under the same soot. Everything drawn as "the particle" follows this:
+ * the story's ember, the gathered blob, the hero's ball, the logo's blob and the cursor.
+ * (sootMix 0 on either look gives the clean ball with no soot.)
  */
-export const PARTICLE_LOOK = 'cream';
+export const PARTICLE_LOOK = 'ember';
 
 const PARTICLE_LOOKS = {
   ember: {
@@ -23,8 +23,8 @@ const PARTICLE_LOOKS = {
     lit: '#ff7f3a',
     rim: '#ffc09a', // light catching the fuzz on the lit edge
     speck: '#ffd9a0', // warm-yellow dots in the loose cluster / burst
-    soot: '#140d0a', // black accents (unused: sootMix 0)
-    sootMix: 0,
+    soot: '#120c09', // the black sludge coat
+    sootMix: 1,
     glow: '#ff4d00', // the haze behind the ball
     hot: '#ffa252', // burning: the ember edge of the ignited ball (= the video's spark glow)
     white: '#fff4e0', // burning: the white-hot centre
