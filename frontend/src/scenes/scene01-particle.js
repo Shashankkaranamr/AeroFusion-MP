@@ -1,11 +1,10 @@
 import { gsap } from 'gsap';
 import { tokens } from '../tokens.js';
+import { createParticle } from '../components/particle.js';
 import { brand } from '../core/brand.js';
 import { createFrameSequence } from '../components/frameSequence.js';
 import { createCaption } from '../components/caption.js';
 import { createScaleBar } from '../components/scaleBar.js';
-import { createHero } from '../components/hero.js';
-import { createParticle, diameterFor } from '../components/particle.js';
 import { ASIDE, VIDEO_BG, SPARK_SCALE, HANDOFF, SEQUENCE, TEN_MICRONS, framing } from './shared/handoff.js';
 
 const { color } = tokens;
@@ -23,14 +22,9 @@ const { color } = tokens;
  * only embers and the spark are left (HANDOFF.first), and this scene ends on HANDOFF.last,
  * which is exactly Scene 2's first frame.
  *
- * It opens on the hero (components/hero.js): the AEROFUSION wordmark across the page with the
- * particle, large, sitting over its lower half. The first scroll clears the hero and shrinks the
- * ball to its story size, dead centre.
- *
  * Timeline (fractions of the scene):
- *   0.00       the hero: wordmark behind a large particle
- *   0.00–0.07  the hero clears; the ball shrinks to story size, dead centre
- *   0.07–0.24  particle moves left; the three lines reveal on the right; marker + scale bar in
+ *   0.00–0.05  opening: only the particle, dead centre
+ *   0.05–0.24  particle moves left; the three lines reveal on the right; marker + scale bar in
  *   0.30–0.46  hold to read
  *   0.44–0.56  ignition: the ball heats white-hot, its haze becomes light; the lines leave
  *   0.55–0.82  blast: embers fly out; the ball collapses to the spark; sky → video black
@@ -57,20 +51,11 @@ export default {
       'Thirty times thinner than a human hair.',
     ]);
     const scale = createScaleBar([TEN_MICRONS]);
-    const hero = createHero();
-    // The hero goes under the particle, so the ball covers the wordmark.
-    v.append(seq.el, hero.el, particle.el, words.el, scale.el);
+    v.append(seq.el, particle.el, words.el, scale.el);
     whenNear(() => seq.load());
 
-    // The hero's ball: as large as the proposal's, over the wordmark. Function values, re-read on
-    // every refresh (fonts loaded, resize).
-    const heroBall = () => {
-      hero.fit();
-      const b = hero.ball();
-      return { y: b.y, scale: Math.max(1, Math.min(4.4, b.d / diameterFor())) };
-    };
-    // Perfectly still apart from its own slow surface; the haze kept low under the big ball.
-    Object.assign(particle.state, { x: 0.5, float: 0, ...heroBall(), glow: 0.35 });
+    // Dead centre, perfectly still apart from its own slow surface.
+    Object.assign(particle.state, { x: 0.5, y: 0.5, float: 0 });
     // Skip flies the ember from wherever it is now into the logo (core/brand.js).
     brand.setSource(() => (window.scrollY < section.offsetTop + section.offsetHeight - window.innerHeight && particle.state.opacity > 0.3
       ? { x: particle.state.x, y: particle.state.y, scale: particle.state.scale }
@@ -78,17 +63,9 @@ export default {
     // Start states are set directly, not as tl.set at 0 — rewinding a timeline to 0 undoes those.
     gsap.set([...words.lines, seq.el], { autoAlpha: 0 });
 
-    /* ------------------------------------------------------------------- hero -- */
-    tl.fromTo(particle.state,
-      { y: () => heroBall().y, scale: () => heroBall().scale, glow: 0.35 },
-      { y: 0.5, scale: 1, glow: 1, duration: 0.07, ease: 'sine.inOut' }, 0);
-    hero.parts.forEach((part, i) => {
-      tl.fromTo(part, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -(24 + i * 6) * P, duration: 0.045, ease: 'sine.in' }, 0.004 * i);
-    });
-
     /* ---------------------------------------------------------- step aside, read -- */
     // Function values re-read on every ScrollTrigger refresh (resize / rotate).
-    tl.to(particle.state, { x: () => ASIDE().x, y: () => ASIDE().y, duration: 0.17, ease: 'sine.inOut' }, 0.07);
+    tl.to(particle.state, { x: () => ASIDE().x, y: () => ASIDE().y, duration: 0.19, ease: 'sine.inOut' }, 0.05);
     [0.11, 0.17, 0.22].forEach((at, i) => {
       tl.fromTo(words.lines[i], { autoAlpha: 0, x: (36 - i * 6) * P }, { autoAlpha: 1, x: 0, duration: 0.1, ease: 'sine.out' }, at);
     });

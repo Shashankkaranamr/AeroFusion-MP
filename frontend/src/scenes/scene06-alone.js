@@ -5,8 +5,8 @@ import { createReveal } from '../components/reveal.js';
 import { createParticle } from '../components/particle.js';
 import { story, LIMITS } from '../data/story.js';
 import { firesUpwind } from '../data/india.js';
-import { brand, BRAND_EASE, BRAND_LIFT } from '../core/brand.js';
-import { bridge } from '../core/bridge.js';
+import { tokens } from '../tokens.js';
+import { createHero } from '../components/hero.js';
 import { diameterFor } from '../components/particle.js';
 import { createField } from './alone/field.js';
 import { isMobile } from '../core/motion.js';
@@ -22,7 +22,8 @@ const fmt = (n) => Math.round(n).toLocaleString('en-IN');
  * per 0.1 µg/m³ (0.2 on phones), strictly in proportion: the WHO's safe day, India's limit, the
  * destination's worst day, until you can't find yourself any more. Then every dot is pulled back
  * in, spiralling, to where the ember was: they warm to its orange and pack into one blob — and the
- * blob flies to the top-left corner, where it is the AeroFusion logo (core/brand.js).
+ * blob grows into the closing hero's ball, the AEROFUSION wordmark rising behind it
+ * (components/hero.js). Below the hero the page scrolls on into the dashboard.
  *
  *   5.1  black; the orange dot, centred, pulsing. "Weeks. Maybe years. / But you are not alone."
  *   5.2  sparse dots drift in from the edges; counter and thin bar on the left; a one-time
@@ -35,10 +36,10 @@ const fmt = (n) => Math.round(n).toLocaleString('en-IN');
  *   5.5  the dots freeze, then gather into one orange blob where the ember was.
  *        "Yesterday, NASA counted [2,314] fires. [380] were upwind of [Delhi]."
  *        "Every particle came from somewhere."
- *   5.6  "AEROFUSION / tracks them, live." under the blob. Then the blob and the word fly to the
- *        top-left together and become the logo, in the dashboard's logo place; the rest of the
- *        line and the bar fade, and the screen goes to black, grid and drifting particles
- *        (core/bridge.js). Scrolling on, the dashboard rises over it and locks (core/site.js).
+ *   5.6  the hero: the blob grows and settles over the wordmark, the black lifts to charcoal, and
+ *        the hero's furniture comes in (33 cities live, the dashboard's views, Go live). Then it
+ *        holds; scrolling on, the dashboard rises under it as a normal page and locks
+ *        (core/site.js), the story bar fading as it comes.
  *
  * The pointer pulls the dots like gravity throughout (references/scene 6/gravity_stars.md).
  */
@@ -51,7 +52,7 @@ export default {
   clock: { from: '12:00 AM', visible: 0 },
   atmosphere: { bg: '#050507', horizon: 0, followClock: 0 },
 
-  build({ viewport: v, tl, motion, hud, onTick, whenNear }) {
+  build({ viewport: v, section, tl, atmo, motion, hud, onTick, whenNear }) {
     const P = motion.parallax;
     const worst = story.worstDay;
     const timesWho = Math.round(worst.pm25 / LIMITS.who);
@@ -64,8 +65,16 @@ export default {
     const canvas = el('canvas', 'alone-canvas', { 'aria-hidden': 'true' });
     const particle = createParticle();
     const ring = el('div', 'alone-ring', { 'aria-hidden': 'true' });
-    v.append(canvas, particle.el, ring);
+    // The closing hero sits under the particle, so the gathered ball covers its wordmark.
+    const hero = createHero();
+    v.append(canvas, hero.el, particle.el, ring);
     Object.assign(particle.state, { x: 0.5, y: 0.5, float: 0 });
+    /** The hero's ball (as large as the proposal's, over the wordmark), re-read on every refresh. */
+    const heroBall = () => {
+      hero.fit();
+      const b = hero.ball();
+      return { y: b.y, scale: Math.max(1.25, Math.min(4.4, b.d / diameterFor())) };
+    };
 
     /* ------------------------------------------------- counter and its bar -- */
     const meter = el('div', 'alone-meter', { role: 'status', 'aria-live': 'off' });
@@ -93,40 +102,36 @@ export default {
       `${fmt(firesUpwind(destination))} were upwind of ${destination}.`,
     ], 'center');
     const w55b = createCaption([{ text: 'Every particle came from somewhere.', big: true }], 'center');
-    // The last line: the word is set like the logo's wordmark (only larger), so it can fly into it.
-    const finWordInner = el('span', 'finale__word-inner', {}, 'AeroFusion');
-    const finWord = el('h2', 'finale__word', {}, finWordInner);
-    const finRest = el('p', 's-lead finale__rest', {}, 'tracks them, live.');
-    const w56 = { el: el('div', 'caption caption--center finale', {}, finWord, finRest), lines: [finWord, finRest] };
 
-    v.append(meter, w51.el, w52.el, w53.el, w54.el, w54b.el, w55.el, w55b.el, w56.el);
+    v.append(meter, w51.el, w52.el, w53.el, w54.el, w54b.el, w55.el, w55b.el);
 
     /* -------------------------------------------------------------- timeline -- */
     const { lineIn, linesOut } = createReveal(tl, motion, { inDur: 0.018, outDur: 0.015, stagger: 0.004 });
-    const all = [...w51.lines, ...w52.lines, ...w53.lines, ...w54.lines, ...w54b.lines, ...w55.lines, ...w55b.lines, ...w56.lines];
-    gsap.set([...all, meter, legend, ring], { autoAlpha: 0 });
+    const all = [...w51.lines, ...w52.lines, ...w53.lines, ...w54.lines, ...w54b.lines, ...w55.lines, ...w55b.lines];
+    gsap.set([...all, ...hero.parts, meter, legend, ring], { autoAlpha: 0 });
 
-    const state = { p: 0, value: 0, drift: 1, gather: 0, warm: 0, fade: 0, ember: 0, dock: 0, chrome: 0, field: 0, reveal: 0 };
+    const state = { p: 0, value: 0, drift: 1, gather: 0, warm: 0, fade: 0, ember: 0 };
     tl.fromTo(state, { p: 0 }, { p: 1, duration: 1, ease: 'none' }, 0);
     // The concentration: the WHO's day, India's limit, then the surge.
     tl.fromTo(state, { value: 0 }, { value: LIMITS.who, duration: 0.13, ease: 'sine.inOut', immediateRender: false }, 0.1);
     tl.to(state, { value: LIMITS.india, duration: 0.12, ease: 'sine.inOut' }, 0.3);
     tl.to(state, { value: worst.pm25, duration: 0.13, ease: 'power2.in' }, 0.47);
     // Freeze, then every dot is pulled back in to where the ember was, warming to its orange; the
-    // ember itself returns out of them; then it flies into the corner.
+    // ember itself returns out of them; then it grows into the hero's ball.
     tl.to(state, { drift: 0, duration: 0.04, ease: 'sine.out' }, 0.74);
     tl.fromTo(state, { gather: 0 }, { gather: 1, duration: 0.13, ease: 'none', immediateRender: false }, 0.78);
     tl.fromTo(state, { warm: 0 }, { warm: 1, duration: 0.07, ease: 'sine.in', immediateRender: false }, 0.84);
     tl.fromTo(state, { fade: 0 }, { fade: 1, duration: 0.03, ease: 'sine.inOut', immediateRender: false }, 0.9);
     tl.fromTo(state, { ember: 0 }, { ember: 1, duration: 0.03, ease: 'sine.out', immediateRender: false }, 0.895);
     tl.fromTo(particle.state, { scale: 1.6 }, { scale: 1.25, duration: 0.03, ease: 'sine.out', immediateRender: false }, 0.895);
-    // The flight to the top (blob and word together), the bar fading to just the logo, the
-    // particles' black screen, and last the logo's sub-line.
-    tl.fromTo(state, { chrome: 0 }, { chrome: 1, duration: 0.015, ease: 'sine.inOut', immediateRender: false }, 0.94);
-    tl.fromTo(state, { dock: 0 }, { dock: 1, duration: 0.038, ease: 'none', immediateRender: false }, 0.946);
-    // (The field covers the scene, so it comes in once the word has landed above it.)
-    tl.fromTo(state, { field: 0 }, { field: 1, duration: 0.012, ease: 'sine.inOut', immediateRender: false }, 0.984);
-    tl.fromTo(state, { reveal: 0 }, { reveal: 1, duration: 0.008, ease: 'none', immediateRender: false }, 0.986);
+    // The hero (5.6): the blob grows and settles over the wordmark as the black lifts to charcoal;
+    // the wordmark rises in behind it, then the furniture; then it holds.
+    tl.to(atmo, { bg: tokens.color.sky.canvas, duration: 0.04, ease: 'sine.inOut' }, 0.905);
+    tl.to(particle.state, { y: () => heroBall().y, scale: () => heroBall().scale, duration: 0.045, ease: 'power2.inOut' }, 0.91);
+    tl.fromTo(hero.word, { autoAlpha: 0, y: 60 * P }, { autoAlpha: 1, y: 0, duration: 0.03, ease: 'power2.out', immediateRender: false }, 0.925);
+    hero.parts.slice(1).forEach((part, i) => {
+      tl.fromTo(part, { autoAlpha: 0, y: 18 * P }, { autoAlpha: 1, y: 0, duration: 0.02, ease: 'sine.out', immediateRender: false }, 0.945 + i * 0.006);
+    });
 
     // 5.1
     lineIn(w51.lines[0], 0.02);
@@ -160,10 +165,6 @@ export default {
     linesOut(w55.lines, 0.845);
     lineIn(w55b.lines[0], 0.86);
     linesOut(w55b.lines, 0.9);
-    // 5.6 — the word stays (it flies into the logo); the rest of the line goes.
-    lineIn(w56.lines[0], 0.912, 0.02);
-    lineIn(w56.lines[1], 0.924, 0.02);
-    linesOut([w56.lines[1]], 0.945);
 
     /* ------------------------------------------------------------- the field -- */
     const size = () => field?.resize(v.clientWidth, v.clientHeight);
@@ -178,41 +179,17 @@ export default {
     }, { passive: true });
     for (const t of ['pointerleave', 'pointercancel']) v.addEventListener(t, () => field?.setPointer(0, 0, false));
 
-    /** The word's flight: the same path, ease and arc as the blob's, shrinking into the wordmark. */
-    let flown = -1;
-    function flyWord(t) {
-      if (t === flown) return;
-      flown = t;
-      finWordInner.style.transform = 'none';
-      if (t <= 0) {
-        finWordInner.style.visibility = '';
-        return;
-      }
-      if (t >= 0.999) {
-        finWordInner.style.visibility = 'hidden'; // the wordmark has it now
-        return;
-      }
-      finWordInner.style.visibility = '';
-      const a = finWordInner.getBoundingClientRect();
-      const b = brand.wordRect();
-      const e = BRAND_EASE(t);
-      const k = (b.width / a.width) ** e;
-      const lift = Math.sin(Math.PI * e) * BRAND_LIFT * window.innerHeight;
-      finWordInner.style.transform = `translate(${((b.left - a.left) * e).toFixed(2)}px, ${((b.top - a.top) * e - lift).toFixed(2)}px) scale(${k.toFixed(4)})`;
-    }
-
     let last = null;
     let shown = -1;
     onTick((t) => {
       const dt = last === null ? 0 : Math.min(0.05, t - last);
       last = t;
       living += dt;
-      // The ember hands over to the logo's blob at the same place, and that one flies to the corner.
-      if (state.p >= 0.88) particle.state.opacity = state.dock > 0 ? 0 : state.ember;
-      brand.drive(state.dock, { x: 0.5, y: 0.5, scale: 1.25 }, state.reveal);
-      flyWord(state.dock);
-      hud.finale(state.chrome);
-      bridge.set(state.field);
+      // The ember comes back out of the gathered dots and stays: it is the hero's ball.
+      if (state.p >= 0.88) particle.state.opacity = state.ember;
+      // As the dashboard rises under the finished hero, the story bar fades (its own header comes).
+      const below = section.getBoundingClientRect().bottom;
+      hud.finale(clamp01((1 - below / window.innerHeight) / 0.35));
       particle.render(t);
       if (!field) return;
       // The blob's radius: where the ember will be, a little larger (so the ember forms inside it).

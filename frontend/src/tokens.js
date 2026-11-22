@@ -30,6 +30,8 @@ export const tokens = {
     surface: '#1A1A1A',
     border: '#2A2A2A',
     stone: '#9A968E',
+    /** The quieter accent: warm sand cream, a step warmer than the ink. Small marks only. */
+    cream: '#E8D9BF',
     accent: '#FF4D00',
     accentHover: '#E04300',
 
@@ -216,6 +218,7 @@ export function applyTokens(root = document.documentElement) {
     '--c-surface': c.surface,
     '--c-border': c.border,
     '--c-stone': c.stone,
+    '--c-cream': c.cream,
     '--c-accent': c.accent,
     '--c-accent-rgb': hexToRgbTriplet(c.accent),
     '--c-accent-hover': c.accentHover,

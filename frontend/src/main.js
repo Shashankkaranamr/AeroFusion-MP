@@ -41,16 +41,13 @@ function startStory() {
     speed += (Math.abs(y - lastY) - speed) * 0.2; // px per frame, eased
     lastY = y;
     sound.update();
-    hud.setActive(story.activeIndex);
   });
   const controls = createControls({ scroller, sound, sections: () => story.sections(), toDashboard: () => site.toDashboard() });
   controls.mount(hud.row);
-  hud.setRail(scenes, (i) => controls.goTo(story.sections()[i].top));
-  // The hero's Begin: glide down to where the particle has stepped aside and its lines are in.
-  window.addEventListener('aerofusion:begin', () => {
-    const first = story.mounted[0].section;
-    const y = first.offsetTop + (first.offsetHeight - window.innerHeight) * 0.3;
-    if (scroller.lenis) scroller.lenis.scrollTo(y, { duration: 2.4 });
+  // The closing hero's button: glide on down into the live site (it locks when it reaches the top).
+  window.addEventListener('aerofusion:enter', () => {
+    const y = document.getElementById('app').offsetTop;
+    if (scroller.lenis) scroller.lenis.scrollTo(y, { duration: 1.6 });
     else window.scrollTo({ top: y, behavior: 'smooth' });
   });
   // The mouse follow: a small ember — the logo's blob — trails the pointer (fine pointers only).

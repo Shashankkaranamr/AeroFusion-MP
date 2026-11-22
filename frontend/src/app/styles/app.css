@@ -36,6 +36,10 @@
   --accent: #ff4d00; /* International Orange */
   --accent-hover: #e04300;
   --accent-muted: rgb(255 77 0 / 0.12);
+  /* A second, quieter accent: warm sand cream, a step warmer than the ink. Small marks only:
+     indices, the current nav item, the selected option, selection. --cream fills, --cream-ink is text. */
+  --cream: #e8d9bf;
+  --cream-ink: #e8d9bf;
   --ember: #ff4d00;
   --ember-rgb: 255 77 0;
   --ember-hot: #ff8a4a;
@@ -89,6 +93,8 @@
     --line-2: rgb(18 18 18 / 0.24);
     --grid: rgb(18 18 18 / 0.045);
     --ember-ink: #c23a00;
+    --cream: #e3d3b5;
+    --cream-ink: #85622c;
     --haze: #7a3b72;
     --moon: #5a6b8c;
     --lamp: #9a6b1c;
@@ -121,6 +127,8 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-muted: var(--accent-muted);
+  --color-cream: var(--cream);
+  --color-cream-ink: var(--cream-ink);
   --color-haze: var(--haze);
   --color-moon: var(--moon);
   --color-lamp: var(--lamp);
@@ -176,8 +184,8 @@ body {
   text-rendering: optimizeLegibility;
 }
 ::selection {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--cream);
+  color: #121212;
 }
 :focus-visible {
   outline: 1px solid var(--ink);

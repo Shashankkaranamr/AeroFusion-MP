@@ -29,7 +29,7 @@ export function ViewHeader({
       <div className={cn("min-w-0", hero ? "w-full" : "max-w-4xl")}>
         <div className="tag eyebrow-rule mb-6">
           <span>
-            <span className="text-ink">{navIndex(view)}</span> / {eyebrow}
+            <span className="text-cream-ink">{navIndex(view)}</span> / {eyebrow}
           </span>
         </div>
         <h1 className={cn("display text-balance", hero ? "display-caps text-[clamp(2.75rem,7.2vw,7.6rem)]" : "text-[clamp(2.4rem,5.4vw,4.6rem)]")}>{title}</h1>

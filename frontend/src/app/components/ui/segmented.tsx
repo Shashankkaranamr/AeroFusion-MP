@@ -33,9 +33,9 @@ export function Segmented<T extends string>({ value, onChange, options, label, c
               sound.tick();
               onChange(o.value);
             }}
-            className={cn("press relative shrink-0 whitespace-nowrap font-medium transition-colors duration-200", size === "sm" ? "h-7 px-3 text-[12.5px]" : "h-9 px-4 text-[13px]", on ? "text-canvas" : "text-ink-2 hover:text-ink")}
+            className={cn("press relative shrink-0 whitespace-nowrap font-medium transition-colors duration-200", size === "sm" ? "h-7 px-3 text-[12.5px]" : "h-9 px-4 text-[13px]", on ? "text-[#121212]" : "text-ink-2 hover:text-ink")}
           >
-            {on && <motion.span layoutId={`seg-${id}`} className="absolute inset-0 bg-ink" transition={{ type: "tween", ease: [0.19, 1, 0.22, 1], duration: 0.5 }} />}
+            {on && <motion.span layoutId={`seg-${id}`} className="absolute inset-0 bg-cream" transition={{ type: "tween", ease: [0.19, 1, 0.22, 1], duration: 0.5 }} />}
             <span className="relative">{o.label}</span>
           </button>
         );

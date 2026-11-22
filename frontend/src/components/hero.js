@@ -1,20 +1,21 @@
 import { el } from '../core/dom.js';
 
 /**
- * THE HERO — the story's opening frame (new frontend proposal/).
+ * THE HERO — the story's closing frame (new frontend proposal/).
  *
  *   AEROFUSION.                      a wordmark across the whole page, BEHIND the particle
  *        ( the particle, large )     the ball sits over the wordmark's lower half
- *   ● 33 cities                                        Story      /01
- *     PM2.5, live                                      Live map   /02
- *                                                      Forecast   /03
- *   The air over North India,                               ( ▸ Begin )
- *   scene by scene, then live.
+ *   ● 33 cities                                        Live map      /01
+ *     PM2.5, live                                      City forecast /02
+ *                                                      Why           /03
+ *   Every particle came from                               ( ▸ Go live )
+ *   somewhere. We track them, live.
  *   ·························
  *
- * Scene 1 places it under the particle (DOM order), fades it on the first scroll and shrinks the
- * ball back to its story size. `fit()` sizes the wordmark to the column; `ball()` says where the
- * ball should sit so it overlaps the wordmark the way the proposal does.
+ * Scene 6 builds it under the gathered particle (DOM order): once every dot has been pulled into
+ * the one blob, the blob grows into the hero's ball and the wordmark rises in behind it. Below it
+ * the page simply scrolls on into the dashboard. `fit()` sizes the wordmark to the column;
+ * `ball()` says where the ball should sit so it overlaps the wordmark the way the proposal does.
  */
 export function createHero({ cities = 33 } = {}) {
   const root = el('div', 'hero');
@@ -24,13 +25,15 @@ export function createHero({ cities = 33 } = {}) {
     el('span', 'hero__live', { 'aria-hidden': 'true' }),
     el('span', 'hero__num s-display', {}, String(cities)),
     el('span', 'hero__unit s-tag', {}, 'cities · PM2.5, live'));
-  const list = el('ol', 'hero__list s-tag', { 'aria-label': 'What is here' },
-    ...[['Story', '01'], ['Live map', '02'], ['Forecast', '03']].map(([k, n]) => el('li', '', {}, k, el('span', 'hero__idx', {}, ` /${n}`))));
-  const lede = el('p', 'hero__lede s-lead', {}, 'The air over North India, scene by scene, then live.');
+  // Straight into the dashboard's views (a dashboard address opens it: core/site.js).
+  const list = el('ol', 'hero__list s-tag', { 'aria-label': 'The live site' },
+    ...[['Live map', '01', '#/map'], ['City forecast', '02', '#/city'], ['Why', '03', '#/why']].map(([k, n, href]) =>
+      el('li', '', {}, el('a', 'hero__link', { href }, k, el('span', 'hero__idx', {}, ` /${n}`)))));
+  const lede = el('p', 'hero__lede s-lead', {}, 'Every particle came from somewhere. We track them, live.');
   const begin = el('button', 'hero__begin', { type: 'button' },
     el('span', 'hero__play', { 'aria-hidden': 'true' }),
-    el('span', '', {}, 'Begin'));
-  begin.addEventListener('click', () => window.dispatchEvent(new CustomEvent('aerofusion:begin')));
+    el('span', '', {}, 'Go live'));
+  begin.addEventListener('click', () => window.dispatchEvent(new CustomEvent('aerofusion:enter')));
   root.append(word, stat, list, lede, begin);
 
   /** Make the wordmark exactly as wide as the column (Inter's widths differ by platform). */

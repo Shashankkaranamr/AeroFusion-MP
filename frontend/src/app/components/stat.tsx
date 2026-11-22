@@ -34,7 +34,7 @@ export function Stat({
     <Card i={i} className={cn("group flex flex-col justify-between gap-10 p-5 transition-shadow duration-500 ease-[var(--ease-out)] hover:shadow-[inset_0_0_0_1px_var(--line-2)] sm:p-6", className)}>
       <div className="tag flex items-start justify-between gap-4">
         <span>{label}</span>
-        {i !== undefined && <span className="text-ink-3">{String(i + 1).padStart(2, "0")}</span>}
+        {i !== undefined && <span className="text-cream-ink">{String(i + 1).padStart(2, "0")}</span>}
       </div>
       <div>
         <div className={cn("flex items-baseline gap-2.5", tone === "ember" ? "text-ember-ink" : "text-ink")}>

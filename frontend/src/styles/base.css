@@ -434,7 +434,7 @@ h3 {
   right: 0;
   max-width: 1320px;
   margin: 0 auto;
-  padding: calc(120px + env(safe-area-inset-top)) var(--gutter) max(32px, env(safe-area-inset-bottom));
+  padding: calc(88px + env(safe-area-inset-top)) var(--gutter) max(32px, env(safe-area-inset-bottom));
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto 1fr auto;
@@ -509,16 +509,29 @@ h3 {
   color: var(--c-stone);
 }
 .hero__idx {
-  color: color-mix(in srgb, var(--c-stone) 60%, var(--c-canvas));
+  color: var(--c-cream);
+}
+.hero__link {
+  color: inherit;
+  text-decoration: none;
+  pointer-events: auto;
+  transition: color 0.2s ease;
+}
+.hero__link:hover {
+  color: var(--c-ink);
+}
+.hero__link:focus-visible {
+  outline: 1px solid var(--c-ink);
+  outline-offset: 3px;
 }
 #story .hero__lede {
   grid-row: 4;
   align-self: end;
-  max-width: 17ch;
+  max-width: 24ch;
   padding-bottom: 14px;
   color: var(--c-ink);
   /* The proposal's dotted rule under the line. */
-  background: radial-gradient(circle, var(--c-stone) 1px, transparent 1.4px) left bottom / 7px 3px repeat-x;
+  background: radial-gradient(circle, var(--c-cream) 1px, transparent 1.4px) left bottom / 7px 3px repeat-x;
 }
 .hero__begin {
   grid-row: 4;
@@ -564,7 +577,7 @@ h3 {
 /* Phones: the wordmark on top, the ball under it, the furniture along the bottom. */
 @media (max-width: 639px) {
   .hero {
-    padding-top: calc(108px + env(safe-area-inset-top));
+    padding-top: calc(80px + env(safe-area-inset-top));
   }
   #story .hero__list {
     display: none;
@@ -1048,7 +1061,7 @@ h3 {
 /* ------------------------------------------------- the bar (the dashboard's header) -- */
 
 /* The story wears the dashboard's header: the same 1320 px column, the same 64 px row with the
-   logo on the left and the actions on the right, the same numbered mono rail under a hairline.
+   logo on the left and the actions on the right.
    The logo's place stays empty until the story's ember flies into it (core/brand.js). */
 .story-bar {
   position: absolute;
@@ -1093,99 +1106,19 @@ h3 {
   }
 }
 .story-bar__title b {
-  color: var(--c-ink);
+  color: var(--c-cream);
   font-weight: 500;
 }
 /* At the end of the story everything but the logo fades (hud.finale). */
 .story-bar::before,
 .story-bar__title,
-.story-bar__rail,
 .story-bar .controls {
   opacity: var(--chrome, 1);
 }
-.story-bar.is-finale :is(.story-bar__rail, .controls) {
+.story-bar.is-finale .controls {
   pointer-events: none;
   visibility: hidden;
 }
-.story-bar__rail {
-  border-top: 1px solid rgb(var(--c-ink-rgb) / 0.1);
-  pointer-events: auto;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.story-bar__rail::-webkit-scrollbar {
-  display: none;
-}
-
-/* The rail: `01 THE PARTICLE   02 THE SPARK …`, the current scene underlined. */
-.rail {
-  display: flex;
-  gap: 0 36px;
-  min-width: max-content;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.rail__item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: rgb(var(--c-ink-rgb) / 0.45);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.rail__item:hover,
-.rail__item[aria-current='step'] {
-  color: var(--c-ink);
-}
-.rail__num {
-  color: rgb(var(--c-ink-rgb) / 0.32);
-  transition: color 0.2s ease;
-}
-.rail__item:hover .rail__num,
-.rail__item[aria-current='step'] .rail__num {
-  color: rgb(var(--c-ink-rgb) / 0.66);
-}
-.rail__item::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--c-ink);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-}
-.rail__item[aria-current='step']::after {
-  transform: scaleX(1);
-}
-.rail__item:focus-visible {
-  outline: 1px solid var(--c-ink);
-  outline-offset: 3px;
-}
-/* Phones: numbers only, and the current scene's name. */
-@media (max-width: 639px) {
-  .rail {
-    gap: 0 18px;
-  }
-  .rail__item:not([aria-current='step']) .rail__label {
-    display: none;
-  }
-}
-
 /* The logo, set exactly like the dashboard's (components/brand/logo.tsx): the ember, then the
    spaced wordmark over a mono sub-line. The ember is drawn by the flyer, which lands on the mark. */
 .brand-fly {
@@ -1311,7 +1244,7 @@ h3 {
   gap: 14px;
   padding: 0 18px 0 20px;
   color: var(--c-canvas);
-  background: var(--c-ink);
+  background: var(--c-cream);
   box-shadow: none;
   font-family: var(--font-body);
   font-size: 13.5px;
@@ -1320,7 +1253,7 @@ h3 {
   text-transform: none;
 }
 .control--skip:hover {
-  background: color-mix(in srgb, var(--c-ink) 84%, var(--c-canvas));
+  background: color-mix(in srgb, var(--c-cream) 84%, var(--c-canvas));
   box-shadow: none;
 }
 .control--skip .control__icon {
@@ -1367,35 +1300,6 @@ h3 {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-}
-
-/* ------------------------------------------------------------- the finale (Scene 6) -- */
-
-/* "AEROFUSION / tracks them, live." The word is set like the logo's wordmark, only larger, so it
-   can shrink straight into it. */
-.finale {
-  gap: clamp(10px, 1.6vw, 18px);
-}
-:is(#story) .finale__word {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: clamp(1.7rem, 5.2vw, 4.2rem);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-}
-.finale__word-inner {
-  display: inline-block;
-  transform-origin: 0 0;
-  will-change: transform;
-}
-:is(#story) p.finale__rest {
-  font-weight: 200;
-  font-size: clamp(1.4rem, 3.4vw, 2.6rem);
-  letter-spacing: -0.035em;
-  line-height: 1.1;
-  color: var(--c-ink);
 }
 
 /* ------------------------------------------- the bridge: story → dashboard -- */
@@ -1447,9 +1351,10 @@ h3 {
   60% { transform: scaleY(1); opacity: 1; }
   100% { transform: scaleY(1); opacity: 0; }
 }
+/* No screen between them any more: the dashboard follows the closing hero directly. */
 #bridge {
   position: relative;
-  height: 100vh;
+  height: 0;
   pointer-events: none;
 }
 /* The dashboard, under the story: opaque, so it covers the field as it rises. */
@@ -1463,10 +1368,6 @@ html:not(.mode-dash) #app {
     linear-gradient(90deg, rgb(var(--c-ink-rgb) / 0.035) 1px, transparent 1px),
     var(--bg, var(--c-canvas));
   background-size: 96px 96px, 96px 96px, auto;
-}
-/* Until it locks, the dashboard's logo place is held by the story's, which flies there. */
-html:not(.mode-dash) #app [data-logo] {
-  visibility: hidden;
 }
 
 /* Locked into the dashboard: the story steps out of the page entirely. */

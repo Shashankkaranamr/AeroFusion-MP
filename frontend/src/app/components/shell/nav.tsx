@@ -48,13 +48,13 @@ export function Nav({ current, city }: { current: ViewId; city: string }) {
                   active ? "text-ink" : "text-ink-3 hover:text-ink",
                 )}
               >
-                <span className={cn("transition-colors", active ? "text-ink-2" : "text-ink-3/70 group-hover:text-ink-2")}>{String(i + 1).padStart(2, "0")}</span>
+                <span className={cn("transition-colors", active ? "text-cream-ink" : "text-ink-3/70 group-hover:text-ink-2")}>{String(i + 1).padStart(2, "0")}</span>
                 {label}
               </a>
               {active && (
                 <motion.span
                   layoutId="nav-underline"
-                  className="absolute inset-x-0 -bottom-px h-px bg-ink"
+                  className="absolute inset-x-0 -bottom-px h-px bg-cream"
                   transition={{ type: "tween", ease: [0.19, 1, 0.22, 1], duration: 0.6 }}
                 />
               )}
