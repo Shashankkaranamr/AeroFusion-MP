@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import { AnimatedLink } from "@/components/ui/animated-link";
 import { InteractiveHoverButton } from "@/components/ui/button";
 import { AqiLegend } from "@/components/aqi";
+import { RefreshButton } from "./header";
 import { href } from "@/lib/router";
 import { toStory } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -60,10 +61,16 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="mt-10 flex flex-wrap justify-between gap-4 border-t border-line pt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
         <span>AeroFusion · Air over North India</span>
-        <span>
-          PM2.5 · <span className="unit">µg/m³</span> · IST
+        <span className="flex items-center gap-4">
+          <span>
+            PM2.5 · <span className="unit">µg/m³</span> · IST
+          </span>
+          <span className="flex items-center gap-2.5">
+            <span className="max-sm:hidden">Refresh the data</span>
+            <RefreshButton />
+          </span>
         </span>
       </div>
     </footer>
