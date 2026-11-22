@@ -290,14 +290,16 @@ export class Scene {
   }
 
   /** Back to front, as layers; with the frame fitted so the subject sits low and to the right. */
-  art(reflection?: Scene): Art {
+  /** `align`: "bottom" (default) sets the subject's base low in the frame; "top" hangs it from near the
+   *  top, for wide, low subjects that must sit in the empty space beside a page's heading. */
+  art(reflection?: Scene, align: "bottom" | "top" = "bottom"): Art {
     const sorted = (s: Scene) => [...s.items].sort((a, b) => b.depth - a.depth);
     const toLayer = (it: Item): Layer => ({ fill: it.fill.join("") || undefined, faint: it.faint.join("") || undefined, strong: it.strong.join("") || undefined, tone: it.tone });
     const layers = [...(reflection ? sorted(reflection).map(toLayer) : []), ...sorted(this).map(toLayer)];
     const [x0, y0, x1, y1] = this.bbox;
     const size = Math.max(x1 - x0, y1 - y0) * 1.1;
     const vx = x1 + size * 0.015 - size;
-    const vy = Math.min(y1 - size * 0.87, y0 - size * 0.04);
+    const vy = align === "top" ? y0 - size * 0.06 : Math.min(y1 - size * 0.87, y0 - size * 0.04);
     return { layers, viewBox: `${n(vx)} ${n(vy)} ${n(size)} ${n(size)}` };
   }
 }

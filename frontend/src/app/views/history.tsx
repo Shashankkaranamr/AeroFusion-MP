@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { TabBackdrop } from "@/components/landmarks";
 import { CartesianGrid, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { FileJson, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { axis, ChartContainer, ChartLegend, ChartTooltipContent } from "@/components/charts/chart";
@@ -68,7 +69,9 @@ export function HistoryView() {
   };
 
   return (
-    <div>
+    <div className="relative isolate">
+      {/* A line drawing for this tab behind its header, flush with the page's right edge (components/landmarks-more.tsx). */}
+      <TabBackdrop view="history" className="h-[340px] w-[min(520px,40vw)]" />
       <ViewHeader
         eyebrow="History · CPCB stations, 2022–2024"
         title={

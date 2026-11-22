@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { TabBackdrop } from "@/components/landmarks";
 import { Circle } from "lucide-react";
 import { Figure, type FigureName } from "@/components/figure";
 import { WindGraph } from "@/components/map/wind-graph";
@@ -42,7 +43,9 @@ export function DataView() {
   };
 
   return (
-    <div>
+    <div className="relative isolate">
+      {/* A line drawing for this tab behind its header, flush with the page's right edge (components/landmarks-more.tsx). */}
+      <TabBackdrop view="data" className="h-[470px] w-[min(560px,44vw)]" />
       <ViewHeader
         eyebrow="About the data · system architecture"
         title={

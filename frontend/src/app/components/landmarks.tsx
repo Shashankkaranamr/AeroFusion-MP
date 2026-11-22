@@ -1,4 +1,6 @@
 import { crown, domeProfile, LineArt, poly, Scene, type Art, type Camera, type Elev, type Pt, type V3 } from "./line-art";
+import { cn } from "@/lib/utils";
+import { MORE_CITY_SCENES, TAB_SCENES } from "./landmarks-more";
 import { PJ_ART } from "./pj-backdrop";
 import { AHMEDABAD_PORTRAIT } from "./portraits/ahmedabad";
 
@@ -271,6 +273,8 @@ function goldenTemple(s: Scene) {
 /* ------------------------------------------------------------------ choosing one ------------------- */
 
 const SCENES: Record<string, { build: (s: Scene) => void; water?: boolean }> = {
+  // every other city (landmarks-more.tsx); the four drawn here come after and keep their own
+  ...MORE_CITY_SCENES,
   delhi: { build: indiaGate },
   kolkata: { build: victoriaMemorial },
   hyderabad: { build: charminar },
@@ -292,6 +296,35 @@ const PORTRAITS: Record<string, Art> = {
 };
 
 const cache = new Map<string, Art>();
+function sceneArt(key: string, sc: { build: (s: Scene) => void; water?: boolean }): Art {
+  let a = cache.get(key);
+  if (!a) {
+    const s = new Scene(CAM);
+    sc.build(s);
+    let mirror: Scene | undefined;
+    if (sc.water) {
+      mirror = new Scene(CAM, true);
+      sc.build(mirror);
+    }
+    a = s.art(mirror, "top");
+    cache.set(key, a);
+  }
+  return a;
+}
+
+/** The drawing behind a dashboard tab's header (landmarks-more.tsx), if it has one. */
+export function tabArt(view: string): Art | null {
+  const sc = TAB_SCENES[view];
+  return sc ? sceneArt(`tab:${view}`, sc) : null;
+}
+
+/** A tab's drawing, flush with the page's right edge behind its header; each view sizes it to its own empty corner (and it is hidden below lg, where the header has none). */
+export function TabBackdrop({ view, className }: { view: string; className?: string }) {
+  const art = tabArt(view);
+  if (!art) return null;
+  return <LineArt art={art} bleed className={cn("absolute -top-14 right-[calc(50%-50vw)] -z-10 opacity-[0.32] max-lg:hidden", className)} style={{ animation: "fade-in 600ms ease both" }} />;
+}
+
 export function landmarkArt(slug: string): Art {
   if (PORTRAITS[slug]) return PORTRAITS[slug];
   const sc = SCENES[slug];
@@ -305,7 +338,7 @@ export function landmarkArt(slug: string): Art {
       mirror = new Scene(CAM, true);
       sc.build(mirror);
     }
-    a = s.art(mirror);
+    a = s.art(mirror, slug in MORE_CITY_SCENES ? "top" : "bottom");
     cache.set(slug, a);
   }
   return a;

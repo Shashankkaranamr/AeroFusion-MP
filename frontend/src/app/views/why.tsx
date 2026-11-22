@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { TabBackdrop } from "@/components/landmarks";
 import { Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import { ChevronDown, RotateCw } from "lucide-react";
 import { axis, ChartContainer, ChartLegend, ChartTooltipContent } from "@/components/charts/chart";
@@ -47,7 +48,9 @@ export function WhyView() {
   const d = ins.data;
 
   return (
-    <div>
+    <div className="relative isolate">
+      {/* A line drawing for this tab behind its header, flush with the page's right edge (components/landmarks-more.tsx). */}
+      <TabBackdrop view="why" className="h-[330px] w-[min(460px,36vw)]" />
       <ViewHeader
         eyebrow="Insights · explainability"
         title={

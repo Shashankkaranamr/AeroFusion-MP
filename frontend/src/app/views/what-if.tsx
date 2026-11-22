@@ -1,4 +1,5 @@
 import { useDeferredValue, useMemo, useState } from "react";
+import { TabBackdrop } from "@/components/landmarks";
 import { Area, Bar, BarChart, CartesianGrid, ComposedChart, Line, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowRight, Car, Construction, Droplets, Factory, RotateCcw, Thermometer, Wheat, Wind } from "lucide-react";
 import { AqiBadge } from "@/components/aqi";
@@ -55,7 +56,9 @@ export function WhatIfView() {
   };
 
   return (
-    <div>
+    <div className="relative isolate">
+      {/* A line drawing for this tab behind its header, flush with the page's right edge (components/landmarks-more.tsx). */}
+      <TabBackdrop view="what-if" className="h-[340px] w-[min(520px,40vw)]" />
       <ViewHeader
         eyebrow="Projections · illustrative heuristic on the live forecast"
         title={
