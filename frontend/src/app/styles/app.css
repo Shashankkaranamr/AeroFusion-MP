@@ -12,8 +12,9 @@
  *   (#FF4D00): the one primary action, live dots, active toggles, key numbers and the brand mark.
  *   Never on large fills, glows or paragraphs. The CPCB category colours still mean AQI.
  *
- * Type: Inter for everything you read (100–300 for display, 400–500 for UI), JetBrains Mono for
- * the annotation layer (eyebrows, readings, units, times), uppercase and widely tracked.
+ * Type: JetBrains Mono for everything — thin (100–300) for display, heavy for the key words,
+ * 400–500 for UI, and uppercase and widely tracked for the annotation layer (eyebrows, readings,
+ * units, times).
  * Motion: one expo-out curve, long for reveals (700 ms), short for state (180 ms).
  */
 
@@ -66,8 +67,9 @@
   --hairline-lo: rgb(242 239 233 / 0.14);
   --hairline-stroke: 0.9;
 
-  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* One face for everything: JetBrains Mono, the face of the section headings. */
+  --font-display: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-body: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --ease-out: cubic-bezier(0.19, 1, 0.22, 1);

@@ -5,9 +5,9 @@ import { el } from '../core/dom.js';
  *
  *   AEROFUSION.                      a wordmark across the whole page, BEHIND the particle
  *        ( the particle, large )     the ball sits over the wordmark's lower half
- *   ● 33 cities                                        Live map      /01
- *     PM2.5, live                                      City forecast /02
- *                                                      Why           /03
+ *   ● 33 cities                                        Spatial View  /01
+ *     PM2.5, live                                      City Forecast /02
+ *                                                      Insights      /03
  *   Every particle came from                               ( ▸ Go live )
  *   somewhere. We track them, live.
  *   ·························
@@ -27,7 +27,7 @@ export function createHero({ cities = 33 } = {}) {
     el('span', 'hero__unit s-tag', {}, 'cities · PM2.5, live'));
   // Straight into the dashboard's views (a dashboard address opens it: core/site.js).
   const list = el('ol', 'hero__list s-tag', { 'aria-label': 'The live site' },
-    ...[['Live map', '01', '#/map'], ['City forecast', '02', '#/city'], ['Why', '03', '#/why']].map(([k, n, href]) =>
+    ...[['Spatial View', '01', '#/map'], ['City Forecast', '02', '#/city'], ['Insights', '03', '#/why']].map(([k, n, href]) =>
       el('li', '', {}, el('a', 'hero__link', { href }, k, el('span', 'hero__idx', {}, ` /${n}`)))));
   const lede = el('p', 'hero__lede s-lead', {}, 'Every particle came from somewhere. We track them, live.');
   const begin = el('button', 'hero__begin', { type: 'button' },
@@ -36,7 +36,7 @@ export function createHero({ cities = 33 } = {}) {
   begin.addEventListener('click', () => window.dispatchEvent(new CustomEvent('aerofusion:enter')));
   root.append(word, stat, list, lede, begin);
 
-  /** Make the wordmark exactly as wide as the column (Inter's widths differ by platform). */
+  /** Make the wordmark exactly as wide as the column (font widths differ by platform). */
   function fit() {
     word.style.fontSize = '100px';
     const w = word.scrollWidth;
@@ -44,7 +44,7 @@ export function createHero({ cities = 33 } = {}) {
     const avail = root.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     if (w > 0 && avail > 0) word.style.fontSize = `${(100 * avail) / w}px`;
   }
-  // Refit once Inter is in (the first measure may be in a fallback face) and on every resize.
+  // Refit once the font is in (the first measure may be in a fallback face) and on every resize.
   document.fonts?.ready.then(fit);
   window.addEventListener('resize', fit);
 
@@ -57,7 +57,7 @@ export function createHero({ cities = 33 } = {}) {
     const vh = window.innerHeight;
     // Layout position (offsetTop ignores the exit tween's transform), in the full-screen hero box.
     const top = word.offsetTop;
-    // Cap height of Inter ≈ 0.73 em; the box is set to line-height 0.8.
+    // Cap height ≈ 0.73 em; the box is set to line-height 0.8.
     const fs = parseFloat(word.style.fontSize) || 100;
     const capTop = top + fs * 0.06;
     const capBottom = capTop + fs * 0.73;

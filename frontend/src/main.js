@@ -41,6 +41,12 @@ function startStory() {
     speed += (Math.abs(y - lastY) - speed) * 0.2; // px per frame, eased
     lastY = y;
     sound.update();
+    // Only Scene 6 brings the site's header in; anywhere earlier (a jump back, the rail of a
+    // restart) it is the story's bar.
+    if (story.activeIndex < scenes.length - 1) {
+      hud.toSite(0);
+      hud.pastHero(0);
+    }
   });
   const controls = createControls({ scroller, sound, sections: () => story.sections(), toDashboard: () => site.toDashboard() });
   controls.mount(hud.row);

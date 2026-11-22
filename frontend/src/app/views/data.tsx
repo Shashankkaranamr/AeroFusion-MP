@@ -286,7 +286,7 @@ export function DataView() {
             AI by <strong className="font-semibold text-ink">Amazon Nova Micro</strong> on Bedrock and <strong className="font-semibold text-ink">GPT-OSS</strong> on Groq.
           </p>
           <p>
-            Line figures: <strong className="font-semibold text-ink">Hairline</strong> by Lucas Marques (MIT). Type: Inter, JetBrains Mono.
+            Line figures: <strong className="font-semibold text-ink">Hairline</strong> by Lucas Marques (MIT). Type: JetBrains Mono.
           </p>
         </div>
         <SourceNote>India's boundaries are shown as published by the Survey of India where available; city locations are approximate centres.</SourceNote>
