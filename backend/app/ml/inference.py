@@ -338,6 +338,7 @@ class LiveForecaster:
         self.raw: tuple[str, dict] | None = None   # (issued_at, inputs) of the current issue, for sensitivity runs
         self.base: np.ndarray | None = None
         self.sens: dict = {}
+        self.group_pred: dict[str, np.ndarray] = {}  # forecast with one input group missing; shared by all cities
         if cache_dir and (cache_dir / "model_forecast.json").exists():
             try:
                 self.result = json.loads((cache_dir / "model_forecast.json").read_text(encoding="utf-8"))
@@ -359,7 +360,7 @@ class LiveForecaster:
                 async with httpx.AsyncClient(timeout=90) as client:
                     raw, have = await build_inputs(t0, om_get, client)
                 pred = await asyncio.to_thread(self.ens.predict, raw)  # [48, N]
-                self.raw, self.base, self.sens = (t0.isoformat(), raw), pred, {}
+                self.raw, self.base, self.sens, self.group_pred = (t0.isoformat(), raw), pred, {}, {}
                 self.result = self._package(t0, pred, have)
                 self.error = None
                 if self.cache_dir:
@@ -383,7 +384,7 @@ class LiveForecaster:
                 async with httpx.AsyncClient(timeout=90) as client:
                     raw, _ = await build_inputs(t0, om_get, client)
                 self.base = await asyncio.to_thread(self.ens.predict, raw)
-                self.raw, self.sens = (r["issued_at"], raw), {}
+                self.raw, self.sens, self.group_pred = (r["issued_at"], raw), {}, {}
             if city in self.sens:
                 return self.sens[city]
             self.sens[city] = await asyncio.to_thread(self._sensitivity, city)
@@ -400,15 +401,20 @@ class LiveForecaster:
         b = float(np.nanmean(base[:SENS_HOURS, idx]))
         live = np.isfinite(raw["x_node"][-24:])  # inputs actually present in the last day of the window
 
+        def delta_of(pred: np.ndarray) -> float:
+            return round(b - float(np.nanmean(pred[:SENS_HOURS, idx])), 1)
+
         def delta(occ: dict) -> float:
-            return round(b - float(np.nanmean(self.ens.predict(occ)[:SENS_HOURS, idx])), 1)
+            return delta_of(self.ens.predict(occ))
 
         groups = []
         for g in SENS_GROUPS:
             fi = [i for i, x in enumerate(fg) if x == g]
             present = bool(live[:, :, fi].any()) or any(GRID_GROUP.get(x) == g for x in ch)
+            if present and g not in self.group_pred:  # one run per group per issue, reused for every city
+                self.group_pred[g] = self.ens.predict(_occlude(raw, [g], fg, ch, gmean))
             groups.append({"group": g, "features": [feats[i] for i in fi], "available": present,
-                           "delta": delta(_occlude(raw, [g], fg, ch, gmean)) if present else None})
+                           "delta": delta_of(self.group_pred[g]) if present else None})
         places = []
         for p in _upwind_candidates(nd, idx, raw["wind_uv"]):
             occ = _occlude(raw, list(set(fg)), fg, ch, gmean, nodes=p["nodes"])  # every input of that place missing
