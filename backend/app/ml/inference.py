@@ -84,7 +84,13 @@ class Ensemble:
         raw = {**raw, "wind_uv": wind}
         for m in self.members:
             if m["sess"] is None:
-                m["sess"] = ort.InferenceSession(str(m["dir"] / "model.onnx"), providers=["CPUExecutionProvider"])
+                # No memory arena: with it each of the five sessions keeps its peak buffers, which measured ~490 MB
+                # after one forecast and ~860 MB after sensitivity runs (Render free has 512 MB). Without: ~185 MB.
+                so = ort.SessionOptions()
+                so.enable_cpu_mem_arena = False
+                so.enable_mem_pattern = False
+                so.intra_op_num_threads = 1
+                m["sess"] = ort.InferenceSession(str(m["dir"] / "model.onnx"), sess_options=so, providers=["CPUExecutionProvider"])
             nm = m["norm"]
             x = (raw["x_node"] - np.asarray(nm["x_mean"], np.float32)) / np.asarray(nm["x_std"], np.float32)
             g = (raw["x_grid"] - np.asarray(m["grid"]["mean"], np.float32)[None, :, None, None]) / np.asarray(m["grid"]["std"], np.float32)[None, :, None, None]
