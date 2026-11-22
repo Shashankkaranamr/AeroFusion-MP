@@ -4,6 +4,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { AqiBadge, AqiDot } from "@/components/aqi";
 import { ChartContainer, ChartTooltipContent } from "@/components/charts/chart";
 import { Stat } from "@/components/stat";
+import { useModelForecastAll } from "@/components/model-status";
 import { AnimatedLink } from "@/components/ui/animated-link";
 import { Card, CardBody, CardHeader, SourceNote } from "@/components/ui/card";
 import { ArrowUpRightMark, InteractiveHoverButton } from "@/components/ui/button";
@@ -39,6 +40,71 @@ function alerts(snap: LiveSnapshot, now: number) {
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
     .sort((a, b) => b.pk.pm25! - a.pk.pm25!);
+}
+
+/** Our model's outlook: each city's mean over its next forecast hours (up to 24), against the 24-hour limit. */
+function ModelOutlook({ snap, now }: { snap: LiveSnapshot; now: number }) {
+  const mf = useModelForecastAll();
+  const rows = useMemo(() => {
+    if (mf?.status !== "available" || !mf.valid_times || !mf.cities) return null;
+    const idx = mf.valid_times.map((t, i) => [Date.parse(t), i] as const).filter(([t]) => t > now && t <= now + 24 * 3_600_000);
+    if (!idx.length) return null;
+    const out = [];
+    for (const c of snap.cities) {
+      const f = mf.cities[c.slug];
+      if (!f) continue;
+      const v = idx.map(([t, i]) => [t, f.pm25[i]] as const).filter(([, p]) => p != null);
+      if (!v.length) continue;
+      const mean = v.reduce((s, [, p]) => s + p, 0) / v.length;
+      const pk = v.reduce((a, b) => (b[1] > a[1] ? b : a));
+      out.push({ c, mean, peak: pk[1], peakMs: pk[0] });
+    }
+    out.sort((a, b) => b.mean - a.mean);
+    return { out, hours: idx.length, end: idx.at(-1)![0] };
+  }, [mf, snap, now]);
+  if (!rows || !mf) return null;
+  const above = rows.out.filter((r) => r.mean > NAAQS_PM25_24H);
+  return (
+    <>
+      <SectionLabel>Our model · next {rows.hours} hours</SectionLabel>
+      <Card className="overflow-hidden">
+        <CardHeader
+          eyebrow={`MW-AeroFusion-Net · experimental · issued ${new Date(mf.issued_at!).toUTCString().slice(5, 22)} UTC`}
+          title={
+            above.length
+              ? `${above.length} of ${rows.out.length} cities average above the limit until ${fmtDay(rows.end)}, ${fmtHour(rows.end)}`
+              : `All ${rows.out.length} cities average within the limit until ${fmtDay(rows.end)}, ${fmtHour(rows.end)}`
+          }
+          action={
+            <AnimatedLink href={href("map")} className={headerLink}>
+              Play it on the map
+            </AnimatedLink>
+          }
+        />
+        <CardBody>
+          <ul className="grid border-t border-line sm:grid-cols-2 sm:gap-x-8">
+            {rows.out.slice(0, 6).map(({ c, mean, peak, peakMs }) => (
+              <li key={c.slug}>
+                <a href={href("city", c.slug)} className="press group -mx-2 flex items-center gap-3 border-b border-line px-2 py-2.5 hover:bg-press">
+                  <AqiDot pm={mean} />
+                  <span className="min-w-0 flex-1 truncate text-[14px] text-ink">{c.name}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-3 group-hover:text-ink-2">
+                    peak {Math.round(peak)} · {fmtHour(peakMs)}
+                  </span>
+                  <span className="mono w-9 text-right text-[12.5px] text-ember-ink">{Math.round(mean)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <SourceNote className="mt-4">
+            Average PM2.5 (µg/m³) over the next {rows.hours} hours from our own model, the version without gating averaged over five trained
+            copies, for the {rows.out.length} cities with a measuring station in its panel. Experimental; the official CAMS forecast is in each city
+            view. India&rsquo;s 24-hour limit is {NAAQS_PM25_24H}.
+          </SourceNote>
+        </CardBody>
+      </Card>
+    </>
+  );
 }
 
 export function NowView() {
@@ -131,6 +197,8 @@ export function NowView() {
           context={snap.fires.regions[0] ? `Most in ${snap.fires.regions.slice(0, 2).map((r) => r.region).join(" and ")} · NASA FIRMS` : "NASA FIRMS, last 24 h"}
         />
       </div>
+
+      <ModelOutlook snap={snap} now={now} />
 
       {/* 33-city ranking strip */}
       <SectionLabel>All 33 cities</SectionLabel>

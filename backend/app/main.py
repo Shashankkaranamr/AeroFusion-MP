@@ -99,6 +99,12 @@ def model_metrics():
     return model.metrics()
 
 
+@app.get("/api/model/forecast/all")
+async def model_forecast_all():
+    """Live forecast of the frozen serving model for every city with a station, from one cached issue."""
+    return await model.forecast_all(S._om_get)
+
+
 @app.get("/api/model/forecast")
 async def model_forecast(city: str):
     """Live forecast of the frozen serving model for one city (built once per 00/12 UTC issue time, then cached)."""

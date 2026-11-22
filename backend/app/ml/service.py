@@ -40,6 +40,19 @@ class ModelService:
             return {"status": "pending", "message": "metrics file present but not a measured run; not shown"}
         return data
 
+    async def forecast_all(self, om_get) -> dict:
+        """Every city's forecast from the same cached issue, for the map slider and the Now view.
+        Cities without a station in the model's panel are absent from `cities` (never filled in)."""
+        if self.status()["forecasts"] != "available":
+            return {"status": "pending", "message": PENDING}
+        r = await self.live.ensure(om_get)
+        if not r:
+            return {"status": "pending", "message": "the live forecast could not be built just now; try again later",
+                    "error": self.live.error}
+        return {"status": "available", "issued_at": r["issued_at"], "valid_times": r["valid_times"],
+                "cities": {slug: {"pm25": c["pm25"], "stations": c["stations"]} for slug, c in r["cities"].items()},
+                "model": r["model"], "run_ids": r["run_ids"], "notes": r["notes"], "generated_at": r["generated_at"]}
+
     async def forecast(self, city: str, om_get) -> dict:
         if self.status()["forecasts"] != "available":
             return {"status": "pending", "city": city, "message": PENDING}

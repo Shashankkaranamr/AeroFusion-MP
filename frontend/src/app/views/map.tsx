@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { AnimatedLink } from "@/components/ui/animated-link";
 import { useLive, type LiveSnapshot } from "@/lib/api";
+import { modelPmAt, useModelForecastAll, type ModelForecastAll } from "@/components/model-status";
 import { AQI_CATEGORIES, categoryForPm } from "@/lib/aqi";
 import { INDIA_OUTLINE, INDIA_STATES } from "@/lib/geo/india";
 import { fmtDay, fmtHour, fmtLead } from "@/lib/format";
@@ -69,11 +70,20 @@ function baseStyle(): StyleSpecification {
   };
 }
 
-function citiesAt(snap: LiveSnapshot, lead: number, now: number): FeatureCollection<Point> {
+type FcSource = "cams" | "model";
+
+/** PM2.5 for one city at `lead` hours from now: the live value at 0, else CAMS or our model's forecast. */
+function pmAt(c: LiveSnapshot["cities"][number], lead: number, now: number, src: FcSource, mf: ModelForecastAll | null): number | null {
+  if (lead === 0) return c.pm25;
+  if (src === "model") return modelPmAt(mf, c.slug, now + lead * 3_600_000);
+  return at(citySeries(c, now), lead)?.pm25 ?? null;
+}
+
+function citiesAt(snap: LiveSnapshot, lead: number, now: number, src: FcSource = "cams", mf: ModelForecastAll | null = null): FeatureCollection<Point> {
   return {
     type: "FeatureCollection",
     features: snap.cities.map((c) => {
-      const pm = lead === 0 ? c.pm25 : (at(citySeries(c, now), lead)?.pm25 ?? null);
+      const pm = pmAt(c, lead, now, src, mf);
       return {
         type: "Feature",
         geometry: { type: "Point", coordinates: [c.lon, c.lat] },
@@ -95,6 +105,9 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
   const [ready, setReady] = useState(false);
   const [lead, setLead] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [src, setSrc] = useState<FcSource>("cams");
+  const mf = useModelForecastAll();
+  const modelOk = mf?.status === "available" && !!mf.valid_times?.length;
   const [on, setOn] = useState<Record<Toggle, boolean>>({ cities: true, heat: true, fires: true, wind: true, transport: true });
   const [sat, setSat] = useState<(typeof SATS)[number]["id"]>("none");
   // On a phone the panel would cover the map: it starts closed there, one tap away.
@@ -239,9 +252,9 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !snap) return;
-    (map.getSource("cities") as GeoJSONSource | undefined)?.setData(citiesAt(snap, lead, now));
+    (map.getSource("cities") as GeoJSONSource | undefined)?.setData(citiesAt(snap, lead, now, src, mf));
     wind.current?.setField(windAt(snap.cities, lead, now));
-  }, [lead, ready, snap, now]);
+  }, [lead, ready, snap, now, src, mf]);
 
   /* ------------------------------------------------------------ toggles -- */
   useEffect(() => {
@@ -271,17 +284,26 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
   }, [sel, ready, snap]);
 
   /* ---------------------------------------------------------------- play -- */
+  // Our model forecasts +1…+48 h from its issue time (00/12 UTC), so its window ends earlier than CAMS's.
+  const modelMax = modelOk ? Math.max(1, Math.floor((Date.parse(mf!.valid_times!.at(-1)!) - now) / 3_600_000)) : 0;
+  const [minLead, maxLead] = src === "model" ? [0, modelMax] : [-48, 96];
   useEffect(() => {
     if (!playing) return;
-    const id = setInterval(() => setLead((l) => (l >= 96 ? -48 : l + 1)), 140);
+    const id = setInterval(() => setLead((l) => (l >= maxLead ? minLead : l + 1)), 140);
     return () => clearInterval(id);
-  }, [playing]);
+  }, [playing, minLead, maxLead]);
+  useEffect(() => {
+    if (src === "model" && !modelOk) setSrc("cams");
+    setLead((l) => Math.min(maxLead, Math.max(minLead, l)));
+  }, [src, modelOk, minLead, maxLead]);
 
   const upCount = useMemo(() => (snap && sel ? upwindOf(sel, snap.fires.points).size : 0), [snap, sel]);
   if (!snap || !sel) return null;
   const map = mapRef.current;
-  const selPm = lead === 0 ? sel.pm25 : (at(citySeries(sel, now), lead)?.pm25 ?? null);
+  const selPm = pmAt(sel, lead, now, src, mf);
   const leadMs = now + lead * 3_600_000;
+  const srcLabel = lead === 0 ? "Now" : lead < 0 ? "CAMS · past" : src === "model" ? "Our model · forecast" : "CAMS · forecast";
+  const modelCities = modelOk ? Object.keys(mf!.cities ?? {}).length : 0;
 
   return (
     <div className="-mx-[var(--gutter)] -mt-8 sm:-mt-10">
@@ -372,7 +394,7 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
           <aside className="glass absolute right-3 top-3 z-10 w-[min(320px,calc(100%-24px))] p-5 max-sm:bottom-[148px] max-sm:top-auto sm:right-4 sm:top-4" aria-label={`${sel.name} details`}>
             <div className="flex items-start gap-2">
               <div className="min-w-0">
-                <div className="tag">{lead === 0 ? "Now" : `${fmtDay(leadMs)} · ${fmtHour(leadMs)}`}</div>
+                <div className="tag">{lead === 0 ? "Now" : `${srcLabel} · ${fmtDay(leadMs)} · ${fmtHour(leadMs)}`}</div>
                 <h2 className="display mt-2 text-[2rem]">
                   <strong>{sel.name}.</strong>
                 </h2>
@@ -386,6 +408,9 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
               <span className="font-mono text-[11px] tracking-[0.06em] text-ink-2">µg/m³</span>
             </div>
             <AqiBadge pm={selPm} className="mt-1" />
+            {lead > 0 && src === "model" && selPm == null && (
+              <p className="mt-2 text-[12.5px] text-ink-2">Our model makes no forecast here: this city has no measuring station in its panel.</p>
+            )}
             <div className="tag mb-3 mt-6 border-t border-line pt-4">Top incoming sources</div>
             {inflow.length ? (
               <ul className="grid gap-1.5">
@@ -441,14 +466,48 @@ export function MapView({ fromStory }: { fromStory: boolean }) {
                 </button>
               </div>
               <div className="relative">
-                <Slider label="Forecast hour, from 48 hours ago to 96 hours ahead" min={-48} max={96} value={lead} onValueChange={(v) => setLead(v)} />
+                <Slider
+                  label={src === "model" ? `Forecast hour of our model, from now to ${maxLead} hours ahead` : "Forecast hour, from 48 hours ago to 96 hours ahead"}
+                  min={minLead}
+                  max={maxLead}
+                  value={lead}
+                  onValueChange={(v) => setLead(v)}
+                />
                 {/* the "now" marker */}
-                <span aria-hidden className="pointer-events-none absolute -bottom-3 -translate-x-1/2 font-mono text-[10px] text-ink-3" style={{ left: `${(48 / 144) * 100}%` }}>
+                <span aria-hidden className="pointer-events-none absolute -bottom-3 -translate-x-1/2 font-mono text-[10px] text-ink-3" style={{ left: `${(-minLead / (maxLead - minLead)) * 100}%` }}>
                   now
                 </span>
               </div>
             </div>
+            {/* Forecast source: CAMS or our model */}
+            <div className="flex shrink-0 shadow-[inset_0_0_0_1px_var(--line-2)]" role="radiogroup" aria-label="Forecast source">
+              {(["cams", "model"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={src === s}
+                  disabled={s === "model" && !modelOk}
+                  title={s === "model" && !modelOk ? "Our model's forecast is not available right now" : undefined}
+                  onClick={() => {
+                    sound.tick();
+                    setSrc(s);
+                    if (s === "model" && lead <= 0) setLead(Math.min(24, modelMax));
+                  }}
+                  className={cn("press h-8 px-2.5 font-mono text-[10.5px] uppercase tracking-[0.1em] disabled:opacity-40", src === s ? "bg-ink text-canvas" : "text-ink-2 hover:bg-press hover:text-ink")}
+                >
+                  {s === "cams" ? "CAMS" : (<><span className="max-sm:hidden">Our </span>model</>)}
+                </button>
+              ))}
+            </div>
           </div>
+          {src === "model" && modelOk && (
+            <p className="mt-3 text-[11.5px] leading-snug text-ink-2">
+              MW-AeroFusion-Net (experimental, the version without gating, mean of five trained copies), issued{" "}
+              {new Date(mf!.issued_at!).toUTCString().slice(5, 22)} UTC. It forecasts the {modelCities} cities with a measuring station in its
+              panel; the others are grey.
+            </p>
+          )}
           <div className="mt-3 hidden items-center gap-2 sm:flex" aria-label="PM2.5 colour key">
             {AQI_CATEGORIES.map((c) => (
               <span key={c.key} className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-2">

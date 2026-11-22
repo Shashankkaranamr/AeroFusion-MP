@@ -118,6 +118,32 @@ export function useModelForecast(city: string | null): ModelForecast | null {
   return f.data;
 }
 
+export interface ModelForecastAll {
+  status: "pending" | "available";
+  message?: string;
+  issued_at?: string;
+  valid_times?: string[];
+  /** Only cities with a station in the model's panel; others are absent, never filled in. */
+  cities?: Record<string, { pm25: number[]; stations: number }>;
+  notes?: string[];
+  run_ids?: string[];
+}
+
+/** Every city's model forecast from one issue (map slider, Now view). */
+export function useModelForecastAll(enabled = true): ModelForecastAll | null {
+  return useApi<ModelForecastAll>(enabled ? "/api/model/forecast/all" : null).data;
+}
+
+/** The model's PM2.5 for one city at a given time (nearest hour within 30 min), or null outside +1…+48 h. */
+export function modelPmAt(f: ModelForecastAll | null, slug: string, t: number): number | null {
+  const c = f?.status === "available" ? f.cities?.[slug] : undefined;
+  if (!c || !f?.valid_times) return null;
+  for (let i = 0; i < f.valid_times.length; i++) {
+    if (Math.abs(Date.parse(f.valid_times[i]) - t) <= 30 * 60 * 1000) return c.pm25[i] ?? null;
+  }
+  return null;
+}
+
 /** City view: our model's live forecast is drawn on the chart; this note says what it is and how far to trust it. */
 export function ModelForecastNote({ f }: { f: ModelForecast | null }) {
   if (!f) return null;
