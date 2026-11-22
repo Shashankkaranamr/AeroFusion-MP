@@ -248,12 +248,14 @@ async def fetch_fires(client: httpx.AsyncClient) -> SourceResult:
 
 GIBS_WMS = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
 
+# Suomi-NPP (VIIRS_SNPP_*, OMPS_Aerosol_Index) has no GIBS imagery after 2026-11-02: requests for later
+# dates return all-black / fully transparent images with HTTP 200. The NOAA-20 equivalents are current.
 GIBS_LAYERS = [
-    {"id": "truecolor-viirs", "title": "VIIRS true colour", "subtitle": "Suomi-NPP · corrected reflectance", "layers": "VIIRS_SNPP_CorrectedReflectance_TrueColor", "lag_days": 1, "transparent": False},
-    {"id": "fires", "title": "Thermal anomalies", "subtitle": "VIIRS NOAA-20 · 375 m fire detections", "layers": "VIIRS_SNPP_CorrectedReflectance_TrueColor,VIIRS_NOAA20_Thermal_Anomalies_375m_All", "lag_days": 1, "transparent": False},
+    {"id": "truecolor-viirs", "title": "VIIRS true colour", "subtitle": "NOAA-20 · corrected reflectance", "layers": "VIIRS_NOAA20_CorrectedReflectance_TrueColor", "lag_days": 1, "transparent": False},
+    {"id": "fires", "title": "Thermal anomalies", "subtitle": "VIIRS NOAA-20 · 375 m fire detections", "layers": "VIIRS_NOAA20_CorrectedReflectance_TrueColor,VIIRS_NOAA20_Thermal_Anomalies_375m_All", "lag_days": 1, "transparent": False},
     {"id": "aod", "title": "Aerosol optical depth", "subtitle": "MODIS Terra · aerosol", "layers": "MODIS_Terra_Aerosol", "lag_days": 1, "transparent": True},
     {"id": "truecolor-modis", "title": "MODIS true colour", "subtitle": "Terra · corrected reflectance", "layers": "MODIS_Terra_CorrectedReflectance_TrueColor", "lag_days": 1, "transparent": False},
-    {"id": "aerosol-index", "title": "UV aerosol index", "subtitle": "Suomi-NPP OMPS · smoke & dust", "layers": "OMPS_Aerosol_Index", "lag_days": 1, "transparent": True},
+    {"id": "aerosol-index", "title": "UV aerosol index", "subtitle": "NOAA-20 OMPS · smoke & dust", "layers": "OMPS_NOAA20_NadirMapper_AerosolIndex_380", "lag_days": 1, "transparent": True},
     {"id": "lst", "title": "Land surface temperature", "subtitle": "MODIS Terra · daytime", "layers": "MODIS_Terra_Land_Surface_Temp_Day", "lag_days": 1, "transparent": True},
 ]
 
@@ -291,7 +293,7 @@ async def fetch_gibs(client: httpx.AsyncClient) -> SourceResult:
                     "city": slug,
                     "name": c.name,
                     "date": day.isoformat(),
-                    "url": gibs_url("VIIRS_SNPP_CorrectedReflectance_TrueColor,VIIRS_NOAA20_Thermal_Anomalies_375m_All", bbox, day, 480, 480, False),
+                    "url": gibs_url("VIIRS_NOAA20_CorrectedReflectance_TrueColor,VIIRS_NOAA20_Thermal_Anomalies_375m_All", bbox, day, 480, 480, False),
                 }
             )
         probe = await client.get(layers[0]["url"].replace("WIDTH=900&HEIGHT=940", "WIDTH=64&HEIGHT=64"))
