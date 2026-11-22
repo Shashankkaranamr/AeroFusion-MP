@@ -564,3 +564,105 @@ button {
   text-transform: none;
   letter-spacing: 0.02em;
 }
+
+/* ---------------------------------------------------------------- pipeline drawings -- */
+/* Isometric line drawings in Hairline's manner (components/pipeline): plates filled with the
+   colour they sit on, strokes in four tones at hairline width, data riding the wires. */
+
+.iso .ln {
+  fill: none;
+  stroke-width: var(--hairline-stroke);
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.iso .plate {
+  fill: var(--hairline-plate);
+}
+.iso .t-hi { stroke: var(--hairline-hi); }
+.iso .t-edge { stroke: var(--hairline-edge); }
+.iso .t-mid { stroke: var(--hairline-mid); }
+.iso .t-lo { stroke: var(--hairline-lo); }
+.iso .t-ember { stroke: var(--ember); }
+.iso .packet-ember { fill: var(--ember); }
+.iso .fire { stroke: var(--ember); fill: var(--ember); fill-opacity: 0.5; }
+.iso .sector { fill: rgb(var(--ember-rgb) / 0.06); stroke: rgb(var(--ember-rgb) / 0.55); }
+.iso .off .ln { stroke-dasharray: 3 3; }
+.iso .marker text {
+  font: 500 var(--pl-num, 9.5px) / 1 var(--font-mono);
+  fill: var(--ink-2);
+  pointer-events: none;
+}
+.iso .marker text.name {
+  font: 500 var(--pl-name, 11px) / 1 var(--font-body);
+  letter-spacing: -0.005em;
+  fill: var(--ink-2);
+  paint-order: stroke;
+  stroke: var(--hairline-plate);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.iso .part.hot .marker text.name {
+  fill: var(--ink);
+}
+.iso .part {
+  transition: opacity 300ms var(--ease-out);
+  cursor: default;
+}
+.iso .part.dim {
+  opacity: 0.32;
+}
+.iso .part.hot .t-edge,
+.iso .part.hot .t-mid {
+  stroke: var(--hairline-hi);
+}
+.iso .part.hot .marker circle {
+  stroke: var(--ember);
+}
+.iso .part.hot .marker text {
+  fill: var(--ink);
+}
+
+.iso .pl-flow { animation: flow 1.2s linear infinite; }
+.iso .pl-bob { animation: pl-bob 6s ease-in-out infinite; }
+.iso .pl-blink { animation: pl-blink 1.9s steps(2, jump-none) infinite; }
+.iso .pl-spin { animation: pl-spin 9s linear infinite; }
+.iso .pl-spin-slow { animation: pl-spin 14s linear infinite; }
+.iso .pl-spin-x { animation: pl-turn 7s ease-in-out infinite alternate; }
+.iso .pl-slew { animation: pl-slew 11s ease-in-out infinite alternate; }
+.iso .pl-vane { animation: pl-slew 4s ease-in-out infinite alternate; }
+.iso .pl-drawer { animation: pl-drawer 5s ease-in-out infinite; }
+.iso .pl-kernel { animation: pl-kernel 6s steps(6) infinite; }
+.iso .pl-grow { animation: pl-grow 2.4s ease-in-out infinite alternate; }
+.iso .pl-rise { animation: pl-rise 3.6s ease-out infinite; }
+.iso .pl-lift { animation: pl-lift 3s ease-in-out infinite alternate; }
+.iso .pl-drop { animation: pl-drop 4s var(--ease-out) infinite; }
+.iso .pl-fade { animation: pl-fadeout 4s ease-in infinite; }
+.iso .pl-orbit { animation: pl-spin 6s linear infinite; transform-box: view-box; }
+.iso .pl-trace { stroke-dasharray: 160; animation: pl-trace 4s ease-in-out infinite; }
+.iso [class*="pl-"] { transform-box: view-box; }
+
+@keyframes pl-bob { 50% { transform: translateY(-5px); } }
+@keyframes pl-blink { 50% { opacity: 0.15; } }
+@keyframes pl-spin { to { transform: rotate(360deg); } }
+@keyframes pl-turn { from { transform: scaleX(1); } to { transform: scaleX(0.35); } }
+@keyframes pl-slew { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+@keyframes pl-drawer { 0%, 30% { transform: translate(-14px, -8px); } 55%, 80% { transform: translate(0, 0); } 100% { transform: translate(-14px, -8px); } }
+@keyframes pl-kernel { from { transform: translate(0, 0); } to { transform: translate(52px, 30px); } }
+@keyframes pl-grow { from { opacity: 0.35; } to { opacity: 1; } }
+@keyframes pl-rise { from { transform: translateY(8px); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { transform: translateY(-22px); opacity: 0; } }
+@keyframes pl-lift { to { transform: translateY(-6px); } }
+@keyframes pl-drop { 0% { transform: translateY(-34px); opacity: 0; } 35%, 100% { transform: translateY(0); opacity: 1; } }
+@keyframes pl-fadeout { 0%, 50% { opacity: 1; } 100% { opacity: 0.15; } }
+@keyframes pl-trace { from { stroke-dashoffset: 160; } 60%, to { stroke-dashoffset: 0; } }
+
+/* The track the four stage pages ride on, joined by the trunk wire. */
+.pl-track {
+  transition: transform 1100ms cubic-bezier(0.65, 0, 0.25, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iso [class*="pl-"] { animation: none !important; }
+  .iso .pl-packet { display: none; }
+  .pl-track { transition: none; }
+}

@@ -8,6 +8,8 @@ import { Card, CardBody, CardHeader, SourceNote } from "@/components/ui/card";
 import { CompareReveal } from "@/components/ui/compare-reveal";
 import { InteractiveHoverButton } from "@/components/ui/button";
 import { Missing, SectionLabel, ViewHeader } from "@/components/view-header";
+import { CityBackdrop } from "@/components/landmarks";
+import { CityPicker } from "@/components/shell/header";
 import { useLive, type LiveCity, type LiveSnapshot } from "@/lib/api";
 import { AQI_CATEGORIES, categoryForPm, NAAQS_PM25_24H, pmToAqi } from "@/lib/aqi";
 import { CITY_BY_SLUG } from "@/lib/cities";
@@ -36,11 +38,17 @@ export function CityView({ slug }: { slug: string }) {
   const insights = liveInsights(c, pts);
 
   return (
-    <div>
+    <div className="relative isolate">
+      {/* The city's landmark (India Gate, Victoria Memorial, Charminar, Golden Temple) or BMSCE's PJ Block, as line art behind the header, flush with the page's right edge. */}
+      <CityBackdrop slug={c.slug} className="absolute -top-14 right-[calc(50%-50vw)] -z-10 aspect-square w-[min(620px,90vw)] opacity-[0.32]" />
+      {/* Choose the city, and what would change it: top left, just under the navigation bar. */}
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <CityPicker />
+        <InteractiveHoverButton text="What would change it" onClick={() => navigate("what-if")} />
+      </div>
       <ViewHeader
         eyebrow={`City Forecast · ${meta?.state ?? c.state}`}
         title={<strong>{c.name}.</strong>}
-        actions={<InteractiveHoverButton text="What would change it" onClick={() => navigate("what-if")} />}
       >
         {c.pm25 == null ? (
           "The model has no reading for this city right now."

@@ -38,20 +38,23 @@ type OdometerDigitProps = {
   springValue: MotionValue<number>;
   /** place value: 1, 10, 100, 1000 … */
   place: number;
+  /** The smallest place shown (the wheel that turns continuously). */
+  unit: number;
 };
 
-function OdometerDigit({ springValue, place }: OdometerDigitProps) {
+function OdometerDigit({ springValue, place, unit }: OdometerDigitProps) {
   const [ref, { height }] = useMeasure();
 
   const y = useTransform(springValue, (v) => {
     if (!height) return 0;
-    // A real odometer: this wheel rests on a whole digit and only turns while the wheel below it
-    // rolls over its last unit, so 56 reads 5|6, never 5.6|6.
+    // A real odometer: this wheel rests on a whole digit and only turns while the last wheel (the
+    // smallest place, `unit`) rolls over its last unit, so 56 reads 5|6, never 5.6|6. Places can
+    // be fractional (8.3 is 8 ones and 3 tenths); the 1e-6 keeps 8.3 / 0.1 from reading 82.999….
     const a = Math.abs(v);
-    const whole = Math.floor(a / place);
-    const rem = a - whole * place;
-    const roll = place === 1 ? rem : Math.max(0, rem - (place - 1));
-    return -((whole % 10) + roll) * height;
+    const whole = Math.floor(a / place + 1e-6);
+    const rem = Math.max(0, a - whole * place);
+    const roll = place === unit ? rem / place : Math.max(0, (rem - (place - unit)) / unit);
+    return -((whole % 10) + Math.min(1, roll)) * height;
   });
 
   return (
@@ -282,15 +285,15 @@ function CountUp({
       char?: string;
       placeIdx?: number;
     }> = [];
-    let digitCount = 0;
-    for (const ch of targetStr) {
-      if (/\d/.test(ch)) digitCount++;
-    }
+    // Places count from the decimal point: whole digits 10^k, decimals 10^-1, 10^-2, ….
+    const point = targetStr.indexOf(".");
+    const intPart = point < 0 ? targetStr : targetStr.slice(0, point);
+    const intDigits = (intPart.match(/\d/g) ?? []).length;
+    const fracDigits = point < 0 ? 0 : (targetStr.slice(point + 1).match(/\d/g) ?? []).length;
     let d = 0;
     for (const ch of targetStr) {
       if (/\d/.test(ch)) {
-        const placeFromRight = digitCount - 1 - d;
-        structure.push({ type: "digit", placeIdx: placeFromRight });
+        structure.push({ type: "digit", placeIdx: intDigits - 1 - d });
         d++;
       } else {
         structure.push({ type: "sep", char: ch });
@@ -311,6 +314,7 @@ function CountUp({
               key={i}
               springValue={springValue}
               place={Math.pow(10, item.placeIdx!)}
+              unit={Math.pow(10, -fracDigits)}
             />
           ),
         )}

@@ -79,6 +79,10 @@ function startStory() {
   });
 
   return {
+    /** The smooth scroller (Lenis), when there is one. */
+    get lenis() {
+      return scroller.lenis;
+    },
     /** The dashboard has the page: stop scrolling smoothly, scrubbing, drawing and sounding. */
     pause() {
       controls.stop();

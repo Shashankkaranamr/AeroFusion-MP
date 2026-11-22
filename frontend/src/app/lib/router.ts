@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 /**
  * Hash routes, so the dashboard works from any static host and any sub-path:
  *   #/now  #/map  #/city/delhi  #/why  #/what-if  #/history  #/data
+ *   #/data/sources … #/data/explanation: the pipeline, one stage per page
  */
 export type ViewId = "now" | "map" | "city" | "why" | "what-if" | "history" | "data";
 export const VIEWS: ViewId[] = ["now", "map", "city", "why", "what-if", "history", "data"];

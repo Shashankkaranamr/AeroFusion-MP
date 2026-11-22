@@ -36,7 +36,14 @@ export function Nav({ current, city, inline }: { current: ViewId; city: string; 
               <a
                 href={href(id, id === "city" ? city : undefined)}
                 aria-current={active ? "page" : undefined}
-                onClick={() => sound.tick()}
+                onClick={(e) => {
+                  sound.tick();
+                  // Overview opens on the hero above it (core/site.js), not on the page under it.
+                  if (id === "now") {
+                    e.preventDefault();
+                    window.dispatchEvent(new Event("aerofusion:overview"));
+                  }
+                }}
                 ref={(el) => {
                   // Sideways only, inside the rail: scrollIntoView would also move the page (and
                   // under the story, pull the reader down to the dashboard).

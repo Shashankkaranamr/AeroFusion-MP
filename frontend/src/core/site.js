@@ -14,7 +14,8 @@ import { bridge } from './bridge.js';
  * the dashboard's (#/now). Scrolling up past the dashboard's top (wheel, a pull on touch, or the
  * keyboard) on Overview unlocks it again at the same spot, so the reader rises back into the
  * closing hero. The other views have no hero above them.
- * "Back to the story" (the dashboard's header, or its logo) unlocks and starts from the top.
+ * "Back to the story" (the dashboard's header, or its logo) unlocks and starts from the top;
+ * "Overview" in the navigation unlocks into the closing hero.
  *
  * Arriving on a dashboard address (#/map, #/city/delhi … or the old app.html) opens straight into
  * the dashboard; the story is only built if the reader asks for it.
@@ -144,6 +145,45 @@ export function createSite() {
     toHero();
   });
 
+  /**
+   * "Overview" in the dashboard's navigation: to the story's closing hero (the frame Overview sits
+   * under), building the story first if the reader arrived straight on the dashboard. Scrolling on
+   * down from there locks back into Overview.
+   */
+  const heroY = () => Math.max(0, app.offsetTop - window.innerHeight);
+  async function toOverviewHero() {
+    if (busy) return;
+    lastHash = '#/now';
+    if (!dash) {
+      // The story already has the page (the header over the hero): glide there.
+      const lenis = story?.lenis;
+      if (lenis) lenis.scrollTo(heroY(), { duration: 1.2 });
+      else window.scrollTo({ top: heroY(), behavior: 'smooth' });
+      return;
+    }
+    busy = true;
+    veil.classList.add('is-on');
+    await wait(460);
+    // Behind the veil, switch the dashboard under the hero to Overview, so scrolling on down from
+    // the hero shows Overview and not the view the reader came from.
+    if (!/^#\/now(\?|$)/.test(location.hash)) {
+      location.hash = '#/now';
+      await frame();
+      await frame();
+    }
+    history.replaceState(null, '', location.pathname + location.search);
+    setMode(false);
+    document.title = storyTitle;
+    await frame();
+    story ??= startStory();
+    await frame();
+    story.resumeAt(heroY());
+    await frame();
+    await frame();
+    busy = false;
+    veil.classList.remove('is-on');
+  }
+
   /** Back to the story, from the top. */
   async function toStory() {
     if (!dash || busy) return;
@@ -164,6 +204,7 @@ export function createSite() {
   }
 
   window.addEventListener('aerofusion:story', toStory);
+  window.addEventListener('aerofusion:overview', toOverviewHero);
   window.addEventListener('aerofusion:dashboard', toDashboard);
   // A dashboard address typed or linked while the story is on.
   window.addEventListener('hashchange', () => {

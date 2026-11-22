@@ -10,6 +10,7 @@ import { SectionTitle, ViewHeader } from "@/components/view-header";
 import { useApi, useLive, type LiveSnapshot } from "@/lib/api";
 import { CITY_BY_SLUG } from "@/lib/cities";
 import { fmtAgo, fmtNum } from "@/lib/format";
+import { href } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
 interface Archive {
@@ -18,11 +19,11 @@ interface Archive {
 }
 
 /** The pipeline's four stages. Each is a Hairline figure standing for the stage (never its data). */
-const STAGES: { fig: FigureName; step: string; title: string; text: string; alt: string }[] = [
-  { fig: "dish", step: "01", title: "Sources", text: "Six feeds, fetched every 12 hours: the CAMS model, weather, NASA fire satellites and imagery, the CPCB archive, the calendar.", alt: "A dish antenna that follows the pointer, receiving" },
-  { fig: "sieve", step: "02", title: "Fusion", text: "Every feed is cleaned, aligned to the same 33 cities and the same hours, and checked for gaps.", alt: "Stacked sieves, one lifting clear" },
-  { fig: "terrain", step: "03", title: "Tensor", text: "One block of numbers: time × 33 cities × 20 features. Everything on this site reads from it.", alt: "A field of pillars rising around the pointer" },
-  { fig: "relay", step: "04", title: "Explanation", text: "Statistics and a language model read the tensor and say, in words, what is driving the air.", alt: "A hub whose paths light up hop by hop" },
+const STAGES: { id: string; fig: FigureName; step: string; title: string; text: string; alt: string }[] = [
+  { id: "sources", fig: "dish", step: "01", title: "Sources", text: "Six feeds, fetched every 12 hours: the CAMS model, weather, NASA fire satellites and imagery, the CPCB archive, the calendar.", alt: "A dish antenna that follows the pointer, receiving" },
+  { id: "fusion", fig: "sieve", step: "02", title: "Fusion", text: "Every feed is cleaned, aligned to the same 33 cities and the same hours, and checked for gaps.", alt: "Stacked sieves, one lifting clear" },
+  { id: "tensor", fig: "terrain", step: "03", title: "Tensor", text: "One block of numbers: time × 33 cities × 20 features. Everything on this site reads from it.", alt: "A field of pillars rising around the pointer" },
+  { id: "explanation", fig: "relay", step: "04", title: "Explanation", text: "Statistics and a language model read the tensor and say, in words, what is driving the air.", alt: "A hub whose paths light up hop by hop" },
 ];
 
 export function DataView() {
@@ -76,7 +77,7 @@ export function DataView() {
         <ol className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-[1fr_40px_1fr_40px_1fr_40px_1fr]">
           {STAGES.map((s, i) => (
             <li key={s.step} className="contents">
-              <div className="stagger flex flex-col bg-surface p-4 shadow-[inset_0_0_0_1px_var(--line-2)] transition-shadow duration-500 ease-[var(--ease-out)] hover:shadow-[inset_0_0_0_1px_var(--ink)]" style={{ "--i": i } as React.CSSProperties}>
+              <a href={href("data", s.id)} aria-label={`Stage ${s.step}, ${s.title}: open its page`} className="stagger group flex flex-col bg-surface p-4 shadow-[inset_0_0_0_1px_var(--line-2)] transition-shadow duration-500 ease-[var(--ease-out)] hover:shadow-[inset_0_0_0_1px_var(--ink)]" style={{ "--i": i } as React.CSSProperties}>
                 <div className="tag flex items-center justify-between">
                   <span className="text-ink">{s.step}</span>
                   <span className="text-ink-3">Stage</span>
@@ -85,13 +86,16 @@ export function DataView() {
                 <h3 className="mt-2 text-[19px] font-normal tracking-[-0.02em] text-ink">{s.title}</h3>
                 <p className="mt-1.5 flex-1 text-[13px] leading-relaxed text-ink-2">{s.text}</p>
                 <div className="mt-4 truncate bg-press px-2 py-1.5 text-center font-mono text-[9.5px] font-medium uppercase tracking-[0.14em] text-ink-2 shadow-[inset_0_0_0_1px_var(--line)]">{live[s.step]}</div>
-              </div>
+                <span className="tag mt-3 flex items-center justify-between text-ink-3 group-hover:text-ink">
+                  Open the stage <span aria-hidden>→</span>
+                </span>
+              </a>
               {i < STAGES.length - 1 && <Connector />}
             </li>
           ))}
         </ol>
         <div className="tag mt-8 flex flex-wrap items-center justify-between gap-4 text-ink-3">
-          <span>Hover a stage to inspect</span>
+          <span>Open a stage to follow the wire through it</span>
           <span aria-hidden className="flex gap-1.5">
             {STAGES.map((s) => (
               <span key={s.step} className="h-px w-5 bg-ink-3" />

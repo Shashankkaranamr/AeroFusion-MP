@@ -16,6 +16,7 @@ import { WhyView } from "@/views/why";
 import { WhatIfView } from "@/views/what-if";
 import { HistoryView } from "@/views/history";
 import { DataView } from "@/views/data";
+import { PipelineView } from "@/views/pipeline";
 
 // The map pulls in MapLibre (the heaviest part), so it loads only when opened.
 const MapView = lazy(() => import("@/views/map").then((m) => ({ default: m.MapView })));
@@ -75,7 +76,7 @@ function Shell() {
         Skip to content
       </a>
       <Header view={route.view} onAsk={() => setAsk(true)} />
-      <main id="main" tabIndex={-1} className="min-h-[60vh] outline-none">
+      <main id="main" tabIndex={-1} className="min-h-[60vh] overflow-x-clip outline-none">
         {!snap ? (
           <ColdStart />
         ) : (
@@ -90,7 +91,7 @@ function Shell() {
             {route.view === "why" && <WhyView />}
             {route.view === "what-if" && <WhatIfView />}
             {route.view === "history" && <HistoryView />}
-            {route.view === "data" && <DataView />}
+            {route.view === "data" && (route.slug ? <PipelineView stage={route.slug} /> : <DataView />)}
           </div>
         )}
       </main>
