@@ -12,7 +12,8 @@ import { bridge } from './bridge.js';
  * of the screen it LOCKS: the story steps out of the page (html.mode-dash), the scroll position is
  * moved so nothing visibly jumps, smooth scrolling and every scene stop, and the address becomes
  * the dashboard's (#/now). Scrolling up past the dashboard's top (wheel, a pull on touch, or the
- * keyboard) unlocks it again at the same spot, so the reader rises back into the closing hero.
+ * keyboard) on Overview unlocks it again at the same spot, so the reader rises back into the
+ * closing hero. The other views have no hero above them.
  * "Back to the story" (the dashboard's header, or its logo) unlocks and starts from the top.
  *
  * Arriving on a dashboard address (#/map, #/city/delhi … or the old app.html) opens straight into
@@ -80,9 +81,13 @@ export function createSite() {
     busy = false;
   }
 
-  /** Up out of the dashboard, into the story's closing hero (only once the story has been built). */
+  /**
+   * Up out of the dashboard, into the story's closing hero: only from Overview (the page the hero
+   * sits on), and only once the story has been built. Every other view starts at its own top.
+   */
+  const onOverview = () => /^#\/now(\?|$)/.test(location.hash) || location.hash === '' || location.hash === '#/';
   async function toHero() {
-    if (!dash || busy || !story) return;
+    if (!dash || busy || !story || !onOverview()) return;
     busy = true;
     if (DASH.test(location.hash)) lastHash = location.hash;
     history.replaceState(null, '', location.pathname + location.search);
@@ -105,7 +110,7 @@ export function createSite() {
     }
     return false;
   };
-  const atTop = () => dash && !busy && window.scrollY <= 0;
+  const atTop = () => dash && !busy && window.scrollY <= 0 && onOverview();
   let pull = 0;
   let pullAt = 0;
   window.addEventListener('wheel', (e) => {
