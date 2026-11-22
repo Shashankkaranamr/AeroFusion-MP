@@ -5,7 +5,7 @@ import { brand } from './brand.js';
 /**
  * Fixed UI over every scene, laid out like the dashboard's header so the two read as one site:
  *
- *   [logo place]  THE AIR · A STORY IN SIX SCENES                 [Autoplay] [Sound] [Live dashboard ↗]
+ *   [logo place]                                                  [Autoplay] [Sound] [Live dashboard ↗]
  *
  * (No scene rail: the story is read, not navigated.)
  *
@@ -18,8 +18,6 @@ export function createHud(parent = document.body) {
   const bar = el('header', 'story-bar');
   const inner = el('div', 'story-bar__inner');
   const row = el('div', 'story-bar__row');
-  const title = el('span', 'story-bar__title s-tag', {}, el('b', '', {}, 'The air'), ' · a story in six scenes');
-  row.append(title);
   inner.append(row);
   bar.append(inner);
   const clock = createClock();

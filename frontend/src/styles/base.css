@@ -1092,26 +1092,8 @@ h3 {
   gap: 12px;
   height: 64px;
 }
-.story-bar__title {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: 0;
-  color: rgb(var(--c-ink-rgb) / 0.66);
-  white-space: nowrap;
-}
-@media (max-width: 639px) {
-  .story-bar__title {
-    display: none;
-  }
-}
-.story-bar__title b {
-  color: var(--c-cream);
-  font-weight: 500;
-}
 /* At the end of the story everything but the logo fades (hud.finale). */
 .story-bar::before,
-.story-bar__title,
 .story-bar .controls {
   opacity: var(--chrome, 1);
 }
