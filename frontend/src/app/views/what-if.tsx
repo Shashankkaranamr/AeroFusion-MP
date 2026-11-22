@@ -57,7 +57,7 @@ export function WhatIfView() {
   return (
     <div>
       <ViewHeader
-        eyebrow="What if · illustrative heuristic on the live forecast"
+        eyebrow="Projections · illustrative heuristic on the live forecast"
         title={
           <>
             What would clear

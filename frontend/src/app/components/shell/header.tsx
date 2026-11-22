@@ -93,11 +93,12 @@ export function Header({ view, onAsk }: { view: ViewId; onAsk: () => void }) {
   return (
     <header ref={ref} className="glass no-print sticky top-0 z-50 shadow-[inset_0_-1px_0_var(--line)]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="mx-auto w-full max-w-[1320px] px-[var(--gutter)]">
-        <div className="flex h-16 items-center gap-3">
+        <div className="relative flex h-16 items-center gap-3">
           <div data-fade="late" className="shrink-0">
             <Logo />
           </div>
-          <div data-fade="nav" className="hidden min-w-0 flex-1 xl:block xl:pl-4">
+          {/* Centred on the header, not on the room between the logo and Ask. */}
+          <div data-fade="nav" className="absolute left-1/2 top-0 hidden -translate-x-1/2 xl:block">
             <Nav current={view} city={city} inline />
           </div>
           <div className="ml-auto flex shrink-0 items-center">

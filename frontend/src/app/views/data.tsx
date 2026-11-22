@@ -43,7 +43,7 @@ export function DataView() {
   return (
     <div>
       <ViewHeader
-        eyebrow="Behind the data · system architecture"
+        eyebrow="About the data · system architecture"
         title={
           <>
             How AeroFusion knows
@@ -255,7 +255,7 @@ export function DataView() {
                 <strong className="font-semibold text-ink">AI text can be wrong.</strong> It is written from today's numbers but can misread them. The charts are the record.
               </li>
               <li>
-                <strong className="font-semibold text-ink">What if is a sensitivity model.</strong> It compares options; it doesn't predict.
+                <strong className="font-semibold text-ink">Projections is a sensitivity model.</strong> It compares options; it doesn't predict.
               </li>
               <li>
                 <strong className="font-semibold text-ink">No accuracy is claimed.</strong> We haven't trained or validated a forecast model of our own yet.

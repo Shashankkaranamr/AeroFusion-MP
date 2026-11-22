@@ -131,7 +131,7 @@ export function NowView() {
     <div>
       <ViewHeader
         hero
-        eyebrow={`Now · ${fmtDay(updated)} · ${fmtTime(updated)} IST`}
+        eyebrow={`Overview · ${fmtDay(updated)} · ${fmtTime(updated)} IST`}
         title={
           worst?.pm25 == null ? (
             <>

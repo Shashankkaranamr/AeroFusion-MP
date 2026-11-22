@@ -3,16 +3,18 @@ import { href, type ViewId } from "@/lib/router";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
-/** `short`: the label in the header's top row, where the room is tight. */
-export const NAV: { id: ViewId; label: string; short?: string }[] = [
-  { id: "now", label: "Now" },
-  { id: "map", label: "Map" },
-  { id: "city", label: "City" },
-  { id: "why", label: "Why" },
-  { id: "what-if", label: "What if" },
+export const NAV: { id: ViewId; label: string }[] = [
+  { id: "now", label: "Overview" },
+  { id: "map", label: "Spatial View" },
+  { id: "city", label: "City Forecast" },
+  { id: "why", label: "Insights" },
+  { id: "what-if", label: "Projections" },
   { id: "history", label: "History" },
-  { id: "data", label: "Behind the data", short: "Data" },
+  { id: "data", label: "About the data" },
 ];
+
+/** A view's name, as the navigation shows it (page titles use it too). */
+export const navLabel = (id: ViewId) => NAV.find((n) => n.id === id)?.label ?? id;
 
 /** The view's place in the rail, as the two-digit index the view headers repeat. */
 export const navIndex = (id: ViewId) => String(NAV.findIndex((n) => n.id === id) + 1).padStart(2, "0");
@@ -27,7 +29,7 @@ export function Nav({ current, city, inline }: { current: ViewId; city: string; 
   return (
     <nav aria-label="Dashboard" className={cn("no-scrollbar overflow-x-auto", !inline && "-mx-[var(--gutter)] px-[var(--gutter)]")}>
       <ul className={cn("flex min-w-max items-stretch", inline ? "gap-x-6" : "gap-x-7 sm:gap-x-9")}>
-        {NAV.map(({ id, label, short }, i) => {
+        {NAV.map(({ id, label }, i) => {
           const active = id === current;
           return (
             <li key={id} className="relative">
@@ -50,13 +52,16 @@ export function Nav({ current, city, inline }: { current: ViewId; city: string; 
                   active ? "text-ink" : "text-ink-3 hover:text-ink",
                 )}
               >
-                <span className={cn("transition-colors", active ? "text-cream-ink" : "text-ink-3/70 group-hover:text-ink-2")}>{String(i + 1).padStart(2, "0")}</span>
-                {inline && short ? short : label}
+                {/* The top row has no room for the indices; the row under the header keeps them. */}
+                {!inline && <span className={cn("transition-colors", active ? "text-cream-ink" : "text-ink-3/70 group-hover:text-ink-2")}>{String(i + 1).padStart(2, "0")}</span>}
+                {label}
               </a>
               {active && (
                 <motion.span
                   layoutId="nav-underline"
-                  className="absolute inset-x-0 -bottom-px h-px bg-cream"
+                  // The current view: a cream line just under its name (in the top row, under the
+                  // word itself rather than at the header's edge).
+                  className={cn("absolute inset-x-0 bg-cream", inline ? "bottom-[19px] h-[1.5px]" : "-bottom-px h-px")}
                   transition={{ type: "tween", ease: [0.19, 1, 0.22, 1], duration: 0.6 }}
                 />
               )}

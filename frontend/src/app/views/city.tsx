@@ -38,7 +38,7 @@ export function CityView({ slug }: { slug: string }) {
   return (
     <div>
       <ViewHeader
-        eyebrow={`City · ${meta?.state ?? c.state}`}
+        eyebrow={`City Forecast · ${meta?.state ?? c.state}`}
         title={<strong>{c.name}.</strong>}
         actions={<InteractiveHoverButton text="What would change it" onClick={() => navigate("what-if")} />}
       >

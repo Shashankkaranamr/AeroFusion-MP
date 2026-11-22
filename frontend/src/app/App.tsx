@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Header } from "@/components/shell/header";
+import { navLabel } from "@/components/shell/nav";
 import { Footer } from "@/components/shell/footer";
 import { ColdStart } from "@/components/shell/cold-start";
 import { ChatDrawer } from "@/components/shell/chat-drawer";
@@ -19,15 +20,6 @@ import { DataView } from "@/views/data";
 // The map pulls in MapLibre (the heaviest part), so it loads only when opened.
 const MapView = lazy(() => import("@/views/map").then((m) => ({ default: m.MapView })));
 
-const TITLES: Record<ViewId, string> = {
-  now: "Now",
-  map: "Map",
-  city: "City",
-  why: "Why",
-  "what-if": "What if",
-  history: "History",
-  data: "Behind the data",
-};
 
 function Shell() {
   const route = useRoute();
@@ -59,7 +51,7 @@ function Shell() {
   // Only once it has the page: under the story, it must not retitle or move the page.
   useEffect(() => {
     if (!dash) return;
-    document.title = `${TITLES[route.view]} · AeroFusion`;
+    document.title = `${navLabel(route.view)} · AeroFusion`;
     window.scrollTo({ top: 0 });
   }, [route.view, dash]);
 

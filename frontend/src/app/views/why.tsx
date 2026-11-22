@@ -49,7 +49,7 @@ export function WhyView() {
   return (
     <div>
       <ViewHeader
-        eyebrow="Why · explainability"
+        eyebrow="Insights · explainability"
         title={
           <>
             Why the air is
