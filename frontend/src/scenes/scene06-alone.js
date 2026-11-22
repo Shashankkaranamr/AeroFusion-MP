@@ -52,7 +52,7 @@ export default {
   clock: { from: '12:00 AM', visible: 0 },
   atmosphere: { bg: '#050507', horizon: 0, followClock: 0 },
 
-  build({ viewport: v, section, tl, atmo, motion, hud, onTick, whenNear }) {
+  build({ viewport: v, tl, atmo, motion, hud, onTick, whenNear }) {
     const P = motion.parallax;
     const worst = story.worstDay;
     const timesWho = Math.round(worst.pm25 / LIMITS.who);
@@ -110,7 +110,7 @@ export default {
     const all = [...w51.lines, ...w52.lines, ...w53.lines, ...w54.lines, ...w54b.lines, ...w55.lines, ...w55b.lines];
     gsap.set([...all, ...hero.parts, meter, legend, ring], { autoAlpha: 0 });
 
-    const state = { p: 0, value: 0, drift: 1, gather: 0, warm: 0, fade: 0, ember: 0 };
+    const state = { p: 0, value: 0, drift: 1, gather: 0, warm: 0, fade: 0, ember: 0, site: 0 };
     tl.fromTo(state, { p: 0 }, { p: 1, duration: 1, ease: 'none' }, 0);
     // The concentration: the WHO's day, India's limit, then the surge.
     tl.fromTo(state, { value: 0 }, { value: LIMITS.who, duration: 0.13, ease: 'sine.inOut', immediateRender: false }, 0.1);
@@ -120,6 +120,9 @@ export default {
     // ember itself returns out of them; then it grows into the hero's ball.
     tl.to(state, { drift: 0, duration: 0.04, ease: 'sine.out' }, 0.74);
     tl.fromTo(state, { gather: 0 }, { gather: 1, duration: 0.13, ease: 'none', immediateRender: false }, 0.78);
+    // While they gather, the bar turns into the site's: Autoplay and Sound fade off, Live dashboard
+    // becomes Ask the data (hud.toSite).
+    tl.fromTo(state, { site: 0 }, { site: 1, duration: 0.1, ease: 'sine.inOut', immediateRender: false }, 0.8);
     tl.fromTo(state, { warm: 0 }, { warm: 1, duration: 0.07, ease: 'sine.in', immediateRender: false }, 0.84);
     tl.fromTo(state, { fade: 0 }, { fade: 1, duration: 0.03, ease: 'sine.inOut', immediateRender: false }, 0.9);
     tl.fromTo(state, { ember: 0 }, { ember: 1, duration: 0.03, ease: 'sine.out', immediateRender: false }, 0.895);
@@ -187,9 +190,9 @@ export default {
       living += dt;
       // The ember comes back out of the gathered dots and stays: it is the hero's ball.
       if (state.p >= 0.88) particle.state.opacity = state.ember;
-      // As the dashboard rises under the finished hero, the story bar fades (its own header comes).
-      const below = section.getBoundingClientRect().bottom;
-      hud.finale(clamp01((1 - below / window.innerHeight) / 0.35));
+      // The bar becomes the site's; it stays through the hero, and the dashboard's header rises
+      // under it into the same place (its Ask the data exactly under ours) and takes over on lock.
+      hud.toSite(state.site);
       particle.render(t);
       if (!field) return;
       // The blob's radius: where the ember will be, a little larger (so the ember forms inside it).

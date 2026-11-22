@@ -13,6 +13,11 @@ import { brand } from '../core/brand.js';
  * LIVE DASHBOARD (skip) flies the ember from where it is right now into the logo in the corner
  * (core/brand.js) over a closing veil, then opens the dashboard under it (core/site.js), whose logo
  * sits in exactly that place.
+ *
+ * At the end of the story (hud.toSite, driven by Scene 6 as the dots gather into one) Autoplay and
+ * Sound fade off and Live dashboard turns into ASK THE DATA, in the dashboard's orange, in exactly
+ * the place of the dashboard's own Ask the data. Pressed then, it glides into the dashboard and
+ * opens the chat.
  */
 const PACE = { particle: 0.42, spark: 0.62, ride: 0.85, trap: 0.66, breath: 0.62, alone: 0.5 }; // screens / second
 
@@ -44,7 +49,18 @@ export function createControls({ scroller, sound, sections, toDashboard }) {
   const auto = button('control--auto', 'Autoplay');
   const audio = button('control--sound', 'Sound');
   const skip = button('control--skip', 'Live dashboard');
+  // The label it turns into at the end of the story (CSS crossfades the two by --to-site).
+  const askLabel = el('span', 'control__label control__label--ask', { 'aria-hidden': 'true' }, 'Ask the data');
+  skip.append(askLabel);
   root.append(auto, audio, skip);
+  // Both labels' widths, so the button can narrow from one to the other as it turns (CSS).
+  const measure = () => {
+    const live = skip.querySelector('.control__label:not(.control__label--ask)');
+    if (!live?.offsetWidth) return;
+    skip.style.setProperty('--w-live', `${live.scrollWidth}px`);
+    skip.style.setProperty('--w-ask', `${askLabel.offsetWidth}px`);
+  };
+  document.fonts?.ready.then(() => requestAnimationFrame(measure));
   const veil = el('div', 'veil', { 'aria-hidden': 'true' });
 
   // The story's own end (the dashboard below it is not part of the story's scroll).
@@ -118,7 +134,11 @@ export function createControls({ scroller, sound, sections, toDashboard }) {
     gsap.set(veil, { autoAlpha: 0 });
     skipping = false;
   }
-  skip.addEventListener('click', skipToEnd);
+  skip.addEventListener('click', () => {
+    if (skip.closest('.story-bar')?.classList.contains('is-site')) {
+      window.dispatchEvent(new CustomEvent('aerofusion:ask-from-story'));
+    } else skipToEnd();
+  });
 
   // The logo takes the reader back to the beginning.
   window.addEventListener('aerofusion:home', () => {

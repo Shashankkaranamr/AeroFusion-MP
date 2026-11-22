@@ -1247,6 +1247,55 @@ h3 {
 .control--skip:hover .control__icon {
   transform: translate(2px, -2px);
 }
+/* The end of the story (hud.toSite, --to-site 0..1): Autoplay and Sound fade off to the right,
+   and Live dashboard turns into the dashboard's Ask the data, orange, in the same place. */
+.story-bar :is(.control--auto, .control--sound) {
+  opacity: calc(1 - var(--to-site, 0));
+  transform: translateX(calc(var(--to-site, 0) * 14px));
+}
+.story-bar.is-site :is(.control--auto, .control--sound) {
+  pointer-events: none;
+}
+.story-bar.is-site-done :is(.control--auto, .control--sound) {
+  visibility: hidden;
+}
+.control--skip {
+  position: relative;
+  background: color-mix(in srgb, var(--c-accent) calc(var(--to-site, 0) * 100%), var(--c-cream));
+}
+.control--skip > .control__label:not(.control__label--ask) {
+  /* Out in the first half, the new label in over the second, so they never overlap. */
+  opacity: clamp(0, calc(1 - var(--to-site, 0) * 2), 1);
+  white-space: nowrap;
+}
+/* Turns into exactly the dashboard's button (header.tsx, Button primary md): the width of its
+   label, 20 px each side, a 12 px gap and a 16 px arrow, so the handover on lock is seamless. */
+.story-bar .control--skip {
+  gap: calc(14px - var(--to-site, 0) * 2px);
+  padding-right: calc(18px + var(--to-site, 0) * 2px);
+}
+.story-bar .control--skip > .control__label:not(.control__label--ask) {
+  width: calc(var(--w-live, auto) + (var(--w-ask, 0px) - var(--w-live, 0px)) * var(--to-site, 0));
+}
+.story-bar .control--skip .control__icon {
+  width: calc(10px + var(--to-site, 0) * 6px);
+  height: calc(10px + var(--to-site, 0) * 6px);
+}
+/* (Three classes deep: the phone rule that unhides the skip label must not make this one inline.) */
+.story-bar .control--skip > .control__label--ask {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: clamp(0, calc(var(--to-site, 0) * 2 - 1), 1);
+  pointer-events: none;
+}
+.story-bar.is-site .control--skip:hover {
+  background: var(--c-accent-hover);
+}
 /* Phones: icons only (and a short label on the way in). */
 @media (max-width: 639px) {
   .control {

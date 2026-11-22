@@ -44,6 +44,17 @@ function startStory() {
   });
   const controls = createControls({ scroller, sound, sections: () => story.sections(), toDashboard: () => site.toDashboard() });
   controls.mount(hud.row);
+  // Ask the data, pressed in the story's bar at its end: glide into the dashboard, then open the chat
+  // once it has locked (the chat belongs to the dashboard).
+  window.addEventListener('aerofusion:ask-from-story', () => {
+    const open = (e) => {
+      if (!e.detail?.dash) return;
+      window.removeEventListener('aerofusion:mode', open);
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('aerofusion:ask')));
+    };
+    window.addEventListener('aerofusion:mode', open);
+    window.dispatchEvent(new CustomEvent('aerofusion:enter'));
+  });
   // The closing hero's button: glide on down into the live site (it locks when it reaches the top).
   window.addEventListener('aerofusion:enter', () => {
     const y = document.getElementById('app').offsetTop;
@@ -102,6 +113,7 @@ function startStory() {
       const clear = () => {
         brand.reset();
         hud.finale(0);
+        hud.toSite(0);
         bridge.set(0);
       };
       clear();

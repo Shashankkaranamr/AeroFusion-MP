@@ -26,12 +26,29 @@ export function createHud(parent = document.body) {
   brand.mount(root, row);
 
   let shownFinale = -1;
+  let shownSite = -1;
 
   return {
     root,
     clock,
     /** The bar's top row: the controls mount here, after the logo. */
     row,
+    /**
+     * 0 = the story's controls; 1 = the site's: Autoplay and Sound gone, Live dashboard turned
+     * into Ask the data (components/controls.js). Scene 6 drives it as the dots gather.
+     */
+    toSite(v) {
+      const r = Math.round(Math.min(1, Math.max(0, v)) * 100) / 100;
+      if (r === shownSite) return;
+      shownSite = r;
+      bar.style.setProperty('--to-site', String(r));
+      const on = r > 0.5;
+      if (bar.classList.contains('is-site') !== on) {
+        bar.classList.toggle('is-site', on);
+        bar.querySelector('.control--skip')?.setAttribute('aria-label', on ? 'Ask the data' : 'Live dashboard');
+      }
+      bar.classList.toggle('is-site-done', r >= 0.99);
+    },
     /** 0 = the full bar; 1 = only the logo is left (the end of the story). */
     finale(v) {
       const r = Math.round(v * 100) / 100;
