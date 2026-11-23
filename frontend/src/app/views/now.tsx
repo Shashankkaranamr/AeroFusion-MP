@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { TabBackdrop } from "@/components/landmarks";
 import { Area, AreaChart, ReferenceLine, XAxis, YAxis, Tooltip } from "recharts";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { AqiBadge, AqiDot } from "@/components/aqi";
@@ -129,9 +128,7 @@ export function NowView() {
   };
 
   return (
-    <div className="relative isolate">
-      {/* A line drawing for this tab behind its header, flush with the page's right edge (components/landmarks-more.tsx). */}
-      <TabBackdrop view="now" className="h-[380px] w-[min(520px,40vw)]" />
+    <div>
       <ViewHeader
         hero
         eyebrow={`Overview · ${fmtDay(updated)} · ${fmtTime(updated)} IST`}

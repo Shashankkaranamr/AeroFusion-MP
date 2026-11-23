@@ -426,26 +426,6 @@ function visakhapatnam(s: Scene) {
   s.box(L - 40, L - 20, cy - 4, cy + 30, -3, 3);
 }
 
-/** Bengaluru: the Vidhana Soudha, its colonnaded portico and central dome. */
-function bengaluru(s: Scene) {
-  paving(s, 140, -220);
-  for (let i = 0; i < 4; i++) s.box(-150 + i * 8, 150 - i * 8, i * 8, (i + 1) * 8, -220 + i * 10, -150);
-  const cols = (n: number, v1: number) => (e: Elev, w: number) => {
-    for (let k = 0; k <= n; k++) e.v((k * w) / n, 0, v1, true);
-    e.h(0, w, v1, true);
-  };
-  s.box(-400, 400, 0, 160, -110, 110, { front: both(windows(16, 3, 10, 150)), right: windows(5, 3, 10, 150) });
-  s.box(-130, 130, 32, 200, -150, -110, { front: cols(10, 150), right: cols(2, 150) });
-  s.box(-140, 140, 200, 214, -156, -104, { front: (e, w) => void e.line([[0, 14], [w / 2, 40], [w, 14]]) });
-  s.revolve([0, 160, 0], [[72, 0], [72, 70], [80, 70], [80, 78], [70, 78]], { rings: [1, 2, 3, 4], ribs: 20 });
-  s.revolve([0, 238, 0], domeProfile(68, 100, 0.06, 20), { ribs: 14 });
-  finial(s, [0, 338, 0], 34);
-  for (const x of [-360, 360]) {
-    s.revolve([x, 160, -80], domeProfile(26, 38, 0.1), { ribs: 6 });
-    finial(s, [x, 198, -80], 14);
-  }
-}
-
 /** A gopuram: a doorway base and tiers to a barrel-vault crown with a row of kalashas. */
 function gopuram(s: Scene, x: number, z: number, w: number, d: number, n: number) {
   s.box(x - w / 2, x + w / 2, 0, 100, z - d / 2, z + d / 2, {
@@ -689,35 +669,6 @@ function jodhpur(s: Scene) {
 
 /* ================================================================== the other tabs ============= */
 
-/** Overview: an Earth-observation satellite (most of the site's data comes from orbit). */
-function satellite(s: Scene) {
-  const c: V3 = [0, 300, 0];
-  const panel = (sign: number) => {
-    const x0 = sign > 0 ? 80 : -300;
-    const x1 = sign > 0 ? 300 : -80;
-    s.box(x0, x1, c[1] + 40, c[1] + 46, -70, 70, {});
-    const it = s.item([(x0 + x1) / 2, c[1] + 46, 0]);
-    for (let k = 1; k < 6; k++) {
-      const x = x0 + ((x1 - x0) * k) / 6;
-      s.line(it, [[x, c[1] + 46.5, -70], [x, c[1] + 46.5, 70]], true);
-    }
-    s.line(it, [[x0, c[1] + 46.5, 0], [x1, c[1] + 46.5, 0]], true);
-    s.line(it, [[sign > 0 ? 60 : -60, c[1] + 43, 0], [sign > 0 ? 80 : -80, c[1] + 43, 0]]);
-  };
-  panel(-1);
-  s.box(-60, 60, c[1] - 20, c[1] + 100, -60, 60, {
-    front: (e, w, h) => { e.rect(14, 14, w - 14, h - 14, true); e.h(0, w, h * 0.55, true); },
-    right: (e, w, h) => { for (let u = 10; u < w; u += 12) e.v(u, 10, h - 10, true); },
-  });
-  s.revolve([10, c[1] - 60, -10], [[24, 0], [24, 40], [30, 40]], { rings: [1, 2] });
-  s.revolve([10, c[1] - 76, -10], [[14, 0], [20, 16]], {});
-  dish(s, [20, c[1] + 150, 10], 40, [-0.35, 1, -0.4]);
-  const m = s.item([20, c[1] + 100, 10]);
-  s.line(m, [[20, c[1] + 100, 10], [20, c[1] + 134, 10]]);
-  s.line(m, [[-40, c[1] + 100, -40], [-40, c[1] + 170, -40]]);
-  panel(1);
-}
-
 /** Insights: a weather mast: anemometer, wind vane, instrument screen and a solar panel. */
 function weatherMast(s: Scene) {
   paving(s, 60, -160);
@@ -841,7 +792,6 @@ export const MORE_CITY_SCENES: Record<string, { build: (s: Scene) => void; water
   indore: { build: indore },
   raipur: { build: raipur, water: true },
   visakhapatnam: { build: visakhapatnam },
-  bengaluru: { build: bengaluru },
   chennai: { build: chennai },
   thiruvananthapuram: { build: thiruvananthapuram, water: true },
   kochi: { build: kochi, water: true },
@@ -858,7 +808,6 @@ export const MORE_CITY_SCENES: Record<string, { build: (s: Scene) => void; water
 };
 
 export const TAB_SCENES: Record<string, { build: (s: Scene) => void; water?: boolean }> = {
-  now: { build: satellite },
   why: { build: weatherMast },
   "what-if": { build: factory },
   history: { build: station },
